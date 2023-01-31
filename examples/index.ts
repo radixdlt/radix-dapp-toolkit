@@ -14,6 +14,8 @@ const rdt = RadixDappToolkit(
   { logger: new Logger(), networkId: 11 }
 )
 
+document.body.appendChild(document.createElement('radix-connect-button'))
+
 const sendTx = (address: string) => {
   const faucet =
     'component_tdx_b_1qftacppvmr9ezmekxqpq58en0nk954x0a7jv2zz0hc7qdxyth4'

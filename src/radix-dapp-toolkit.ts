@@ -29,10 +29,7 @@ export const RadixDappToolkit = (
   const storageClient = providers?.storage || LocalStorageClient()
 
   const connectButtonClient =
-    providers?.connectButton ||
-    ConnectButtonClient({
-      connectButtonElement: document.querySelector('radix-connect-button')!,
-    })
+    providers?.connectButton || ConnectButtonClient({ logger })
 
   const walletClient =
     providers?.walletClient ||
