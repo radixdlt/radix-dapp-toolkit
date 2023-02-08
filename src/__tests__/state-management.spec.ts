@@ -115,6 +115,7 @@ describe('state management', () => {
       connectButtonClient,
       walletClient,
       onInitCallback: () => {},
+      onDisconnectCallback: () => {},
       connectRequest: (requestData) =>
         requestData({
           accounts: {
@@ -204,6 +205,7 @@ describe('state management', () => {
         storageClient,
         connectButtonClient,
         walletClient,
+        onDisconnectCallback: () => {},
         onInitCallback: (state) => {
           init.next(state)
         },
@@ -249,6 +251,7 @@ describe('state management', () => {
         storageClient,
         connectButtonClient,
         walletClient,
+        onDisconnectCallback: () => {},
         onInitCallback: (state) => {
           init.next(state)
         },
