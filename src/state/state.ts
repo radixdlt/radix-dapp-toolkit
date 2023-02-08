@@ -112,8 +112,42 @@ export const StateClient = (input: {
     distinctUntilChanged()
   )
 
+  const persona$ = subjects.state$.pipe(
+    map(({ persona }) => persona),
+    distinctUntilChanged()
+  )
+
+  const accounts$ = subjects.state$.pipe(map(({ accounts }) => accounts))
+
   subscriptions.add(
-    connectButtonClient.onDisconnect$.pipe(tap(resetState)).subscribe()
+    accounts$
+      .pipe(
+        tap((accounts) => {
+          connectButtonClient.setAccounts(accounts || [])
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    persona$
+      .pipe(
+        tap((persona) => {
+          connectButtonClient.setPersonaLabel(persona?.label ?? '')
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onDisconnect$
+      .pipe(
+        tap(() => {
+          resetState()
+          walletClient.resetRequestItems()
+        })
+      )
+      .subscribe()
   )
 
   subscriptions.add(
@@ -121,6 +155,16 @@ export const StateClient = (input: {
       .pipe(
         tap((isLoading) => {
           connectButtonClient.setLoading(isLoading)
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    walletClient.requestItems$
+      .pipe(
+        tap((items) => {
+          connectButtonClient.setRequestItems(items)
         })
       )
       .subscribe()
@@ -188,6 +232,8 @@ export const StateClient = (input: {
             mergeMap(
               (state) =>
                 input.connectRequest?.((input: DataRequestInput) => {
+                  logger?.debug(`connectRequest`, input)
+                  connectButtonClient.setConnecting(true)
                   return handleRequest(
                     withAuth(
                       {
@@ -202,11 +248,14 @@ export const StateClient = (input: {
                     }
                   )
                     .map(({ data, resolvedBy }) => {
-                      if (!connectDoneCallback && resolvedBy === 'wallet')
+                      if (!connectDoneCallback && resolvedBy === 'wallet') {
                         setState({ ...data, connected: true }, true)
+                        connectButtonClient.setConnecting(false)
+                      }
 
                       const done = () => {
                         setState({ ...data, connected: true }, true)
+                        connectButtonClient.setConnecting(false)
                       }
 
                       return {
@@ -216,6 +265,7 @@ export const StateClient = (input: {
                     })
                     .mapErr((error) => {
                       setState({ connected: false }, true)
+                      connectButtonClient.setConnecting(false)
                       return error
                     })
                 }) ?? []

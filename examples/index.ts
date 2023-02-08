@@ -3,7 +3,7 @@ import { RadixDappToolkit } from '../src/radix-dapp-toolkit'
 import { Logger } from 'tslog'
 
 const rdt = RadixDappToolkit(
-  'acc_123abc',
+  { dAppDefinitionAddress: 'acc_123abc', dAppName: 'Test dApp' },
   (requestData) => {
     requestData({
       accounts: { quantifier: 'atLeast', quantity: 1 },
@@ -11,7 +11,7 @@ const rdt = RadixDappToolkit(
       // add accounts to dApp application state
     })
   },
-  { logger: new Logger(), networkId: 11 }
+  { logger: new Logger(), networkId: 34 }
 )
 
 document.body.appendChild(document.createElement('radix-connect-button'))

@@ -5,6 +5,7 @@ import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
 import { OngoingAccounts } from '@radixdlt/wallet-sdk/dist/IO/request-items/ongoing-accounts'
+import { RequestItem } from '@radixdlt/connect-button'
 
 export type StorageProvider = {
   getData: <T = any>(key: string) => ResultAsync<T | undefined, Error>
@@ -14,8 +15,13 @@ export type StorageProvider = {
 export type ConnectButtonProvider = {
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
+  onCancelRequestItem$: Observable<string>
   setLoading: (value: boolean) => void
   setConnected: (value: boolean) => void
+  setRequestItems: (value: RequestItem[]) => void
+  setAccounts: (value: Account[]) => void
+  setPersonaLabel: (value: string) => void
+  setConnecting: (value: boolean) => void
   destroy: () => void
 }
 
@@ -24,25 +30,12 @@ export type SendTransactionRequestValue = Parameters<
   WalletSdkType['sendTransaction']
 >[0]
 
-export type WalletDataRequest = {
+export type WalletDataRequest<S extends RequestStatusTypes, T = {}> = {
   type: 'data'
   value: DataRequestValue
-}
-
-export type WalletSendTransactionRequest = {
-  type: 'sendTransaction'
-  value: SendTransactionRequestValue
-}
-
-export type WalletRequest = WalletDataRequest | WalletSendTransactionRequest
-
-export type State = {
-  connected: boolean
-  accounts?: Account[]
-  persona?: { identityAddress: string; label: string }
-}
-
-export type RequestStatus = keyof typeof RequestStatus
+  status: S
+  id: string
+} & T
 
 export const RequestStatus = {
   pending: 'pending',
@@ -50,7 +43,15 @@ export const RequestStatus = {
   fail: 'fail',
 } as const
 
-export type RequestItem = WalletRequest & { status: RequestStatus }
+type RequestStatus = typeof RequestStatus
+
+export type RequestStatusTypes = keyof typeof RequestStatus
+
+export type State = {
+  connected: boolean
+  accounts?: Account[]
+  persona?: { identityAddress: string; label: string }
+}
 
 export type DataRequestInput = {
   accounts?: OngoingAccounts['WithoutProofOfOwnership']['method']['input']

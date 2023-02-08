@@ -15,7 +15,10 @@ export type RadixDappToolkitConfiguration = {
   useDoneCallback?: boolean
 }
 export const RadixDappToolkit = (
-  dAppDefinitionAddress: string,
+  {
+    dAppDefinitionAddress,
+    dAppName,
+  }: { dAppDefinitionAddress: string; dAppName: string },
   connectRequest?: (connectRequest: RequestData) => any,
   configuration?: RadixDappToolkitConfiguration
 ) => {
@@ -29,7 +32,7 @@ export const RadixDappToolkit = (
   const storageClient = providers?.storage || LocalStorageClient()
 
   const connectButtonClient =
-    providers?.connectButton || ConnectButtonClient({ logger })
+    providers?.connectButton || ConnectButtonClient({ logger, dAppName })
 
   const walletClient =
     providers?.walletClient ||

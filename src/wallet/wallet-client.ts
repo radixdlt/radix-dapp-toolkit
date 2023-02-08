@@ -28,11 +28,15 @@ export const WalletClient = (input: {
         input['ongoingAccountsWithoutProofOfOwnership'],
     }
 
-    const id = requestItemClient.add({
-      type: 'data',
-      value: requestInput,
-    })
+    const type = !!(
+      input.login ||
+      input.loginWithChallenge ||
+      input.loginWithoutChallenge
+    )
+      ? 'loginRequest'
+      : 'dataRequest'
 
+    const { id } = requestItemClient.add(type)
     removeUndefined(requestInput).map((data) =>
       logger?.debug(`⬆️walletRequest`, data)
     )
@@ -40,12 +44,12 @@ export const WalletClient = (input: {
     return walletSdk
       .request(requestInput)
       .map((response) => {
-        requestItemClient.updateStatus(id, 'success')
         logger?.debug(`⬇️walletSuccessResponse`, response)
+        requestItemClient.updateStatus(id, 'success')
 
         return {
           accounts: response.ongoingAccounts,
-          persona: response.auth,
+          persona: response.persona,
         }
       })
       .mapErr((error) => {
@@ -72,11 +76,7 @@ export const WalletClient = (input: {
   const sendTransaction = (
     input: Parameters<WalletSdkType['sendTransaction']>[0]
   ) => {
-    const id = requestItemClient.add({
-      type: 'sendTransaction',
-      value: input,
-    })
-
+    const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
       .sendTransaction(input)
       .map((response) => {
@@ -86,7 +86,7 @@ export const WalletClient = (input: {
       })
       .mapErr((error) => {
         requestItemClient.updateStatus(id, 'fail')
-        logger?.debug(`⬇️wallet error response`, error)
+        logger?.debug(`⬇️walletErrorResponse`, error)
         return error
       })
   }
@@ -95,6 +95,8 @@ export const WalletClient = (input: {
     request: sendWalletRequest,
     sendTransaction,
     pendingRequests$: requestItemClient.subjects.pendingItems.asObservable(),
+    requestItems$: requestItemClient.items$,
+    resetRequestItems: requestItemClient.reset,
     destroy: () => {
       requestItemClient.destroy()
       walletSdk.destroy()

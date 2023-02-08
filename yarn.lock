@@ -1527,18 +1527,18 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@radixdlt/connect-button@0.11.0-alpha.1":
-  version "0.11.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.11.0-alpha.1.tgz#cf97543c9b3cbb6fa909bc84e78b65986419185a"
-  integrity sha512-UHmYBLSO7lQ4OPt1SsKaEKTrjFkTTeRYBpAmYK/uRDyFH0IciZCLuf3YagnElzm0xkVGFYP5sMZrGqZdxMadiQ==
+"@radixdlt/connect-button@0.11.0-alpha.6":
+  version "0.11.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.11.0-alpha.6.tgz#463b70834ad497c072d14605abc577a952c9b4ac"
+  integrity sha512-HAbgT+h+oZ6TzZk9rgqH1E41wvIRi/Fp/yzfR3VUo1/w+3ixPwAnSQ/HiU4XLpsZ4jUhdNmFjTnSHZ5jC/IafA==
   dependencies:
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.6.0-beta.4":
-  version "0.6.0-beta.4"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.6.0-beta.4.tgz#244461a90f863461f7e951cf1ba598f6cf931aab"
-  integrity sha512-2H8uEFXfBauPvxUf7oEVg3q66zD1WB4X4OkzYhz902GTUemOM3XjjNyslNrHioMegHLOwihRNJUXIrCuxgA2Dw==
+"@radixdlt/wallet-sdk@0.6.0-beta.8":
+  version "0.6.0-beta.8"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.6.0-beta.8.tgz#2689553cef29b2f775fba07e36a087c1232a4d8d"
+  integrity sha512-PeeB7alEWfGeJxgQUaBB24c4YwTjT29R7RbtONF1HjicTnhqDUAOd1YqkevY/2GtGTr2RlU9VvGSae8d8cHuhA==
   dependencies:
     lodash.flow "^3.5.0"
     loglevel "^1.8.1"
@@ -2337,7 +2337,7 @@ error-ex@^1.3.1:
   dependencies:
     is-arrayish "^0.2.1"
 
-esbuild@^0.16.3:
+esbuild@^0.16.14:
   version "0.16.17"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.16.17.tgz#fc2c3914c57ee750635fee71b89f615f25065259"
   integrity sha512-G8LEkV0XzDMNwXKgM0Jwu3nY3lSTwSGY6XbxM9cr9+s0T/qSV1q1JVPBGzm3dcjhCic9+emZDmMffkwgPeOeLg==
@@ -3780,7 +3780,7 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-postcss@^8.4.20:
+postcss@^8.4.21:
   version "8.4.21"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.21.tgz#c639b719a57efc3187b13a1d765675485f4134f4"
   integrity sha512-tP7u/Sn/dVxK2NnruI4H9BG+x+Wxz6oeZ1cJ8P6G/PZY0IKk4k/63TDsQf2kQq3+qoJeLm2kIBUNlZe3zgb4Zg==
@@ -3992,10 +3992,10 @@ resolve@^1.10.0, resolve@^1.14.2, resolve@^1.20.0, resolve@^1.22.1:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-rollup@^3.7.0:
-  version "3.11.0"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.11.0.tgz#89c487441b18b7c689a0c9aa4221e03b87535461"
-  integrity sha512-+uWPPkpWQ2H3Qi7sNBcRfhhHJyUNgBYhG4wKe5wuGRj2m55kpo+0p5jubKNBjQODyPe6tSBE3tNpdDwEisQvAQ==
+rollup@^3.10.0:
+  version "3.14.0"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.14.0.tgz#f5925255f3b6e8de1dba3916d7619c7da5708d95"
+  integrity sha512-o23sdgCLcLSe3zIplT9nQ1+r97okuaiR+vmAPZPTDYB7/f3tgWIYNyiQveMsZwshBT0is4eGax/HH83Q7CG+/Q==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -4324,10 +4324,10 @@ tslib@^2.1.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.1.tgz#0d0bfbaac2880b91e22df0768e55be9753a5b17e"
   integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
 
-tslog@^4.7.1:
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/tslog/-/tslog-4.7.1.tgz#c439a5d900bfa020da5f04b0719acb064a7bee4e"
-  integrity sha512-Ez90j4FKCUp9bBlgPq96aYDUbXRIOxz6Vxn/4Iw2/IiVxLB5wsUVkWfeK4oqdRMoW8qBVJz9oIT+ysjfyIRufw==
+tslog@^4.7.2:
+  version "4.7.2"
+  resolved "https://registry.yarnpkg.com/tslog/-/tslog-4.7.2.tgz#bc442ef9d42f1e9aa08a9a443ecc15ac3b818d40"
+  integrity sha512-NZCunFmbQK25tt+Egv28MLcmbo8M1HgUy6X2hdVbgrAlcR7zRGvPmM8SnpoljXZ48zHRRYWp9vYIHFHKWsR4HA==
 
 type-check@~0.3.2:
   version "0.3.2"
@@ -4454,15 +4454,15 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-vite@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-4.0.4.tgz#4612ce0b47bbb233a887a54a4ae0c6e240a0da31"
-  integrity sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==
+vite@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-4.1.1.tgz#3b18b81a4e85ce3df5cbdbf4c687d93ebf402e6b"
+  integrity sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==
   dependencies:
-    esbuild "^0.16.3"
-    postcss "^8.4.20"
+    esbuild "^0.16.14"
+    postcss "^8.4.21"
     resolve "^1.22.1"
-    rollup "^3.7.0"
+    rollup "^3.10.0"
   optionalDependencies:
     fsevents "~2.3.2"
 

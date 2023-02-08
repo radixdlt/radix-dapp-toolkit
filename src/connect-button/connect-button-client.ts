@@ -1,15 +1,26 @@
-import { filter, first, map, merge, of, Subscription, tap, timer } from 'rxjs'
+import {
+  filter,
+  finalize,
+  first,
+  fromEvent,
+  map,
+  merge,
+  Subject,
+  Subscription,
+  switchMap,
+  takeUntil,
+  tap,
+  timer,
+} from 'rxjs'
 import { Logger } from 'tslog'
-import { ConnectButton } from '@radixdlt/connect-button'
+import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
-
-type ConnectButtonElement = HTMLElement &
-  Pick<ConnectButton, 'onConnect' | 'onDisconnect' | 'loading' | 'connected'>
 
 export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
+  dAppName: string
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
@@ -21,41 +32,105 @@ export const ConnectButtonClient = (input: {
   }
   const onConnect = input.onConnect || onConnectDefault
 
-  const getConnectButtonElement = (): ConnectButtonElement | null =>
+  const getConnectButtonElement = (): ConnectButton | null =>
     document.querySelector('radix-connect-button')
 
   const subscriptions = new Subscription()
 
+  const bootStrapConnectButton = new Subject<void>()
+
   subscriptions.add(
-    merge(of(null), timer(0, 100))
+    // TODO: listen to an on CB DOM render event instead using a timer
+    merge(bootStrapConnectButton, timer(0, 100))
       .pipe(
         map(() => getConnectButtonElement()),
-        filter((element): element is ConnectButtonElement => !!element),
+        filter((element): element is ConnectButton => !!element),
+        tap(() => {
+          logger?.debug(`connectButtonDiscovered`)
+        }),
         first(),
-        tap((connectButtonElement) => {
-          logger?.debug(`🔎 connectButtonInstantiated`)
+        switchMap((connectButtonElement) => {
           import('@radixdlt/connect-button')
 
-          connectButtonElement.onConnect = () => {
-            onConnect((value) => subjects.onConnect.next(value))
-          }
+          connectButtonElement.dAppName = input.dAppName
 
-          connectButtonElement.onDisconnect = () => {
-            subjects.onDisconnect.next()
-          }
-
-          subscriptions.add(
-            subjects.loading
-              .pipe(tap((value) => (connectButtonElement.loading = value)))
-              .subscribe()
+          const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
+            tap(() => {
+              onConnect((value) => subjects.onConnect.next(value))
+            })
           )
 
-          subscriptions.add(
-            subjects.connected
-              .pipe(tap((value) => (connectButtonElement.connected = value)))
-              .subscribe()
+          const onDisconnect$ = fromEvent(
+            connectButtonElement,
+            'onDisconnect'
+          ).pipe(
+            tap(() => {
+              subjects.onDisconnect.next()
+            })
           )
-        })
+
+          const onDestroy$ = fromEvent(connectButtonElement, 'onDestroy').pipe(
+            tap(() => {
+              logger?.debug(`connectButtonRemovedDisconnectedFromDOM`)
+            })
+          )
+
+          const onCancelRequestItem$ = fromEvent(
+            connectButtonElement,
+            'onCancelRequestItem'
+          ).pipe(
+            tap((event) => {
+              const id = (event as CustomEvent<{ id: string }>).detail.id
+              logger?.debug(`onCancelRequestItem`, { id })
+              subjects.onCancelRequestItem.next(id)
+            })
+          )
+
+          const loading$ = subjects.loading.pipe(
+            tap((value) => (connectButtonElement.loading = value))
+          )
+
+          const connected$ = subjects.connected.pipe(
+            tap((value) => (connectButtonElement.connected = value))
+          )
+
+          const requestItems$ = subjects.requestItems.pipe(
+            tap((items) => {
+              connectButtonElement.requestItems = items
+            })
+          )
+
+          const accounts$ = subjects.accounts.pipe(
+            tap((items) => {
+              connectButtonElement.accounts = items
+            })
+          )
+
+          const personaLabel$ = subjects.personaLabel.pipe(
+            tap((items) => {
+              connectButtonElement.personaLabel = items
+            })
+          )
+
+          const connecting$ = subjects.connecting.pipe(
+            tap((value) => {
+              connectButtonElement.connecting = value
+            })
+          )
+
+          return merge(
+            onConnect$,
+            loading$,
+            connected$,
+            requestItems$,
+            onDisconnect$,
+            onCancelRequestItem$,
+            accounts$,
+            personaLabel$,
+            connecting$
+          ).pipe(takeUntil(onDestroy$))
+        }),
+        finalize(() => bootStrapConnectButton.next())
       )
       .subscribe()
   )
@@ -63,8 +138,15 @@ export const ConnectButtonClient = (input: {
   return {
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
+    onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     setLoading: (value: boolean) => subjects.loading.next(value),
+    setConnecting: (value: boolean) => subjects.connecting.next(value),
     setConnected: (value: boolean) => subjects.connected.next(value),
+    setRequestItems: (items: RequestItem[]) =>
+      subjects.requestItems.next(items),
+    setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
+    setPersonaLabel: (personaLabel: string) =>
+      subjects.personaLabel.next(personaLabel),
     destroy: () => {
       subscriptions.unsubscribe()
     },
