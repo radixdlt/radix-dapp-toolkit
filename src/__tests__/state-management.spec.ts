@@ -88,6 +88,7 @@ describe('state management', () => {
     connectButtonClient = ConnectButtonClient({
       logger,
       subjects: connectButtonSubjects,
+      dAppName: '',
     })
     requestItemClient = RequestItemClient({
       logger,
