@@ -11,7 +11,11 @@ const rdt = RadixDappToolkit(
       // add accounts to dApp application state
     })
   },
-  { logger: new Logger(), networkId: 34 }
+  {
+    logger: new Logger(),
+    networkId: 34,
+    onDisconnect: () => {},
+  }
 )
 
 document.body.appendChild(document.createElement('radix-connect-button'))

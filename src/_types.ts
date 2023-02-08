@@ -80,6 +80,8 @@ export type OnConnectCallback = (
 
 export type OnInitCallback = (state: State) => void
 
+export type OnDisconnectCallback = () => void
+
 export type Providers = {
   storage: StorageProvider
   connectButton: ConnectButtonProvider

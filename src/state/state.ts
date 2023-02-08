@@ -3,6 +3,7 @@ import { StateSubjects } from './subjects'
 import {
   ConnectButtonProvider,
   DataRequestInput,
+  OnDisconnectCallback,
   OnInitCallback,
   RequestData,
   RequestDataOutput,
@@ -46,6 +47,7 @@ export const StateClient = (input: {
   storageClient: StorageProvider
   connectRequest?: (requestData: RequestData) => RequestDataOutput
   onInitCallback: OnInitCallback
+  onDisconnectCallback: OnDisconnectCallback
   useDoneCallback?: boolean
 }) => {
   const key = input.key
@@ -55,6 +57,7 @@ export const StateClient = (input: {
   const walletClient = input.walletClient
   const storageClient = input.storageClient
   const connectDoneCallback = input.useDoneCallback
+  const disconnectCallback = input.onDisconnectCallback
 
   const subscriptions = new Subscription()
 
@@ -145,6 +148,7 @@ export const StateClient = (input: {
         tap(() => {
           resetState()
           walletClient.resetRequestItems()
+          disconnectCallback()
         })
       )
       .subscribe()
@@ -289,5 +293,6 @@ export const StateClient = (input: {
       subscriptions.unsubscribe()
     },
     subjects,
+    state$: subjects.state$,
   }
 }

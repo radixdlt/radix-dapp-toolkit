@@ -1,4 +1,10 @@
-import { OnInitCallback, Providers, RequestData, State } from './_types'
+import {
+  OnDisconnectCallback,
+  OnInitCallback,
+  Providers,
+  RequestData,
+  State,
+} from './_types'
 import { Logger } from 'tslog'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
@@ -11,6 +17,7 @@ export type RadixDappToolkitConfiguration = {
   logger?: Logger<unknown>
   networkId?: number
   onInit?: OnInitCallback
+  onDisconnect?: OnDisconnectCallback
   providers?: Partial<Providers>
   useDoneCallback?: boolean
 }
@@ -28,6 +35,7 @@ export const RadixDappToolkit = (
     logger,
     initialState,
     onInit: onInitCallback = () => {},
+    onDisconnect: onDisconnectCallback = () => {},
   } = configuration || {}
   const storageClient = providers?.storage || LocalStorageClient()
 
@@ -51,6 +59,7 @@ export const RadixDappToolkit = (
     key: `rdt:${dAppDefinitionAddress}:${networkId}`,
     logger,
     onInitCallback,
+    onDisconnectCallback,
     storageClient,
     walletClient,
     connectRequest,
