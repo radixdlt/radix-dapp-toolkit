@@ -32,8 +32,8 @@
     "dev": "vite serve examples",
     "build": "tsc && vite build",
     "prepare": "npx husky install",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch"
   },
   "dependencies": {
     "@radixdlt/connect-button": "0.11.0-alpha.8",
