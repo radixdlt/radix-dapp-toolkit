@@ -45,7 +45,7 @@ export const WalletClient = (input: {
       .request(requestInput)
       .map((response) => {
         logger?.debug(`⬇️walletSuccessResponse`, response)
-        requestItemClient.updateStatus(id, 'success')
+        requestItemClient.updateStatus({ id, status: 'success' })
 
         return {
           accounts: response.ongoingAccounts,
@@ -53,7 +53,11 @@ export const WalletClient = (input: {
         }
       })
       .mapErr((error) => {
-        requestItemClient.updateStatus(id, 'fail', error.error)
+        requestItemClient.updateStatus({
+          id,
+          status: 'fail',
+          error: error.error,
+        })
         logger?.debug(`⬇️wallet error response`, error)
         return error
       })
@@ -80,12 +84,20 @@ export const WalletClient = (input: {
     return walletSdk
       .sendTransaction(input)
       .map((response) => {
-        requestItemClient.updateStatus(id, 'success')
+        requestItemClient.updateStatus({
+          id,
+          status: 'success',
+          transactionIntentHash: response.transactionIntentHash,
+        })
         logger?.debug(`⬇️walletSuccessResponse`, response)
         return response
       })
       .mapErr((error) => {
-        requestItemClient.updateStatus(id, 'fail', error.error)
+        requestItemClient.updateStatus({
+          id,
+          status: 'fail',
+          error: error.error,
+        })
         logger?.debug(`⬇️walletErrorResponse`, error)
         return error
       })

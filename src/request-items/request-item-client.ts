@@ -48,11 +48,17 @@ export const RequestItemClient = (input: {
     logger?.debug(`resetRequestItems`)
   }
 
-  const updateStatus = (
-    id: string,
-    status: RequestStatusTypes,
+  const updateStatus = ({
+    id,
+    status,
+    error,
+    transactionIntentHash,
+  }: {
+    id: string
+    status: RequestStatusTypes
     error?: string
-  ) => {
+    transactionIntentHash?: string
+  }) => {
     const item = requestsItemStore.get(id)
     if (item) {
       const updated = {
@@ -62,9 +68,12 @@ export const RequestItemClient = (input: {
       if (updated.status === 'fail') {
         updated.error = error!
       }
+      if (updated.status === 'success' && updated.type === 'sendTransaction') {
+        updated.transactionIntentHash = transactionIntentHash!
+      }
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`updateRequestItemStatus`, { id, status, error })
+      logger?.debug(`updateRequestItemStatus`, updated)
     }
   }
 
