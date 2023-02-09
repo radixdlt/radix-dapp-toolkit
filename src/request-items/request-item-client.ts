@@ -48,16 +48,23 @@ export const RequestItemClient = (input: {
     logger?.debug(`resetRequestItems`)
   }
 
-  const updateStatus = (id: string, status: RequestStatusTypes) => {
+  const updateStatus = (
+    id: string,
+    status: RequestStatusTypes,
+    error?: string
+  ) => {
     const item = requestsItemStore.get(id)
     if (item) {
       const updated = {
         ...item,
         status,
       } as RequestItem
+      if (updated.status === 'fail') {
+        updated.error = error!
+      }
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`updateRequestItemStatus`, { id, status })
+      logger?.debug(`updateRequestItemStatus`, { id, status, error })
     }
   }
 

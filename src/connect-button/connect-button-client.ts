@@ -1,16 +1,12 @@
 import {
   filter,
-  finalize,
-  first,
   fromEvent,
   map,
   merge,
   Subject,
   Subscription,
   switchMap,
-  takeUntil,
   tap,
-  timer,
 } from 'rxjs'
 import { Logger } from 'tslog'
 import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
@@ -21,10 +17,12 @@ export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
   dAppName: string
+  explorer?: ConnectButton['explorer']
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
 }): ConnectButtonProvider => {
+  import('@radixdlt/connect-button')
   const subjects = input.subjects || ConnectButtonSubjects()
   const logger = input.logger
   const onConnectDefault = (done: (input?: { challenge: string }) => void) => {
@@ -37,22 +35,20 @@ export const ConnectButtonClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const bootStrapConnectButton = new Subject<void>()
+  const reconnect = new Subject<void>()
 
   subscriptions.add(
     // TODO: listen to an on CB DOM render event instead using a timer
-    merge(bootStrapConnectButton, timer(0, 100))
+    merge(reconnect, fromEvent(document, 'onRender'))
       .pipe(
         map(() => getConnectButtonElement()),
         filter((element): element is ConnectButton => !!element),
         tap(() => {
           logger?.debug(`connectButtonDiscovered`)
         }),
-        first(),
         switchMap((connectButtonElement) => {
-          import('@radixdlt/connect-button')
-
           connectButtonElement.dAppName = input.dAppName
+          if (input.explorer) connectButtonElement.explorer = input.explorer
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
@@ -69,11 +65,7 @@ export const ConnectButtonClient = (input: {
             })
           )
 
-          const onDestroy$ = fromEvent(connectButtonElement, 'onDestroy').pipe(
-            tap(() => {
-              logger?.debug(`connectButtonRemovedDisconnectedFromDOM`)
-            })
-          )
+          const onDestroy$ = fromEvent(connectButtonElement, 'onDestroy')
 
           const onCancelRequestItem$ = fromEvent(
             connectButtonElement,
@@ -127,10 +119,15 @@ export const ConnectButtonClient = (input: {
             onCancelRequestItem$,
             accounts$,
             personaLabel$,
-            connecting$
-          ).pipe(takeUntil(onDestroy$))
-        }),
-        finalize(() => bootStrapConnectButton.next())
+            connecting$,
+            onDestroy$.pipe(
+              tap(() => {
+                reconnect.next()
+                logger?.debug(`connectButtonRemovedFromDOM`)
+              })
+            )
+          )
+        })
       )
       .subscribe()
   )

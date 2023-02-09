@@ -53,7 +53,7 @@ export const WalletClient = (input: {
         }
       })
       .mapErr((error) => {
-        requestItemClient.updateStatus(id, 'fail')
+        requestItemClient.updateStatus(id, 'fail', error.error)
         logger?.debug(`⬇️wallet error response`, error)
         return error
       })
@@ -85,7 +85,7 @@ export const WalletClient = (input: {
         return response
       })
       .mapErr((error) => {
-        requestItemClient.updateStatus(id, 'fail')
+        requestItemClient.updateStatus(id, 'fail', error.error)
         logger?.debug(`⬇️walletErrorResponse`, error)
         return error
       })

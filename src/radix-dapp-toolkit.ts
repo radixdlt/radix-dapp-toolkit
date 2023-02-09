@@ -20,6 +20,11 @@ export type RadixDappToolkitConfiguration = {
   onDisconnect?: OnDisconnectCallback
   providers?: Partial<Providers>
   useDoneCallback?: boolean
+  explorer?: {
+    baseUrl: string
+    transactionPath: string
+    accountsPath: string
+  }
 }
 export const RadixDappToolkit = (
   {
@@ -36,11 +41,13 @@ export const RadixDappToolkit = (
     initialState,
     onInit: onInitCallback = () => {},
     onDisconnect: onDisconnectCallback = () => {},
+    explorer,
   } = configuration || {}
   const storageClient = providers?.storage || LocalStorageClient()
 
   const connectButtonClient =
-    providers?.connectButton || ConnectButtonClient({ logger, dAppName })
+    providers?.connectButton ||
+    ConnectButtonClient({ logger, dAppName, explorer })
 
   const walletClient =
     providers?.walletClient ||
