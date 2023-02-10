@@ -86,18 +86,18 @@ describe('state management', () => {
   beforeEach(() => {
     connectButtonSubjects = ConnectButtonSubjects()
     connectButtonClient = ConnectButtonClient({
-      logger,
+      // logger,
       subjects: connectButtonSubjects,
       dAppName: '',
     })
     requestItemClient = RequestItemClient({
-      logger,
+      // logger,
     })
     mockWalletSdk = createMockWalletSdk()
     walletClient = WalletClient({
       walletSdk: mockWalletSdk as unknown as WalletSdk,
       requestItemClient,
-      logger,
+      // logger,
     })
 
     storageClient = InMemoryClient()
@@ -109,7 +109,7 @@ describe('state management', () => {
     const responseSubject = new ReplaySubject<any>()
 
     stateClient = StateClient({
-      logger,
+      // logger,
       key: STATE_KEY,
       storageClient,
       connectButtonClient,
@@ -128,10 +128,10 @@ describe('state management', () => {
         }),
     })
 
+    await waitForStateInitialization()
+
     // simulate connect action
     connectButtonSubjects.onConnect.next(undefined)
-
-    await waitForStateInitialization()
 
     const [{ id, ...rest }] = await getRequestItems()
 
@@ -197,7 +197,7 @@ describe('state management', () => {
 
       await storageClient.setData(STATE_KEY, initialState)
 
-      const init = new Subject<State>()
+      const init = new ReplaySubject<State>()
 
       stateClient = StateClient({
         // logger,
@@ -211,15 +211,28 @@ describe('state management', () => {
         },
       })
 
+      await waitForStateInitialization()
+
       expect(await firstValueFrom(init)).toEqual(initialState)
 
       const result = await stateClient.requestData({
         accounts: { quantifier: 'exactly', quantity: 1 },
       })
 
-      expect(result._unsafeUnwrap()).toEqual({
-        accounts: initialState.accounts,
-        persona: initialState.persona,
+      if (result.isErr()) throw result.error
+      expect(result.value).toEqual({
+        accounts: [
+          {
+            address:
+              'account_tdx_b_1qlxj68pketfcx8a6wrrqyvjfzdr7caw08j22gm6d26hq3g6x5m',
+            label: 'main',
+            appearanceId: 1,
+          },
+        ],
+        persona: {
+          identityAddress: 'abc_123',
+          label: 'RadMatt',
+        },
       })
 
       expect(await firstValueFrom(requestItemClient.items$)).toEqual([])
@@ -243,7 +256,7 @@ describe('state management', () => {
 
       await storageClient.setData(STATE_KEY, initialState)
 
-      const init = new Subject<State>()
+      const init = new ReplaySubject<State>()
 
       stateClient = StateClient({
         logger,
@@ -256,6 +269,8 @@ describe('state management', () => {
           init.next(state)
         },
       })
+
+      await waitForStateInitialization()
 
       expect(await firstValueFrom(init)).toEqual(initialState)
 

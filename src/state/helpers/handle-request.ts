@@ -36,8 +36,9 @@ export const handleRequest = (
     ),
   ].reduce((acc, curr) => acc && curr, true)
 
-  if (resolvedByState) {
-    logger?.debug(`resolveByState`)
+  // TODO: better checking of data requests
+  if (resolvedByState && !dataRequest.oneTimeAccountsWithoutProofOfOwnership) {
+    logger?.debug(`resolveByState`, state)
     const data = {
       accounts: state?.accounts!,
       persona: state?.persona!,
@@ -45,10 +46,13 @@ export const handleRequest = (
     return okAsync({
       resolvedBy: 'state',
       data,
+      persist: false,
     })
   }
   logger?.debug(`resolveByWalletRequest`)
-  return walletClient
-    .request(dataRequest)
-    .map((data) => ({ resolvedBy: 'wallet', data }))
+  return walletClient.request(dataRequest).map((data) => ({
+    resolvedBy: 'wallet',
+    persist: !dataRequest.oneTimeAccountsWithoutProofOfOwnership,
+    data,
+  }))
 }

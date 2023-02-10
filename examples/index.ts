@@ -2,31 +2,45 @@ import { RadixDappToolkit } from '../src/radix-dapp-toolkit'
 import { Logger } from 'tslog'
 import { html, render, LitElement, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
-import { Persona, State } from '../src/_types'
 import { Account } from '@radixdlt/connect-button'
 
-const free_funds = (account_component_address: string) => `
-  CALL_METHOD 
-    ComponentAddress("component_tdx_22_1qgehpqdhhr62xh76wh6gppnyn88a0uau68epljprvj3s7s5gc3") 
-    "free";
-  
+const update_metadata = (account_component_address: string) =>
+  `SET_METADATA ComponentAddress("${account_component_address}") "name" "test name";   
+   SET_METADATA ComponentAddress("${account_component_address}") "description" "test description";     
+   SET_METADATA ComponentAddress("${account_component_address}") "domain" "test.domain";     
+   SET_METADATA ComponentAddress("${account_component_address}") "account_type" "dapp definition";`.trim()
+
+const create_token = (account_component_address: string) => `
+CREATE_FUNGIBLE_RESOURCE
+    18u8
+    Map<String, String>(
+        "name", "MyResource",                                        # Resource Name
+        "symbol", "RSRC",                                            # Resource Symbol
+        "description", "A very innovative and important resource"    # Resource Description
+    ) 
+    Map<Enum, Tuple>(
+        Enum("ResourceMethodAuthKey::Withdraw"), Tuple(Enum("AccessRule::AllowAll"), Enum("AccessRule::DenyAll")),
+        Enum("ResourceMethodAuthKey::Deposit"), Tuple(Enum("AccessRule::AllowAll"), Enum("AccessRule::DenyAll"))
+    )
+    None;
+
   CALL_METHOD
     ComponentAddress("${account_component_address}") 
     "deposit_batch"
+    Expression("ENTIRE_WORKTOP");
+`
+
+const transfer_token = (payer: string, payee: string) => `
+CALL_METHOD 
+    ComponentAddress("${payer}") 
+    "withdraw_by_amount"
+    Decimal("100")
+    ResourceAddress("resource_tdx_22_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj3nwpk");
+
+CALL_METHOD
+    ComponentAddress("${payee}") 
+    "deposit_batch"
     Expression("ENTIRE_WORKTOP");`
-
-const update_metadata = (account_component_address: string) => `
-  SET_METADATA 
-    ComponentAddress("${account_component_address}") "name" "test name";   
-  
-  SET_METADATA
-    ComponentAddress("${account_component_address}") "description" "test description";     
-
-  SET_METADATA 
-    ComponentAddress("${account_component_address}") "domain" "test.domain";     
-
-  SET_METADATA
-    ComponentAddress("${account_component_address}") "account_type" "dapp definition";`
 
 @customElement('example-dapp')
 // @ts-ignore
@@ -54,6 +68,13 @@ class ExampleDapp extends LitElement {
       margin-bottom: 2rem;
     }
 
+    pre {
+      text-align: left;
+      background: black;
+      color: greenyellow;
+      padding: 1rem;
+    }
+
     h1 {
       font-size: 1.5rem;
       padding: 0;
@@ -77,16 +98,16 @@ class ExampleDapp extends LitElement {
   accounts: Account[] = []
 
   @state()
-  persona?: Persona
+  response: any
 
   private rdt = RadixDappToolkit(
     { dAppDefinitionAddress: 'acc_123abc', dAppName: 'Test dApp' },
     (requestData) => {
       requestData({
         accounts: { quantifier: 'atLeast', quantity: 1 },
-      }).map(({ data: { accounts, persona } }) => {
-        this.accounts = accounts
-        this.persona = persona
+      }).map((response) => {
+        this.accounts = response.data.accounts
+        this.response = response
       })
     },
     {
@@ -94,11 +115,9 @@ class ExampleDapp extends LitElement {
       networkId: 34,
       onDisconnect: () => {
         this.accounts = []
-        this.persona = undefined
       },
-      onInit: ({ accounts, persona }) => {
+      onInit: ({ accounts }) => {
         this.accounts = accounts ?? []
-        this.persona = persona
       },
       explorer: {
         baseUrl: 'https://hammunet-dashboard.rdx-works-main.extratools.works/',
@@ -108,49 +127,116 @@ class ExampleDapp extends LitElement {
     }
   )
 
-  private sendTransactionTemplate() {
-    return this.persona
-      ? html`<radix-button
-          fullWidth
-          @click=${() => {
-            this.rdt.sendTransaction({
-              version: 1,
-              transactionManifest: free_funds(this.accounts[0].address),
-            })
-          }}
-        >
-          Get free XRD
-        </radix-button>`
-      : html`<h2>Connect wallet to use dApp</h2>`
+  private oneTimeRequest() {
+    return html`<radix-button
+      fullWidth
+      @click=${() => {
+        this.rdt
+          .requestData({
+            accounts: { quantifier: 'exactly', quantity: 1, oneTime: true },
+          })
+          .map((response) => {
+            this.accounts = response.accounts
+            this.response = response
+          })
+          .mapErr((response) => {
+            this.response = response
+          })
+      }}
+    >
+      OneTimeRequest
+    </radix-button>`
   }
 
-  private oneTimeRequest() {
-    return this.persona
+  private createTokenRequest() {
+    return this.accounts.length
       ? html`<radix-button
           fullWidth
           @click=${() => {
-            this.rdt.requestData({
-              accounts: { quantifier: 'atLeast', quantity: 1 },
-            })
+            this.rdt
+              .sendTransaction({
+                transactionManifest: create_token(this.accounts[0].address),
+                version: 1,
+              })
+              .map((response) => {
+                this.response = response
+              })
+              .mapErr((response) => {
+                this.response = response
+              })
           }}
         >
-          OneTimeRequest
+          Create token
         </radix-button>`
       : ''
   }
 
+  private ongoingRequest() {
+    return html`<radix-button
+      fullWidth
+      @click=${() => {
+        this.rdt
+          .requestData({
+            accounts: { quantifier: 'exactly', quantity: 2 },
+          })
+          .map((response) => {
+            this.accounts = response.accounts
+            this.response = response
+          })
+          .mapErr((response) => {
+            this.response = response
+          })
+      }}
+    >
+      OngoingRequest
+    </radix-button>`
+  }
+
   private updateMetadata() {
-    return this.persona
+    return this.accounts.length
       ? html`<radix-button
           fullWidth
           @click=${() => {
-            this.rdt.sendTransaction({
-              version: 1,
-              transactionManifest: update_metadata(this.accounts[0].address),
-            })
+            this.rdt
+              .sendTransaction({
+                version: 1,
+                transactionManifest: update_metadata(this.accounts[0].address),
+              })
+              .map((response) => {
+                this.response = response
+              })
+              .mapErr((response) => {
+                this.response = response
+              })
           }}
         >
           Update metadata
+        </radix-button>`
+      : ''
+  }
+
+  private transferToken() {
+    return this.accounts.length
+      ? html`<radix-button
+          fullWidth
+          @click=${() => {
+            this.rdt
+              .sendTransaction({
+                version: 1,
+                transactionManifest: transfer_token(
+                  this.accounts[0].address,
+                  this.accounts[0].address
+                ),
+              })
+              .map((response) => {
+                this.response = response
+              })
+              .mapErr((response) => {
+                this.response = response
+              })
+          }}
+        >
+          Transfer token
         </radix-button>`
       : ''
   }
@@ -162,11 +248,22 @@ class ExampleDapp extends LitElement {
     </header>`
   }
 
+  private walletResponseTemplate() {
+    return this.response
+      ? html`<pre>
+Wallet response
+${JSON.stringify(this.response, null, 2)}</pre
+        >`
+      : ''
+  }
+
   render() {
     return html`<div>
       ${this.headerTemplate()}
       <div class="content">
-        ${this.sendTransactionTemplate()} ${this.updateMetadata()}
+        ${this.oneTimeRequest()} ${this.ongoingRequest()}
+        ${this.createTokenRequest()} ${this.transferToken()}
+        ${this.updateMetadata()} ${this.walletResponseTemplate()}
       </div>
     </div>`
   }

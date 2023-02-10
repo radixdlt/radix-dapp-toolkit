@@ -13,15 +13,17 @@ import {
 import {
   concatMap,
   distinctUntilChanged,
-  first,
   firstValueFrom,
   map,
   mergeMap,
   of,
   scan,
+  share,
+  shareReplay,
   Subscription,
   switchMap,
   tap,
+  withLatestFrom,
 } from 'rxjs'
 import { WalletClient } from '../wallet/wallet-client'
 import { ResultAsync } from 'neverthrow'
@@ -69,7 +71,7 @@ export const StateClient = (input: {
 
   const writeStateToStorage = (value: State) => {
     return storageClient.setData(key, value).map(() => {
-      logger?.debug('writeToStorage')
+      logger?.debug('writeToStorage', value)
     })
   }
 
@@ -110,17 +112,29 @@ export const StateClient = (input: {
 
   initializeState()
 
-  const connected$ = subjects.state$.pipe(
+  const state$ = subjects.state$.pipe(share(), shareReplay())
+
+  const connected$ = state$.pipe(
     map(({ connected }) => connected),
     distinctUntilChanged()
   )
 
-  const persona$ = subjects.state$.pipe(
+  const persona$ = state$.pipe(
     map(({ persona }) => persona),
     distinctUntilChanged()
   )
 
-  const accounts$ = subjects.state$.pipe(map(({ accounts }) => accounts))
+  const accounts$ = state$.pipe(map(({ accounts }) => accounts))
+
+  subscriptions.add(
+    state$
+      .pipe(
+        tap((state) => {
+          logger?.debug(`state$`, state)
+        })
+      )
+      .subscribe()
+  )
 
   subscriptions.add(
     accounts$
@@ -203,16 +217,18 @@ export const StateClient = (input: {
 
   const getState = () =>
     ResultAsync.fromPromise(
-      firstValueFrom(subjects.state$),
+      firstValueFrom(state$),
       (error) => error as SdkError
     )
 
-  const requestData = (value: DataRequestInput) =>
+  const requestData = ({ accounts }: DataRequestInput) =>
     getState().andThen((state) => {
       return handleRequest(
         withAuth(
           {
-            ongoingAccountsWithoutProofOfOwnership: value.accounts,
+            [accounts?.oneTime
+              ? 'oneTimeAccountsWithoutProofOfOwnership'
+              : 'ongoingAccountsWithoutProofOfOwnership']: accounts,
           },
           state
         ),
@@ -221,8 +237,9 @@ export const StateClient = (input: {
           logger,
           walletClient,
         }
-      ).map(({ data, resolvedBy }) => {
-        if (resolvedBy === 'wallet') setState(data, true)
+      ).map(({ data, resolvedBy, persist }) => {
+        if (resolvedBy === 'wallet' && persist)
+          setState({ ...data, connected: state.connected }, true)
         return data
       })
     })
@@ -230,58 +247,58 @@ export const StateClient = (input: {
   subscriptions.add(
     connectButtonClient.onConnect$
       .pipe(
-        switchMap(() =>
-          subjects.state$.pipe(
-            first(),
-            mergeMap(
-              (state) =>
-                input.connectRequest?.((input: DataRequestInput) => {
-                  logger?.debug(`connectRequest`, input)
-                  connectButtonClient.setConnecting(true)
-                  return handleRequest(
-                    withAuth(
-                      {
-                        ongoingAccountsWithoutProofOfOwnership: input.accounts,
-                      },
-                      state
-                    ),
-                    {
-                      state,
-                      logger,
-                      walletClient,
-                    }
-                  )
-                    .map(({ data, resolvedBy }) => {
-                      if (!connectDoneCallback && resolvedBy === 'wallet') {
-                        setState({ ...data, connected: true }, true)
-                        connectButtonClient.setConnecting(false)
-                      }
+        tap(() => {
+          logger?.debug(`onConnect`)
+        }),
+        withLatestFrom(state$),
+        switchMap(([, state]) => {
+          return (
+            input.connectRequest?.((input: DataRequestInput<true>) => {
+              logger?.debug(`connectRequest`, input)
+              connectButtonClient.setConnecting(true)
+              return handleRequest(
+                withAuth(
+                  {
+                    ongoingAccountsWithoutProofOfOwnership: input.accounts,
+                  },
+                  state
+                ),
+                {
+                  state,
+                  logger,
+                  walletClient,
+                }
+              )
+                .map(({ data }) => {
+                  if (!connectDoneCallback) {
+                    setState({ ...data, connected: true }, true)
+                    connectButtonClient.setConnecting(false)
+                  }
 
-                      const done = () => {
-                        setState({ ...data, connected: true }, true)
-                        connectButtonClient.setConnecting(false)
-                      }
+                  const done = () => {
+                    setState({ ...data, connected: true }, true)
+                    connectButtonClient.setConnecting(false)
+                  }
 
-                      return {
-                        data,
-                        done,
-                      }
-                    })
-                    .mapErr((error) => {
-                      setState({ connected: false }, true)
-                      connectButtonClient.setConnecting(false)
-                      return error
-                    })
-                }) ?? []
-            )
+                  return {
+                    data,
+                    done,
+                  }
+                })
+                .mapErr((error) => {
+                  setState({ connected: false }, true)
+                  connectButtonClient.setConnecting(false)
+                  return error
+                })
+            }) ?? []
           )
-        )
+        })
       )
       .subscribe()
   )
 
   return {
-    connected$: subjects.state$.pipe(
+    connected$: state$.pipe(
       map(({ connected }) => connected),
       distinctUntilChanged()
     ),
@@ -293,6 +310,6 @@ export const StateClient = (input: {
       subscriptions.unsubscribe()
     },
     subjects,
-    state$: subjects.state$,
+    state$,
   }
 }

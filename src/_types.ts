@@ -1,10 +1,13 @@
 import { Result, ResultAsync } from 'neverthrow'
-import { WalletSdk as WalletSdkType } from '@radixdlt/wallet-sdk'
-import { Account } from '@radixdlt/wallet-sdk/dist/IO/schemas'
+import {
+  WalletSdk,
+  Account,
+  NumberOfAccounts,
+  Persona,
+} from '@radixdlt/wallet-sdk'
 import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
-import { OngoingAccounts } from '@radixdlt/wallet-sdk/dist/IO/request-items/ongoing-accounts'
 import { RequestItem } from '@radixdlt/connect-button'
 
 export type StorageProvider = {
@@ -25,27 +28,10 @@ export type ConnectButtonProvider = {
   destroy: () => void
 }
 
-export type DataRequestValue = Parameters<WalletSdkType['request']>[0]
+export type DataRequestValue = Parameters<WalletSdk['request']>[0]
 export type SendTransactionRequestValue = Parameters<
-  WalletSdkType['sendTransaction']
+  WalletSdk['sendTransaction']
 >[0]
-
-export type WalletDataRequest<S extends RequestStatusTypes, T = {}> = {
-  type: 'data'
-  value: DataRequestValue
-  status: S
-  id: string
-} & T
-
-export const RequestStatus = {
-  pending: 'pending',
-  success: 'success',
-  fail: 'fail',
-} as const
-
-type RequestStatus = typeof RequestStatus
-
-export type RequestStatusTypes = keyof typeof RequestStatus
 
 export type State = {
   connected: boolean
@@ -53,11 +39,14 @@ export type State = {
   persona?: { identityAddress: string; label: string }
 }
 
-export type DataRequestInput = {
-  accounts?: OngoingAccounts['WithoutProofOfOwnership']['method']['input']
-}
-
-export type Persona = { identityAddress: string; label: string }
+export type DataRequestInput<IsLoginRequest extends boolean = false> =
+  IsLoginRequest extends true
+    ? {
+        accounts?: NumberOfAccounts
+      }
+    : {
+        accounts?: NumberOfAccounts & { oneTime?: boolean }
+      }
 
 export type RequestDataResponse = Result<
   {
@@ -70,7 +59,7 @@ export type RequestDataResponse = Result<
 export type Connect = {
   onConnect: (done: (input?: { challenge: string }) => void) => void
   onResponse: (result: RequestDataResponse, done: () => void) => void
-  requestData: DataRequestInput
+  requestData: DataRequestInput<true>
 }
 
 export type OnConnectCallback = (
@@ -97,10 +86,7 @@ export type RequestDataOutput = ResultAsync<
         label: string
         appearanceId: number
       }[]
-      persona: {
-        label: string
-        identityAddress: string
-      }
+      persona: Persona
     }
   },
   SdkError

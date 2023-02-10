@@ -1,8 +1,8 @@
 import { WalletSdk as WalletSdkType } from '@radixdlt/wallet-sdk'
 import { Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
-import { removeUndefined } from '../helpers/remove-undefined'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { DataRequestValue } from '../_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -18,38 +18,50 @@ export const WalletClient = (input: {
     })
   const walletSdk = input.walletSdk
 
-  const sendWalletRequest = (
-    input: Parameters<WalletSdkType['request']>[0]
-  ) => {
-    const requestInput = {
-      usePersona: input['usePersona'],
-      loginWithoutChallenge: input['loginWithoutChallenge'],
-      ongoingAccountsWithoutProofOfOwnership:
-        input['ongoingAccountsWithoutProofOfOwnership'],
-    }
+  const sendWalletRequest = ({
+    oneTimeAccountsWithoutProofOfOwnership,
+    ongoingAccountsWithoutProofOfOwnership,
+    loginWithoutChallenge,
+    usePersona,
+  }: Parameters<WalletSdkType['request']>[0]) => {
+    const requestInput: DataRequestValue = {}
 
-    const type = !!(
-      input.login ||
-      input.loginWithChallenge ||
-      input.loginWithoutChallenge
-    )
+    if (oneTimeAccountsWithoutProofOfOwnership)
+      requestInput.oneTimeAccountsWithoutProofOfOwnership =
+        oneTimeAccountsWithoutProofOfOwnership
+
+    if (ongoingAccountsWithoutProofOfOwnership)
+      requestInput.ongoingAccountsWithoutProofOfOwnership =
+        ongoingAccountsWithoutProofOfOwnership
+
+    if (loginWithoutChallenge)
+      requestInput.loginWithoutChallenge = loginWithoutChallenge
+
+    if (usePersona) requestInput.usePersona = usePersona
+
+    const requestType = !!requestInput.loginWithoutChallenge
       ? 'loginRequest'
       : 'dataRequest'
 
-    const { id } = requestItemClient.add(type)
-    removeUndefined(requestInput).map((data) =>
-      logger?.debug(`⬆️walletRequest`, data)
-    )
+    const { id } = requestItemClient.add(requestType)
+
+    logger?.debug(`⬆️walletRequest`, requestInput)
 
     return walletSdk
       .request(requestInput)
       .map((response) => {
+        const {
+          ongoingAccounts = [],
+          persona,
+          oneTimeAccounts = [],
+        } = response as any
+
         logger?.debug(`⬇️walletSuccessResponse`, response)
         requestItemClient.updateStatus({ id, status: 'success' })
 
         return {
-          accounts: response.ongoingAccounts,
-          persona: response.persona,
+          accounts: [...ongoingAccounts, ...oneTimeAccounts],
+          persona: persona,
         }
       })
       .mapErr((error) => {

@@ -1,8 +1,9 @@
 import {
+  DataRequestInput,
   OnDisconnectCallback,
   OnInitCallback,
   Providers,
-  RequestData,
+  RequestDataOutput,
   State,
 } from './_types'
 import { Logger } from 'tslog'
@@ -10,7 +11,7 @@ import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { LocalStorageClient } from './storage/local-storage-client'
-import WalletSdk from '@radixdlt/wallet-sdk'
+import { WalletSdk } from '@radixdlt/wallet-sdk'
 
 export type RadixDappToolkitConfiguration = {
   initialState?: State
@@ -31,7 +32,9 @@ export const RadixDappToolkit = (
     dAppDefinitionAddress,
     dAppName,
   }: { dAppDefinitionAddress: string; dAppName: string },
-  connectRequest?: (connectRequest: RequestData) => any,
+  connectRequest?: (
+    value: (value: DataRequestInput<true>) => RequestDataOutput
+  ) => any,
   configuration?: RadixDappToolkitConfiguration
 ) => {
   const {
