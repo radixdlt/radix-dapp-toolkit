@@ -22,7 +22,7 @@ CREATE_FUNGIBLE_RESOURCE
         Enum("ResourceMethodAuthKey::Withdraw"), Tuple(Enum("AccessRule::AllowAll"), Enum("AccessRule::DenyAll")),
         Enum("ResourceMethodAuthKey::Deposit"), Tuple(Enum("AccessRule::AllowAll"), Enum("AccessRule::DenyAll"))
     )
-    None;
+    Some(Decimal("500000"));
 
   CALL_METHOD
     ComponentAddress("${account_component_address}") 
