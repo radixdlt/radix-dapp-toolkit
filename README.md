@@ -1,11 +1,15 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 - [What is RDT?](#what-is-rdt)
+  - [Resources](#resources)
+    - [Building a dApp frontend](#building-a-dapp-frontend)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Getting started](#getting-started)
     - [Instantiation](#instantiation)
     - [Configuration](#configuration)
+- [Setting up your dApp Definition](#setting-up-your-dapp-definition)
+  - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
 
 # What is RDT?
@@ -21,6 +25,10 @@ The current version only supports desktop browser webapps with requests made via
 - **Tools** – Abstractions over lower level APIs for developers to build their radix dApp at lightning speed.
 
 - **State management** – Handles wallet responses, caching and pushes properties to the √ Connect button.
+
+## Resources
+
+### [Building a dApp frontend](https://docs-babylon.radixdlt.com/main/getting-started-developers/dapp-frontend/start.html)
 
 # Installation
 
@@ -101,7 +109,7 @@ type RadixDappToolkit = (
 
 **Input**
 
-- **requires** dAppMetadata - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side.
+- **requires** dAppMetadata - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
 - **optional** onConnect - Callback function that is triggered when user clicks connect wallet in √ Connect Button.
 - **optional** configuration - Additional available configuration for RDT
 
@@ -143,6 +151,34 @@ type RadixDappToolkitConfiguration = {
 - **optional** providers - allows you to provide your own modules for the internal components of RDT.
 - **optional** useDoneCallback - if enabled, `done()` needs to be called to in order to complete the connect flow
 - **optional** explorer - used to change the outgoing links for accounts and transactions in the √ Connect Button. Defaults to radix dashboard
+
+# Setting up your dApp Definition
+
+A dApp Definition account should be created after you’ve built your dApp’s components and resources, and created a website front end for it. dApp Definition account is a special account on the Radix Network with some metadata set on it that does some nice things, like:
+
+- Provides the necessary unique identifier (the dApp Definition’s address) that the Radix Wallet needs to let users login to your dApp and save sharing preferences for it.
+
+- Defines things like name, description, and icon so the Radix Wallet can inform users what they are interacting with.
+
+- Lets you link together everything associated with your dApp – like websites, resources, and components – so that the Radix Wallet knows what they all belong to.
+
+Creating a dApp Definition for your dApp will provide the necessary information for clients like the Radix Wallet to let users interact with your dApp in a way that is easy, safe, and informative. It also acts as a hub that connects all your dApp pieces together.
+
+You can read more about dApp Definitions [here](https://docs-babylon.radixdlt.com/main/standards/metadata.html#_metadata_for_dapp_verification).
+
+## Setting up a dApp Definition on the Radix Dashboard
+
+1. **Create a new account in the Radix Wallet.** This is the account which we will convert to a dApp Definition account.
+
+2. **Head to the Radix Dashboard’s Manage dApp Definitions page**. This page provides a simple interface to set the metadata on an account to make it a dApp Definition.
+
+3. **Connect your Radix Wallet to the Dashboard** and make sure you share the account that you just created to be a dApp Definition. Select that account on the Dashboard page.
+
+4. **Now check the box for “Set this account as a dApp Definition”, and fill in the name and description you want to use for your dApp.** Later you’ll also be able to specify an icon image, but that’s not ready just yet.
+
+5. **Click “Update”** and an approve transaction should appear in your Radix Wallet. Done!
+
+Provide account address as the the dApp Definition address that you just created, and it will be sent to the Radix Wallet whenever a user connects or receives a transaction from your dApp. The Wallet will then look up that dApp Definition address on the Radix Network, pull the latest metadata, and show it to the user. When a user logins to your dApp, an entry in the wallet’s preferences for your dApp will appear too. Try it out for yourself!
 
 # Data storage
 
