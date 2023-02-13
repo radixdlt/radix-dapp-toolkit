@@ -86,7 +86,7 @@ export type RequestDataOutput = ResultAsync<
         label: string
         appearanceId: number
       }[]
-      persona: Persona
+      persona?: Persona
     }
   },
   SdkError

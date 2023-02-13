@@ -253,13 +253,13 @@ export const StateClient = (input: {
         withLatestFrom(state$),
         switchMap(([, state]) => {
           return (
-            input.connectRequest?.((input: DataRequestInput<true>) => {
+            input.connectRequest?.((value: DataRequestInput<true>) => {
               logger?.debug(`connectRequest`, input)
               connectButtonClient.setConnecting(true)
               return handleRequest(
                 withAuth(
                   {
-                    ongoingAccountsWithoutProofOfOwnership: input.accounts,
+                    ongoingAccountsWithoutProofOfOwnership: value.accounts,
                   },
                   state
                 ),
