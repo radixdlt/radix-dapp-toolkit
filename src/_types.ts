@@ -93,3 +93,18 @@ export type RequestDataOutput = ResultAsync<
 >
 
 export type RequestData = (value: DataRequestInput) => RequestDataOutput
+
+export type DappMetadata = {
+  dAppDefinitionAddress: string
+  dAppName: string
+}
+
+export type OnConnect = (
+  value: (value: DataRequestInput<true>) => RequestDataOutput
+) => any
+
+export type Explorer = {
+  baseUrl: string
+  transactionPath: string
+  accountsPath: string
+}

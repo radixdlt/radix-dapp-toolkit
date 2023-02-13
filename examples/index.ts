@@ -101,7 +101,11 @@ class ExampleDapp extends LitElement {
   response: any
 
   private rdt = RadixDappToolkit(
-    { dAppDefinitionAddress: 'acc_123abc', dAppName: 'Test dApp' },
+    {
+      dAppDefinitionAddress:
+        'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
+      dAppName: 'Test dApp',
+    },
     (requestData) => {
       requestData({
         accounts: { quantifier: 'atLeast', quantity: 1 },

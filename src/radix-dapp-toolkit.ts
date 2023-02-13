@@ -1,9 +1,10 @@
 import {
-  DataRequestInput,
+  DappMetadata,
+  Explorer,
+  OnConnect,
   OnDisconnectCallback,
   OnInitCallback,
   Providers,
-  RequestDataOutput,
   State,
 } from './_types'
 import { Logger } from 'tslog'
@@ -21,20 +22,11 @@ export type RadixDappToolkitConfiguration = {
   onDisconnect?: OnDisconnectCallback
   providers?: Partial<Providers>
   useDoneCallback?: boolean
-  explorer?: {
-    baseUrl: string
-    transactionPath: string
-    accountsPath: string
-  }
+  explorer?: Explorer
 }
 export const RadixDappToolkit = (
-  {
-    dAppDefinitionAddress,
-    dAppName,
-  }: { dAppDefinitionAddress: string; dAppName: string },
-  connectRequest?: (
-    value: (value: DataRequestInput<true>) => RequestDataOutput
-  ) => any,
+  { dAppDefinitionAddress, dAppName }: DappMetadata,
+  onConnect?: OnConnect,
   configuration?: RadixDappToolkitConfiguration
 ) => {
   const {
@@ -72,7 +64,7 @@ export const RadixDappToolkit = (
     onDisconnectCallback,
     storageClient,
     walletClient,
-    connectRequest,
+    connectRequest: onConnect,
     useDoneCallback: configuration?.useDoneCallback,
   })
 

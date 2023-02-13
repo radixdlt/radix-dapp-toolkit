@@ -1,4 +1,8 @@
-import { WalletSdk as WalletSdkType } from '@radixdlt/wallet-sdk'
+import {
+  Account,
+  Persona,
+  WalletSdk as WalletSdkType,
+} from '@radixdlt/wallet-sdk'
 import { Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
 import { RequestItemClient } from '../request-items/request-item-client'
@@ -50,11 +54,16 @@ export const WalletClient = (input: {
     return walletSdk
       .request(requestInput)
       .map((response) => {
+        // TODO: response typing should be inferred from request input
         const {
-          ongoingAccounts = [],
           persona,
+          ongoingAccounts = [],
           oneTimeAccounts = [],
-        } = response as any
+        } = response as Partial<{
+          oneTimeAccounts: Account[]
+          persona: Persona
+          ongoingAccounts: Account[]
+        }>
 
         logger?.debug(`⬇️walletSuccessResponse`, response)
         requestItemClient.updateStatus({ id, status: 'success' })
