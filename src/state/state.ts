@@ -254,7 +254,7 @@ export const StateClient = (input: {
         switchMap(([, state]) => {
           return (
             input.connectRequest?.((value: DataRequestInput<true>) => {
-              logger?.debug(`connectRequest`, input)
+              logger?.debug(`connectRequest`, value)
               connectButtonClient.setConnecting(true)
               return handleRequest(
                 withAuth(
