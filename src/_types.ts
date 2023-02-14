@@ -1,10 +1,14 @@
 import { Result, ResultAsync } from 'neverthrow'
-import { WalletSdk as WalletSdkType } from '@radixdlt/wallet-sdk'
-import { Account } from '@radixdlt/wallet-sdk/dist/IO/schemas'
+import {
+  WalletSdk,
+  Account,
+  NumberOfAccounts,
+  Persona,
+} from '@radixdlt/wallet-sdk'
 import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
-import { OngoingAccounts } from '@radixdlt/wallet-sdk/dist/IO/request-items/ongoing-accounts'
+import { RequestItem } from '@radixdlt/connect-button'
 
 export type StorageProvider = {
   getData: <T = any>(key: string) => ResultAsync<T | undefined, Error>
@@ -14,27 +18,20 @@ export type StorageProvider = {
 export type ConnectButtonProvider = {
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
+  onCancelRequestItem$: Observable<string>
   setLoading: (value: boolean) => void
   setConnected: (value: boolean) => void
+  setRequestItems: (value: RequestItem[]) => void
+  setAccounts: (value: Account[]) => void
+  setPersonaLabel: (value: string) => void
+  setConnecting: (value: boolean) => void
   destroy: () => void
 }
 
-export type DataRequestValue = Parameters<WalletSdkType['request']>[0]
+export type DataRequestValue = Parameters<WalletSdk['request']>[0]
 export type SendTransactionRequestValue = Parameters<
-  WalletSdkType['sendTransaction']
+  WalletSdk['sendTransaction']
 >[0]
-
-export type WalletDataRequest = {
-  type: 'data'
-  value: DataRequestValue
-}
-
-export type WalletSendTransactionRequest = {
-  type: 'sendTransaction'
-  value: SendTransactionRequestValue
-}
-
-export type WalletRequest = WalletDataRequest | WalletSendTransactionRequest
 
 export type State = {
   connected: boolean
@@ -42,21 +39,14 @@ export type State = {
   persona?: { identityAddress: string; label: string }
 }
 
-export type RequestStatus = keyof typeof RequestStatus
-
-export const RequestStatus = {
-  pending: 'pending',
-  success: 'success',
-  fail: 'fail',
-} as const
-
-export type RequestItem = WalletRequest & { status: RequestStatus }
-
-export type DataRequestInput = {
-  accounts?: OngoingAccounts['WithoutProofOfOwnership']['method']['input']
-}
-
-export type Persona = { identityAddress: string; label: string }
+export type DataRequestInput<IsLoginRequest extends boolean = false> =
+  IsLoginRequest extends true
+    ? {
+        accounts?: NumberOfAccounts
+      }
+    : {
+        accounts?: NumberOfAccounts & { oneTime?: boolean }
+      }
 
 export type RequestDataResponse = Result<
   {
@@ -69,7 +59,7 @@ export type RequestDataResponse = Result<
 export type Connect = {
   onConnect: (done: (input?: { challenge: string }) => void) => void
   onResponse: (result: RequestDataResponse, done: () => void) => void
-  requestData: DataRequestInput
+  requestData: DataRequestInput<true>
 }
 
 export type OnConnectCallback = (
@@ -78,6 +68,8 @@ export type OnConnectCallback = (
 ) => void
 
 export type OnInitCallback = (state: State) => void
+
+export type OnDisconnectCallback = () => void
 
 export type Providers = {
   storage: StorageProvider
@@ -94,13 +86,25 @@ export type RequestDataOutput = ResultAsync<
         label: string
         appearanceId: number
       }[]
-      persona: {
-        label: string
-        identityAddress: string
-      }
+      persona?: Persona
     }
   },
   SdkError
 >
 
 export type RequestData = (value: DataRequestInput) => RequestDataOutput
+
+export type DappMetadata = {
+  dAppDefinitionAddress: string
+  dAppName: string
+}
+
+export type OnConnect = (
+  value: (value: DataRequestInput<true>) => RequestDataOutput
+) => any
+
+export type Explorer = {
+  baseUrl: string
+  transactionPath: string
+  accountsPath: string
+}

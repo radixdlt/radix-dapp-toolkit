@@ -20,7 +20,7 @@ const WALLET_SUCCESS_RESPONSE = {
       appearanceId: 1,
     },
   ],
-  auth: {
+  persona: {
     identityAddress: 'abc_123',
     label: 'RadMatt',
   },
@@ -88,6 +88,7 @@ describe('state management', () => {
     connectButtonClient = ConnectButtonClient({
       // logger,
       subjects: connectButtonSubjects,
+      dAppName: '',
     })
     requestItemClient = RequestItemClient({
       // logger,
@@ -108,12 +109,13 @@ describe('state management', () => {
     const responseSubject = new ReplaySubject<any>()
 
     stateClient = StateClient({
-      logger,
+      // logger,
       key: STATE_KEY,
       storageClient,
       connectButtonClient,
       walletClient,
       onInitCallback: () => {},
+      onDisconnectCallback: () => {},
       connectRequest: (requestData) =>
         requestData({
           accounts: {
@@ -126,23 +128,17 @@ describe('state management', () => {
         }),
     })
 
+    await waitForStateInitialization()
+
     // simulate connect action
     connectButtonSubjects.onConnect.next(undefined)
-
-    await waitForStateInitialization()
 
     const [{ id, ...rest }] = await getRequestItems()
 
     // expect a request item with pending status to be shown in connect button
     expect(rest).toEqual({
-      type: 'data',
+      type: 'loginRequest',
       status: 'pending',
-      value: {
-        ongoingAccountsWithoutProofOfOwnership: {
-          quantifier: 'atLeast',
-          quantity: 1,
-        },
-      },
     })
 
     await waitForLoadingStatus(true)
@@ -181,57 +177,6 @@ describe('state management', () => {
     expect(await getStoredState()).toEqual(expectedState)
   })
 
-  // it('should send oneTime request', async () => {
-  //   const responseSubject = new ReplaySubject<any>()
-  //   stateClient = StateClient({
-  //     logger,
-  //     key: STATE_KEY,
-  //     storageClient,
-  //     connectButtonClient,
-  //     walletClient,
-  //     onInitCallback: () => {},
-  //   })
-
-  //   stateClient
-  //     .requestData({
-  //       oneTime: {
-  //         accounts: {
-  //           quantifier: 'atLeast',
-  //           quantity: 1,
-  //         },
-  //       },
-  //     })
-  //     .map((data) => {
-  //       responseSubject.next(data)
-  //     })
-
-  //   await waitForLoadingStatus(true)
-
-  //   mockWalletSdk.sendWalletResponse.next({
-  //     oneTimeAccounts: [
-  //       {
-  //         address:
-  //           'account_tdx_b_1qlxj68pketfcx8a6wrrqyvjfzdr7caw08j22gm6d26hq3g6x5m',
-  //         label: 'main',
-  //         appearanceId: 1,
-  //       },
-  //     ],
-  //   })
-
-  //   await waitForLoadingStatus(false)
-
-  //   expect(await firstValueFrom(responseSubject)).toEqual({
-  //     accounts: [
-  //       {
-  //         address:
-  //           'account_tdx_b_1qlxj68pketfcx8a6wrrqyvjfzdr7caw08j22gm6d26hq3g6x5m',
-  //         label: 'main',
-  //         appearanceId: 1,
-  //       },
-  //     ],
-  //   })
-  // })
-
   describe('resolve data requests from state', () => {
     it('should resolve data request from state', async () => {
       const initialState = {
@@ -252,7 +197,7 @@ describe('state management', () => {
 
       await storageClient.setData(STATE_KEY, initialState)
 
-      const init = new Subject<State>()
+      const init = new ReplaySubject<State>()
 
       stateClient = StateClient({
         // logger,
@@ -260,10 +205,13 @@ describe('state management', () => {
         storageClient,
         connectButtonClient,
         walletClient,
+        onDisconnectCallback: () => {},
         onInitCallback: (state) => {
           init.next(state)
         },
       })
+
+      await waitForStateInitialization()
 
       expect(await firstValueFrom(init)).toEqual(initialState)
 
@@ -271,10 +219,23 @@ describe('state management', () => {
         accounts: { quantifier: 'exactly', quantity: 1 },
       })
 
-      expect(result._unsafeUnwrap()).toEqual({
-        accounts: initialState.accounts,
-        persona: initialState.persona,
+      if (result.isErr()) throw result.error
+      expect(result.value).toEqual({
+        accounts: [
+          {
+            address:
+              'account_tdx_b_1qlxj68pketfcx8a6wrrqyvjfzdr7caw08j22gm6d26hq3g6x5m',
+            label: 'main',
+            appearanceId: 1,
+          },
+        ],
+        persona: {
+          identityAddress: 'abc_123',
+          label: 'RadMatt',
+        },
       })
+
+      expect(await firstValueFrom(requestItemClient.items$)).toEqual([])
     })
     it('should send wallet request if data is not available in state', async () => {
       const initialState = {
@@ -295,18 +256,21 @@ describe('state management', () => {
 
       await storageClient.setData(STATE_KEY, initialState)
 
-      const init = new Subject<State>()
+      const init = new ReplaySubject<State>()
 
       stateClient = StateClient({
-        // logger,
+        logger,
         key: STATE_KEY,
         storageClient,
         connectButtonClient,
         walletClient,
+        onDisconnectCallback: () => {},
         onInitCallback: (state) => {
           init.next(state)
         },
       })
+
+      await waitForStateInitialization()
 
       expect(await firstValueFrom(init)).toEqual(initialState)
 
@@ -317,14 +281,8 @@ describe('state management', () => {
       const [{ id, ...rest }] = await getRequestItems()
 
       expect(rest).toEqual({
-        type: 'data',
+        type: 'dataRequest',
         status: 'pending',
-        value: {
-          ongoingAccountsWithoutProofOfOwnership: {
-            quantifier: 'atLeast',
-            quantity: 2,
-          },
-        },
       })
     })
   })

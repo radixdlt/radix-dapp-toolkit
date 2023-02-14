@@ -1,7 +1,6 @@
+import { RequestItem, RequestStatusTypes } from '@radixdlt/connect-button'
 import { map, Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
-import { removeUndefined } from '../helpers/remove-undefined'
-import { RequestItem, RequestStatus, WalletRequest } from '../_types'
 import { RequestItemSubjects } from './subjects'
 
 export type RequestItemClient = ReturnType<typeof RequestItemClient>
@@ -15,24 +14,22 @@ export const RequestItemClient = (input: {
   const subscriptions = new Subscription()
   const subjects = input.subjects || RequestItemSubjects()
 
-  const createItem = (value: WalletRequest): RequestItem => ({
-    ...value,
+  const createItem = (type: RequestItem['type']): RequestItem => ({
+    type,
     status: 'pending',
+    id: crypto.randomUUID(),
   })
 
-  const add = (input: WalletRequest) => {
-    const itemId = crypto.randomUUID()
-    removeUndefined(input).map((data) => {
-      const item = createItem(data)
-      requestsItemStore.set(itemId, item)
-      requestItemIds.add(itemId)
-      subjects.onChange.next()
-      logger?.debug(`addRequestItem`, {
-        id: itemId,
-        status: item.status,
-      })
+  const add = (type: RequestItem['type']) => {
+    const item = createItem(type)
+    requestsItemStore.set(item.id, item)
+    requestItemIds.add(item.id)
+    subjects.onChange.next()
+    logger?.debug(`addRequestItem`, {
+      id: item.id,
+      status: item.status,
     })
-    return itemId
+    return item
   }
 
   const remove = (id: string) => {
@@ -44,16 +41,39 @@ export const RequestItemClient = (input: {
     }
   }
 
-  const updateStatus = (id: string, status: RequestStatus) => {
+  const reset = () => {
+    requestsItemStore.clear()
+    requestItemIds.clear()
+    subjects.onChange.next()
+    logger?.debug(`resetRequestItems`)
+  }
+
+  const updateStatus = ({
+    id,
+    status,
+    error,
+    transactionIntentHash,
+  }: {
+    id: string
+    status: RequestStatusTypes
+    error?: string
+    transactionIntentHash?: string
+  }) => {
     const item = requestsItemStore.get(id)
     if (item) {
       const updated = {
         ...item,
         status,
+      } as RequestItem
+      if (updated.status === 'fail') {
+        updated.error = error!
+      }
+      if (updated.status === 'success' && updated.type === 'sendTransaction') {
+        updated.transactionIntentHash = transactionIntentHash!
       }
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`updateRequestItemStatus`, { id, status })
+      logger?.debug(`updateRequestItemStatus`, updated)
     }
   }
 
@@ -62,7 +82,7 @@ export const RequestItemClient = (input: {
   const getItemsList = () =>
     getIds()
       .map((id) => ({ id, ...requestsItemStore.get(id) }))
-      .filter((item): item is RequestItem & { id: string } => !!item)
+      .filter((item): item is RequestItem => !!item)
 
   subscriptions.add(
     subjects.onChange
@@ -77,6 +97,7 @@ export const RequestItemClient = (input: {
     add,
     remove,
     updateStatus,
+    reset,
     destroy: () => {
       subscriptions.unsubscribe()
     },

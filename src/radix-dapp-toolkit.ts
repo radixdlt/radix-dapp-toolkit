@@ -1,22 +1,32 @@
-import { OnInitCallback, Providers, RequestData, State } from './_types'
+import {
+  DappMetadata,
+  Explorer,
+  OnConnect,
+  OnDisconnectCallback,
+  OnInitCallback,
+  Providers,
+  State,
+} from './_types'
 import { Logger } from 'tslog'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { LocalStorageClient } from './storage/local-storage-client'
-import WalletSdk from '@radixdlt/wallet-sdk'
+import { WalletSdk } from '@radixdlt/wallet-sdk'
 
 export type RadixDappToolkitConfiguration = {
   initialState?: State
   logger?: Logger<unknown>
   networkId?: number
   onInit?: OnInitCallback
+  onDisconnect?: OnDisconnectCallback
   providers?: Partial<Providers>
   useDoneCallback?: boolean
+  explorer?: Explorer
 }
 export const RadixDappToolkit = (
-  dAppDefinitionAddress: string,
-  connectRequest?: (connectRequest: RequestData) => any,
+  { dAppDefinitionAddress, dAppName }: DappMetadata,
+  onConnect?: OnConnect,
   configuration?: RadixDappToolkitConfiguration
 ) => {
   const {
@@ -25,14 +35,14 @@ export const RadixDappToolkit = (
     logger,
     initialState,
     onInit: onInitCallback = () => {},
+    onDisconnect: onDisconnectCallback = () => {},
+    explorer,
   } = configuration || {}
   const storageClient = providers?.storage || LocalStorageClient()
 
   const connectButtonClient =
     providers?.connectButton ||
-    ConnectButtonClient({
-      connectButtonElement: document.querySelector('radix-connect-button')!,
-    })
+    ConnectButtonClient({ logger, dAppName, explorer })
 
   const walletClient =
     providers?.walletClient ||
@@ -51,15 +61,17 @@ export const RadixDappToolkit = (
     key: `rdt:${dAppDefinitionAddress}:${networkId}`,
     logger,
     onInitCallback,
+    onDisconnectCallback,
     storageClient,
     walletClient,
-    connectRequest,
+    connectRequest: onConnect,
     useDoneCallback: configuration?.useDoneCallback,
   })
 
   return {
     requestData: stateClient.requestData,
     sendTransaction: walletClient.sendTransaction,
+    state$: stateClient.state$,
     destroy: () => {
       stateClient.destroy()
     },
