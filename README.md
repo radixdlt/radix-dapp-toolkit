@@ -152,6 +152,9 @@ type RadixDappToolkitConfiguration = {
 - **optional** useDoneCallback - if enabled, `done()` needs to be called to in order to complete the connect flow
 - **optional** explorer - used to change the outgoing links for accounts and transactions in the √ Connect Button. Defaults to radix dashboard
 
+## Examples
+- [React](https://github.com/radixdlt/react-connect-button)
+
 # Setting up your dApp Definition
 
 A dApp Definition account should be created after you’ve built your dApp’s components and resources, and created a website front end for it. dApp Definition account is a special account on the Radix Network with some metadata set on it that does some nice things, like:
