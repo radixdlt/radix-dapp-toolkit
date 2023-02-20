@@ -30,13 +30,17 @@ const STATE_KEY = `rdt:testDapp:1`
 
 const createMockWalletSdk = () => {
   const sendWalletResponse = new Subject<any>()
+  const walletRequestPayload = new Subject<any>()
   return {
-    request: () =>
-      ResultAsync.fromPromise(
+    request: (value: any) => {
+      walletRequestPayload.next(value)
+      return ResultAsync.fromPromise(
         firstValueFrom(sendWalletResponse),
         (error) => error as SdkError
-      ),
+      )
+    },
     sendWalletResponse,
+    walletRequestPayload,
     destroy: () => {},
   }
 }
@@ -283,6 +287,57 @@ describe('state management', () => {
       expect(rest).toEqual({
         type: 'dataRequest',
         status: 'pending',
+      })
+    })
+  })
+
+  describe('usePersona', () => {
+    it('should send oneTime request without usePersona', async () => {
+      const initialState = {
+        accounts: [
+          {
+            address:
+              'account_tdx_b_1qlxj68pketfcx8a6wrrqyvjfzdr7caw08j22gm6d26hq3g6x5m',
+            label: 'main',
+            appearanceId: 1,
+          },
+        ],
+        persona: {
+          identityAddress: 'abc_123',
+          label: 'RadMatt',
+        },
+        connected: true,
+      }
+
+      await storageClient.setData(STATE_KEY, initialState)
+
+      stateClient = StateClient({
+        logger,
+        key: STATE_KEY,
+        storageClient,
+        connectButtonClient,
+        walletClient,
+        onInitCallback: () => {},
+        onDisconnectCallback: () => {},
+      })
+
+      await waitForStateInitialization()
+
+      stateClient.requestData({
+        accounts: {
+          quantifier: 'atLeast',
+          quantity: 1,
+          oneTime: true,
+        },
+      })
+
+      const payload = await firstValueFrom(mockWalletSdk.walletRequestPayload)
+
+      expect(payload).toEqual({
+        oneTimeAccountsWithoutProofOfOwnership: {
+          quantifier: 'atLeast',
+          quantity: 1,
+        },
       })
     })
   })

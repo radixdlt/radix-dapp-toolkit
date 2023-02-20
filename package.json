@@ -33,11 +33,12 @@
     "build": "tsc && vite build",
     "prepare": "npx husky install",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:watch:no-mjs": "NO_MJS=TRUE jest --watch"
   },
   "dependencies": {
-    "@radixdlt/connect-button": "0.11.0-alpha.8",
-    "@radixdlt/wallet-sdk": "0.6.0-beta.11",
+    "@radixdlt/connect-button": "0.11.0",
+    "@radixdlt/wallet-sdk": "0.6.0",
     "neverthrow": "^6.0.0",
     "rxjs": "^7.8.0",
     "tslog": "^4.7.2"

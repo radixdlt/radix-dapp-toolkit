@@ -30,9 +30,13 @@ export const WalletClient = (input: {
   }: Parameters<WalletSdkType['request']>[0]) => {
     const requestInput: DataRequestValue = {}
 
-    if (oneTimeAccountsWithoutProofOfOwnership)
-      requestInput.oneTimeAccountsWithoutProofOfOwnership =
-        oneTimeAccountsWithoutProofOfOwnership
+    if (oneTimeAccountsWithoutProofOfOwnership) {
+      const { quantity, quantifier } = oneTimeAccountsWithoutProofOfOwnership
+      requestInput.oneTimeAccountsWithoutProofOfOwnership = {
+        quantity,
+        quantifier,
+      }
+    }
 
     if (ongoingAccountsWithoutProofOfOwnership)
       requestInput.ongoingAccountsWithoutProofOfOwnership =
