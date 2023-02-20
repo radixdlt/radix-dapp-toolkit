@@ -1527,18 +1527,18 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@radixdlt/connect-button@0.11.0-alpha.8":
-  version "0.11.0-alpha.8"
-  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.11.0-alpha.8.tgz#2602246255a47a72eaefced8b5325c328cd53bab"
-  integrity sha512-zVxL82QhiFkgXD7TTwoU12EP9MjCbsVwWCJ3xlPadcJq/+C1xDQt52D363jjW/gR8eVQRzZkTS5395xP6kvf0Q==
+"@radixdlt/connect-button@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.11.0.tgz#81d2ec64852e5889e27ec45ccde7a615fe997795"
+  integrity sha512-gfU7eUg9ZqhNPzSfs+wlrY5W0IEcrA+YadVNQPfZI/CcqmXxTf9uf4gTBTtVWeiMPlCNif31TmUTX8pe/JPrUw==
   dependencies:
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.6.0-beta.11":
-  version "0.6.0-beta.11"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.6.0-beta.11.tgz#8504371eed6b96ac68bf97039d4840780c8ba131"
-  integrity sha512-vmLifx1UXnjNw+NHnUuSk0b6Fqjgcm/vzSI75uRD0LSVEeJwHCie2TrmOnopkiKSwGwpbVM6tb4rK+XE5RMNrg==
+"@radixdlt/wallet-sdk@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.6.0.tgz#68a0f5db0eb69a5524229332d8d005f358689769"
+  integrity sha512-2WqmUU0cYn9gqZx7qpDIG6L3miroqW5xbflnVyR/p8MfrNgeJeysCx1jHnY5fMmU/FjPFU6AntuQcyLXoNmqZQ==
   dependencies:
     lodash.flow "^3.5.0"
     loglevel "^1.8.1"
