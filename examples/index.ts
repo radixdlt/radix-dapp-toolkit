@@ -181,7 +181,7 @@ class ExampleDapp extends LitElement {
       @click=${() => {
         this.rdt
           .requestData({
-            accounts: { quantifier: 'exactly', quantity: 2 },
+            accounts: { quantifier: 'exactly', quantity: 3 },
           })
           .map((response) => {
             this.accounts = response.accounts
