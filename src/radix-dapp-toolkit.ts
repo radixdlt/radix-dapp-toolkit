@@ -72,6 +72,7 @@ export const RadixDappToolkit = (
     requestData: stateClient.requestData,
     sendTransaction: walletClient.sendTransaction,
     state$: stateClient.state$,
+    disconnect: stateClient.reset,
     destroy: () => {
       stateClient.destroy()
     },

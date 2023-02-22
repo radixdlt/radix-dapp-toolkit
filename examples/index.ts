@@ -103,7 +103,7 @@ class ExampleDapp extends LitElement {
   private rdt = RadixDappToolkit(
     {
       dAppDefinitionAddress:
-        'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
+        'account_tdx_b_1pps97zsqhgdawcth6hmnfapa8ez8wr0wdt5na7th2cpsuejx7h',
       dAppName: 'Test dApp',
     },
     (requestData) => {
@@ -116,7 +116,7 @@ class ExampleDapp extends LitElement {
     },
     {
       logger: new Logger(),
-      networkId: 34,
+      networkId: 11,
       onDisconnect: () => {
         this.accounts = []
       },
@@ -245,6 +245,17 @@ class ExampleDapp extends LitElement {
       : ''
   }
 
+  private disconnect() {
+    return html`<radix-button
+      fullWidth
+      @click=${() => {
+        this.rdt.disconnect()
+      }}
+    >
+      Disconnect
+    </radix-button>`
+  }
+
   private headerTemplate() {
     return html`<header>
       <h1>Example dApp</h1>
@@ -267,7 +278,7 @@ ${JSON.stringify(this.response, null, 2)}</pre
       <div class="content">
         ${this.oneTimeRequest()} ${this.ongoingRequest()}
         ${this.createTokenRequest()} ${this.transferToken()}
-        ${this.updateMetadata()} ${this.walletResponseTemplate()}
+        ${this.updateMetadata()}${this.disconnect()}${this.walletResponseTemplate()}
       </div>
     </div>`
   }

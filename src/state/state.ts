@@ -297,6 +297,11 @@ export const StateClient = (input: {
       .subscribe()
   )
 
+  const reset = () => {
+    resetState()
+    walletClient.resetRequestItems()
+  }
+
   return {
     connected$: state$.pipe(
       map(({ connected }) => connected),
@@ -305,11 +310,13 @@ export const StateClient = (input: {
     setConnected: (value: boolean) => subjects.connected.next(value),
     requestData,
     destroy: () => {
+      reset()
       connectButtonClient.destroy()
       walletClient.destroy()
       subscriptions.unsubscribe()
     },
     subjects,
     state$,
+    reset,
   }
 }
