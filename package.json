@@ -32,9 +32,8 @@
     "dev": "vite serve examples",
     "build": "tsc && vite build",
     "prepare": "npx husky install",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:watch:no-mjs": "NO_MJS=TRUE jest --watch"
+    "test": "VITE_NO_MJS=TRUE jest",
+    "test:watch": "VITE_NO_MJS=TRUE jest --watch"
   },
   "dependencies": {
     "@radixdlt/connect-button": "0.11.0",
