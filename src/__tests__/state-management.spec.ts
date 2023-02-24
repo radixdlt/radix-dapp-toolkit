@@ -10,6 +10,8 @@ import { State, StorageProvider } from '../_types'
 import { ConnectButtonSubjects } from '../connect-button/subjects'
 import { WalletClient } from '../wallet/wallet-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
+import { GatewayClient } from '../gateway/gateway'
+import { GatewayApiClient } from '../gateway/gateway-api'
 
 const WALLET_SUCCESS_RESPONSE = {
   ongoingAccounts: [
@@ -39,9 +41,29 @@ const createMockWalletSdk = () => {
         (error) => error as SdkError
       )
     },
+    sendTransaction: (value: any) => {
+      walletRequestPayload.next(value)
+      return ResultAsync.fromPromise(
+        firstValueFrom(sendWalletResponse),
+        (error) => error as SdkError
+      )
+    },
     sendWalletResponse,
     walletRequestPayload,
     destroy: () => {},
+  }
+}
+
+const createMockGatewayApi = () => {
+  const sendGatewayResponse = new Subject<any>()
+  const gatewayRequestPayload = new Subject<any>()
+  return {
+    getTransactionStatus: (value: any) => {
+      gatewayRequestPayload.next(value)
+      return firstValueFrom(sendGatewayResponse)
+    },
+    sendGatewayResponse,
+    gatewayRequestPayload,
   }
 }
 
@@ -54,6 +76,7 @@ let requestItemClient: RequestItemClient
 let storageClient: StorageProvider
 let stateClient: StateClient
 let mockWalletSdk: ReturnType<typeof createMockWalletSdk>
+let mockGatewayApi: ReturnType<typeof createMockGatewayApi>
 
 const getRequestItems = async () =>
   firstValueFrom(
@@ -98,16 +121,22 @@ describe('state management', () => {
       // logger,
     })
     mockWalletSdk = createMockWalletSdk()
+    mockGatewayApi = createMockGatewayApi()
     walletClient = WalletClient({
       walletSdk: mockWalletSdk as unknown as WalletSdk,
       requestItemClient,
-      // logger,
+      gatewayClient: GatewayClient({
+        logger,
+        gatewayApi: mockGatewayApi as unknown as GatewayApiClient,
+        retryConfig: { interval: 1 },
+      }),
+      logger,
     })
 
     storageClient = InMemoryClient()
   })
   afterEach(() => {
-    stateClient.destroy()
+    stateClient?.destroy()
   })
   it('should send connect request and receive wallet response', async () => {
     const responseSubject = new ReplaySubject<any>()
@@ -338,6 +367,48 @@ describe('state management', () => {
           quantifier: 'atLeast',
           quantity: 1,
         },
+      })
+    })
+  })
+
+  describe('sendTransaction', () => {
+    it('should poll transaction until resolved', async () => {
+      const responseSubject = new ReplaySubject<any>()
+
+      walletClient
+        .sendTransaction({
+          transactionManifest: '',
+          version: 1,
+        })
+        .map((response) => {
+          responseSubject.next(response)
+        })
+
+      const [{ id, ...rest }] = await getRequestItems()
+
+      expect(rest).toEqual({
+        type: 'sendTransaction',
+        status: 'pending',
+      })
+
+      const transactionIntentHash =
+        '81dfdf039e0f0b4e44821e86f5fee0d791d3acc532215e67f82bf33769d23172'
+
+      mockWalletSdk.sendWalletResponse.next({
+        transactionIntentHash,
+      })
+
+      await firstValueFrom(mockGatewayApi.gatewayRequestPayload)
+
+      mockGatewayApi.sendGatewayResponse.next({ status: 'pending' })
+
+      await firstValueFrom(mockGatewayApi.gatewayRequestPayload)
+
+      mockGatewayApi.sendGatewayResponse.next({ status: 'committed_success' })
+
+      expect(await firstValueFrom(responseSubject)).toEqual({
+        status: 'committed_success',
+        transactionIntentHash,
       })
     })
   })

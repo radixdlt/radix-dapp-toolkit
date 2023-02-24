@@ -21,7 +21,7 @@ export const ConnectButtonClient = (input: {
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
 }): ConnectButtonProvider => {
-  if (!import.meta.env.VITE_NO_MJS) import('@radixdlt/connect-button')
+  if (import.meta.env.MODE !== 'test') import('@radixdlt/connect-button')
   const subjects = input.subjects || ConnectButtonSubjects()
   const logger = input.logger
   const onConnectDefault = (done: (input?: { challenge: string }) => void) => {
