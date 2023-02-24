@@ -13,6 +13,9 @@ import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { LocalStorageClient } from './storage/local-storage-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
+import { GatewayApiClient } from './gateway/gateway-api'
+import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
+import { GatewayClient } from './gateway/gateway'
 
 export type RadixDappToolkitConfiguration = {
   initialState?: State
@@ -23,6 +26,7 @@ export type RadixDappToolkitConfiguration = {
   providers?: Partial<Providers>
   useDoneCallback?: boolean
   explorer?: Explorer
+  gatewayBaseUrl?: string
 }
 export const RadixDappToolkit = (
   { dAppDefinitionAddress, dAppName }: DappMetadata,
@@ -37,12 +41,22 @@ export const RadixDappToolkit = (
     onInit: onInitCallback = () => {},
     onDisconnect: onDisconnectCallback = () => {},
     explorer,
+    gatewayBaseUrl,
   } = configuration || {}
   const storageClient = providers?.storage || LocalStorageClient()
 
   const connectButtonClient =
     providers?.connectButton ||
     ConnectButtonClient({ logger, dAppName, explorer })
+
+  const gatewayClient =
+    providers?.gatewayClient ||
+    GatewayClient({
+      logger,
+      gatewayApi: GatewayApiClient(
+        gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId)
+      ),
+    })
 
   const walletClient =
     providers?.walletClient ||
@@ -53,6 +67,7 @@ export const RadixDappToolkit = (
         dAppDefinitionAddress,
         logLevel: 'debug',
       }),
+      gatewayClient,
     })
 
   const stateClient = StateClient({

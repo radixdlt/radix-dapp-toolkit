@@ -32,10 +32,11 @@
     "dev": "vite serve examples",
     "build": "tsc && vite build",
     "prepare": "npx husky install",
-    "test": "VITE_NO_MJS=TRUE jest",
-    "test:watch": "VITE_NO_MJS=TRUE jest --watch"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-beta.2.1",
     "@radixdlt/connect-button": "0.11.0",
     "@radixdlt/wallet-sdk": "0.6.0",
     "neverthrow": "^6.0.0",

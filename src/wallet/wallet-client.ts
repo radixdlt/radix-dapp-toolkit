@@ -5,6 +5,7 @@ import {
 } from '@radixdlt/wallet-sdk'
 import { Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
+import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { DataRequestValue } from '../_types'
 
@@ -13,6 +14,7 @@ export const WalletClient = (input: {
   requestItemClient?: RequestItemClient
   logger?: Logger<unknown>
   walletSdk: WalletSdkType
+  gatewayClient: GatewayClient
 }) => {
   const logger = input.logger
   const requestItemClient =
@@ -21,6 +23,7 @@ export const WalletClient = (input: {
       logger,
     })
   const walletSdk = input.walletSdk
+  const gatewayClient = input.gatewayClient
 
   const sendWalletRequest = ({
     oneTimeAccountsWithoutProofOfOwnership,
@@ -108,6 +111,23 @@ export const WalletClient = (input: {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
       .sendTransaction(input)
+      .mapErr((response) => {
+        requestItemClient.updateStatus({
+          id,
+          status: 'fail',
+          error: response.error,
+        })
+        logger?.debug(`⬇️walletErrorResponse`, response)
+        return response
+      })
+      .andThen(({ transactionIntentHash }) => {
+        return gatewayClient
+          .pollTransactionStatus(transactionIntentHash)
+          .map((transactionStatusResponse) => ({
+            transactionIntentHash,
+            status: transactionStatusResponse.status,
+          }))
+      })
       .map((response) => {
         requestItemClient.updateStatus({
           id,
@@ -116,15 +136,6 @@ export const WalletClient = (input: {
         })
         logger?.debug(`⬇️walletSuccessResponse`, response)
         return response
-      })
-      .mapErr((error) => {
-        requestItemClient.updateStatus({
-          id,
-          status: 'fail',
-          error: error.error,
-        })
-        logger?.debug(`⬇️walletErrorResponse`, error)
-        return error
       })
   }
 

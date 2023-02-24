@@ -9,6 +9,7 @@ import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
 import { RequestItem } from '@radixdlt/connect-button'
+import { GatewayClient } from './gateway/gateway'
 
 export type StorageProvider = {
   getData: <T = any>(key: string) => ResultAsync<T | undefined, Error>
@@ -75,6 +76,7 @@ export type Providers = {
   storage: StorageProvider
   connectButton: ConnectButtonProvider
   walletClient: WalletClient
+  gatewayClient: GatewayClient
 }
 
 export type RequestDataOutput = ResultAsync<
