@@ -1,0 +1,28 @@
+helmDefaults:
+  verify: false
+  wait: false
+  timeout: 600
+  recreatePods: false
+  force: false
+  createNamespace: false
+repositories:
+  - name: rdx-works
+    url: https://raw.githubusercontent.com/radixdlt/helm-charts/master/
+    username: {{ requiredEnv "HELM_GH_USER" }}
+    password: {{ requiredEnv "HELM_GH_PASS" }}
+environments:
+  dev: {}
+  pr: {}
+releases:
+  - name: radix-dapp-toolkit
+    chart: ./radix-dapp-toolkit
+    values:
+      - environments/common/values.yaml.gotmpl
+      - environments/{{ .Environment.Name }}/values.yaml.gotmpl
+
+  - name: developer-access
+    chart: rdx-works/developer-access
+    version: 1.0.0
+    values:
+      - environments/common/values.yaml.gotmpl
+      - environments/{{ .Environment.Name }}/values.yaml.gotmpl

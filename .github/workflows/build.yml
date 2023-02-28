@@ -1,9 +1,16 @@
 name: Build
 
 on:
-  push:
-    branches: ['**']
   workflow_dispatch:
+
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -25,3 +32,47 @@ jobs:
 
       - name: Build
         run: yarn build
+
+  setup-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.toolkit-tags.outputs.tags }}
+      labels: ${{ steps.toolkit-tags.outputs.labels }}
+      json: ${{ steps.toolkit-tags.outputs.json }}
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Setup tags
+        id: toolkit-tags
+        uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea
+        with:
+          images: eu.gcr.io/dev-container-repo/radix-dapp-toolkit
+          tags: |
+            type=sha,event=branch
+            type=sha,event=pr
+            type=semver,pattern={{version}}
+
+  push-docker-image:
+    runs-on: ubuntu-latest
+    needs: setup-tags
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read  
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - id: auth
+        uses: google-github-actions/auth@a61909d048e0be579b6c15b27088d19668493851
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - name: configure-docker
+        run: |
+            gcloud auth configure-docker -q
+      - name: Docker build
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
+        with:
+          file: ./Dockerfile
+          tags: ${{ needs.setup-tags.outputs.tags }}
+          labels: ${{ needs.setup-tags.outputs.labels }}
+          push: true
+          context: ./
