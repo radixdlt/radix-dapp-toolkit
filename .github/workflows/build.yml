@@ -101,44 +101,34 @@ jobs:
         uses: azure/setup-kubectl@901a10e89ea615cf61f57ac05cecdf23e7de06d8 #v3.2
         with:
           version: "v1.25.6"
-      - name: Configure AWS credentials to fetch secrets
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          role-to-assume: ${{ secrets.SECRETS_IAM_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: AWSDeployRolePR
-      - name: Get secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v1
-        with:
-          secret-ids: |
-            GH, ${{ secrets.AWS_HELM_CREDENTIALS_SECRET }}
-          parse-json-secrets: true
       - name: Configure AWS credentials for deployment
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.DEPLOY_PR_IAM_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy application
-        working-directory: helm/deploy
+        working-directory: deploy/helm
         run: |
           cat <<DOC > namespace.yaml
           apiVersion: hnc.x-k8s.io/v1alpha2
           kind: SubnamespaceAnchor
           metadata:
-            name: $APPLICATION_NS
-            namespace: $APPLICATION_H_NS
+            name: radix-dapp-toolkit-pr-${{ github.event.number }}
+            namespace: radix-dapp-toolkit-ci-pr
           DOC
 
-          kubectl apply -f subns-manifest.yaml
+          aws eks update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} \
+                                    --alias ${{ secrets.CLUSTER_NAME }} \
+                                    --region ${{ secrets.AWS_REGION }}
 
-          helmfile --environment pr --namespace ${{ env.APPLICATION_NS }} \
+          kubectl apply -f namespace.yaml
+
+          helmfile --environment pr --namespace radix-dapp-toolkit-pr-${{ github.event.number }} \
                    --state-values-set "ci.tag=${{ env.CI_TAG }}" \
-                   --state-values-set "ci.ingressDomain=${{ env.CI_INGRESS_DOMAIN }}" \
+                   --state-values-set "ci.ingressDomain=${{ env.INGRESS_DOMAIN }}" \
                    apply
         env:
           CI_TAG: ${{ fromJSON(needs.setup-tags.outputs.json).labels['org.opencontainers.image.version'] }}
-          CI_INGRESS_DOMAIN: ${{ secrets.PR_INGRESS_DOMAIN }}
-          APPLICATION_H_NS: ${{ secrets.DEPLOY_PR_H_NAMESPACE }}
-          APPLICATION_NS: ${{ secrets.DEPLOY_PR_NAMESPACE }}
-          HELM_GH_USER: ${{ env.GH_HELM_GH_USER }}
-          HELM_GH_PASS: ${{ env.GH_HELM_GH_PASS }}
+          INGRESS_DOMAIN: radix-dapp-toolkit-pr-${{ github.event.number}}.${{ secrets.INGRESS_DOMAIN }}
+          HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
+          HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
