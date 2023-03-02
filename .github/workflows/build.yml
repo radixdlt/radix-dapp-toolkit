@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
         with:
           node-version: '18.x'
 
@@ -40,7 +40,7 @@ jobs:
       labels: ${{ steps.toolkit-tags.outputs.labels }}
       json: ${{ steps.toolkit-tags.outputs.json }}
     steps:
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
       - name: Setup tags
         id: toolkit-tags
         uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea
