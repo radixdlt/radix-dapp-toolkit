@@ -161,6 +161,7 @@ class ExampleDapp extends LitElement {
               .sendTransaction({
                 transactionManifest: create_token(this.accounts[0].address),
                 version: 1,
+                message: 'Example message added by dApp when creating token',
               })
               .map((response) => {
                 this.response = response
@@ -205,6 +206,9 @@ class ExampleDapp extends LitElement {
               .sendTransaction({
                 version: 1,
                 transactionManifest: update_metadata(this.accounts[0].address),
+                message: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                  Nullam pulvinar at metus eget congue. Aenean volutpat metus in imperdiet rhoncus. 
+                  Suspendisse ac eleifend eros. Maecenas venenatis lacus suscipit erat hendrerit sagittis.`,
               })
               .map((response) => {
                 this.response = response
@@ -231,6 +235,7 @@ class ExampleDapp extends LitElement {
                   this.accounts[0].address,
                   this.accounts[0].address
                 ),
+                message: 'Example message when doing transfer token',
               })
               .map((response) => {
                 this.response = response
