@@ -1536,18 +1536,18 @@
     neverthrow "^5.0.0"
     rxjs "^7.5.6"
 
-"@radixdlt/connect-button@0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.11.0.tgz#81d2ec64852e5889e27ec45ccde7a615fe997795"
-  integrity sha512-gfU7eUg9ZqhNPzSfs+wlrY5W0IEcrA+YadVNQPfZI/CcqmXxTf9uf4gTBTtVWeiMPlCNif31TmUTX8pe/JPrUw==
+"@radixdlt/connect-button@0.12.0-alpha.1":
+  version "0.12.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.12.0-alpha.1.tgz#2e2d8b1035aebd6abc984ea4d396a364d9eb3f72"
+  integrity sha512-GKcvLsJ3KUPB+5o0Ykyb8mhK8ex2pNMM3xPA+aaQIDClbugvBkA/RAXcJjtXkIgoZEh2SO1W3eYKDIiGZ+tv3A==
   dependencies:
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.6.0.tgz#68a0f5db0eb69a5524229332d8d005f358689769"
-  integrity sha512-2WqmUU0cYn9gqZx7qpDIG6L3miroqW5xbflnVyR/p8MfrNgeJeysCx1jHnY5fMmU/FjPFU6AntuQcyLXoNmqZQ==
+"@radixdlt/wallet-sdk@0.7.0-beta.1":
+  version "0.7.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.7.0-beta.1.tgz#2f01d2a5953c7532375f4ad785ab8e3d1d771a72"
+  integrity sha512-bSCJucqPlQfdesE3Dc1chWu6uZS7zxtyu6dK4Cxz3mOGZ5QtnzPfQ2jDRfd8Zg53bzrBzmPQSZoFA9igw21c7g==
   dependencies:
     lodash.flow "^3.5.0"
     loglevel "^1.8.1"
@@ -4348,10 +4348,10 @@ tslib@^2.1.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.1.tgz#0d0bfbaac2880b91e22df0768e55be9753a5b17e"
   integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
 
-tslog@^4.7.2:
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/tslog/-/tslog-4.7.2.tgz#bc442ef9d42f1e9aa08a9a443ecc15ac3b818d40"
-  integrity sha512-NZCunFmbQK25tt+Egv28MLcmbo8M1HgUy6X2hdVbgrAlcR7zRGvPmM8SnpoljXZ48zHRRYWp9vYIHFHKWsR4HA==
+tslog@^4.8.2:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/tslog/-/tslog-4.8.2.tgz#dbb0c96249e387e8a711ae6e077330ba1ef102c9"
+  integrity sha512-eAKIRjxfSKYLs06r1wT7oou6Uv9VN6NW9g0JPidBlqQwPBBl5+84dm7r8zSOPVq1kyfEw1P6B3/FLSpZCorAgA==
 
 type-check@~0.3.2:
   version "0.3.2"

@@ -13,28 +13,26 @@ import {
 import {
   concatMap,
   distinctUntilChanged,
-  firstValueFrom,
   map,
+  merge,
   mergeMap,
   of,
   scan,
-  share,
-  shareReplay,
   Subscription,
   switchMap,
   tap,
   withLatestFrom,
 } from 'rxjs'
 import { WalletClient } from '../wallet/wallet-client'
-import { ResultAsync } from 'neverthrow'
-import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { handleRequest } from './helpers/handle-request'
 import { withAuth } from './helpers/with-auth'
 import { removeUndefined } from '../helpers/remove-undefined'
+import { GetState } from './helpers/get-state'
 
 export const defaultState: State = {
   connected: false,
   accounts: [],
+  sharedData: {},
 }
 
 export type StateClient = ReturnType<typeof StateClient>
@@ -42,7 +40,7 @@ export type StateClient = ReturnType<typeof StateClient>
 export const StateClient = (input: {
   key: string
   initialState?: State
-  subjects?: StateSubjects
+  subjects: StateSubjects
   logger?: Logger<unknown>
   connectButtonClient: ConnectButtonProvider
   walletClient: WalletClient
@@ -51,16 +49,17 @@ export const StateClient = (input: {
   onInitCallback: OnInitCallback
   onDisconnectCallback: OnDisconnectCallback
   useDoneCallback?: boolean
+  getState: GetState
 }) => {
   const key = input.key
-  const subjects = input.subjects || StateSubjects()
+  const subjects = input.subjects
   const logger = input.logger
   const connectButtonClient = input.connectButtonClient
   const walletClient = input.walletClient
   const storageClient = input.storageClient
   const connectDoneCallback = input.useDoneCallback
   const disconnectCallback = input.onDisconnectCallback
-
+  const getState = input.getState
   const subscriptions = new Subscription()
 
   const readStateFromStorage = () =>
@@ -112,7 +111,7 @@ export const StateClient = (input: {
 
   initializeState()
 
-  const state$ = subjects.state$.pipe(share(), shareReplay())
+  const state$ = subjects.state$
 
   const connected$ = state$.pipe(
     map(({ connected }) => connected),
@@ -183,6 +182,13 @@ export const StateClient = (input: {
       .pipe(
         tap((items) => {
           connectButtonClient.setRequestItems(items)
+
+          connectButtonClient.setConnecting(
+            items.some(
+              (item) =>
+                item.status === 'pending' && item.type === 'loginRequest'
+            )
+          )
         })
       )
       .subscribe()
@@ -215,20 +221,15 @@ export const StateClient = (input: {
       .subscribe()
   )
 
-  const getState = () =>
-    ResultAsync.fromPromise(
-      firstValueFrom(state$),
-      (error) => error as SdkError
-    )
-
-  const requestData = ({ accounts }: DataRequestInput) =>
-    getState().andThen((state) => {
-      return handleRequest(
+  const requestData = (value: DataRequestInput) =>
+    getState().andThen((state) =>
+      handleRequest(
         withAuth(
           {
-            [accounts?.oneTime
+            [value.accounts?.oneTime
               ? 'oneTimeAccountsWithoutProofOfOwnership'
-              : 'ongoingAccountsWithoutProofOfOwnership']: accounts,
+              : 'ongoingAccountsWithoutProofOfOwnership']: value.accounts,
+            reset: { accounts: value.accounts?.reset || false },
           },
           state
         ),
@@ -238,11 +239,81 @@ export const StateClient = (input: {
           walletClient,
         }
       ).map(({ data, resolvedBy, persist }) => {
-        if (resolvedBy === 'wallet' && persist)
-          setState({ ...data, connected: state.connected }, true)
+        if (resolvedBy === 'wallet' && persist) {
+          setState(
+            {
+              ...data,
+              connected: !!state.persona || !!data.persona,
+              sharedData: {
+                accounts: value.accounts
+                  ? {
+                      quantifier: value.accounts.quantifier,
+                      quantity: value.accounts.quantity,
+                    }
+                  : undefined,
+              },
+            },
+            true
+          )
+        }
+
         return data
       })
+    )
+
+  const handleConnect = (state: State) =>
+    input.connectRequest?.((value: DataRequestInput<true>) => {
+      logger?.debug(`connectRequest`, value)
+      return handleRequest(
+        withAuth(
+          {
+            ongoingAccountsWithoutProofOfOwnership: value.accounts,
+          },
+          state
+        ),
+        {
+          state,
+          logger,
+          walletClient,
+        }
+      )
+        .map(({ data }) => {
+          if (!connectDoneCallback) {
+            setState({ ...data, connected: true, sharedData: value }, true)
+          }
+
+          const done = () => {
+            setState({ ...data, connected: true, sharedData: value }, true)
+          }
+
+          return {
+            data,
+            done,
+          }
+        })
+        .mapErr((error) => {
+          setState({ connected: false }, true)
+          return error
+        })
     })
+
+  subscriptions.add(
+    merge(connectButtonClient.onUpdateSharedData$, subjects.updateSharedData)
+      .pipe(
+        withLatestFrom(state$),
+        switchMap(([, state]) => {
+          if (!!state.sharedData.accounts) {
+            return requestData(
+              state.sharedData.accounts
+                ? { accounts: { ...state.sharedData.accounts, reset: true } }
+                : {}
+            )
+          }
+          return []
+        })
+      )
+      .subscribe()
+  )
 
   subscriptions.add(
     connectButtonClient.onConnect$
@@ -251,48 +322,7 @@ export const StateClient = (input: {
           logger?.debug(`onConnect`)
         }),
         withLatestFrom(state$),
-        switchMap(([, state]) => {
-          return (
-            input.connectRequest?.((value: DataRequestInput<true>) => {
-              logger?.debug(`connectRequest`, value)
-              connectButtonClient.setConnecting(true)
-              return handleRequest(
-                withAuth(
-                  {
-                    ongoingAccountsWithoutProofOfOwnership: value.accounts,
-                  },
-                  state
-                ),
-                {
-                  state,
-                  logger,
-                  walletClient,
-                }
-              )
-                .map(({ data }) => {
-                  if (!connectDoneCallback) {
-                    setState({ ...data, connected: true }, true)
-                    connectButtonClient.setConnecting(false)
-                  }
-
-                  const done = () => {
-                    setState({ ...data, connected: true }, true)
-                    connectButtonClient.setConnecting(false)
-                  }
-
-                  return {
-                    data,
-                    done,
-                  }
-                })
-                .mapErr((error) => {
-                  setState({ connected: false }, true)
-                  connectButtonClient.setConnecting(false)
-                  return error
-                })
-            }) ?? []
-          )
-        })
+        switchMap(([, state]) => handleConnect(state) ?? [])
       )
       .subscribe()
   )

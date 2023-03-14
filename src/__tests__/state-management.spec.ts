@@ -12,6 +12,8 @@ import { WalletClient } from '../wallet/wallet-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayClient } from '../gateway/gateway'
 import { GatewayApiClient } from '../gateway/gateway-api'
+import { createGetState, GetState } from '../state/helpers/get-state'
+import { StateSubjects } from '../state/subjects'
 
 const WALLET_SUCCESS_RESPONSE = {
   ongoingAccounts: [
@@ -70,6 +72,7 @@ const createMockGatewayApi = () => {
 const logger = new Logger()
 
 let connectButtonSubjects: ConnectButtonSubjects
+let stateSubjects: StateSubjects
 let connectButtonClient: ConnectButtonClient
 let walletClient: WalletClient
 let requestItemClient: RequestItemClient
@@ -77,6 +80,7 @@ let storageClient: StorageProvider
 let stateClient: StateClient
 let mockWalletSdk: ReturnType<typeof createMockWalletSdk>
 let mockGatewayApi: ReturnType<typeof createMockGatewayApi>
+let getState: GetState
 
 const getRequestItems = async () =>
   firstValueFrom(
@@ -122,6 +126,8 @@ describe('state management', () => {
     })
     mockWalletSdk = createMockWalletSdk()
     mockGatewayApi = createMockGatewayApi()
+    stateSubjects = StateSubjects()
+    getState = createGetState(stateSubjects.state$)
     walletClient = WalletClient({
       walletSdk: mockWalletSdk as unknown as WalletSdk,
       requestItemClient,
@@ -131,6 +137,7 @@ describe('state management', () => {
         retryConfig: { interval: 1 },
       }),
       logger,
+      getState,
     })
 
     storageClient = InMemoryClient()
@@ -159,6 +166,8 @@ describe('state management', () => {
           responseSubject.next(data)
           return { data }
         }),
+      getState,
+      subjects: stateSubjects,
     })
 
     await waitForStateInitialization()
@@ -205,6 +214,12 @@ describe('state management', () => {
     const expectedState = {
       ...expectedResponse,
       connected: true,
+      sharedData: {
+        accounts: {
+          quantifier: 'atLeast',
+          quantity: 1,
+        },
+      },
     }
 
     expect(await getStoredState()).toEqual(expectedState)
@@ -242,6 +257,8 @@ describe('state management', () => {
         onInitCallback: (state) => {
           init.next(state)
         },
+        getState,
+        subjects: stateSubjects,
       })
 
       await waitForStateInitialization()
@@ -301,6 +318,8 @@ describe('state management', () => {
         onInitCallback: (state) => {
           init.next(state)
         },
+        getState,
+        subjects: stateSubjects,
       })
 
       await waitForStateInitialization()
@@ -348,6 +367,8 @@ describe('state management', () => {
         walletClient,
         onInitCallback: () => {},
         onDisconnectCallback: () => {},
+        getState,
+        subjects: stateSubjects,
       })
 
       await waitForStateInitialization()
@@ -367,6 +388,7 @@ describe('state management', () => {
           quantifier: 'atLeast',
           quantity: 1,
         },
+        reset: { accounts: false },
       })
     })
   })
