@@ -19,6 +19,7 @@ export type StorageProvider = {
 export type ConnectButtonProvider = {
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
+  onUpdateSharedData$: Observable<void>
   onCancelRequestItem$: Observable<string>
   setLoading: (value: boolean) => void
   setConnected: (value: boolean) => void
@@ -38,6 +39,7 @@ export type State = {
   connected: boolean
   accounts?: Account[]
   persona?: { identityAddress: string; label: string }
+  sharedData: Partial<{ accounts: NumberOfAccounts }>
 }
 
 export type DataRequestInput<IsLoginRequest extends boolean = false> =
@@ -46,7 +48,7 @@ export type DataRequestInput<IsLoginRequest extends boolean = false> =
         accounts?: NumberOfAccounts
       }
     : {
-        accounts?: NumberOfAccounts & { oneTime?: boolean }
+        accounts?: NumberOfAccounts & { oneTime?: boolean; reset?: true }
       }
 
 export type RequestDataResponse = Result<
@@ -71,6 +73,10 @@ export type OnConnectCallback = (
 export type OnInitCallback = (state: State) => void
 
 export type OnDisconnectCallback = () => void
+
+export type OnResetCallback = (
+  value: (value: DataRequestInput<true>) => RequestDataOutput
+) => any
 
 export type Providers = {
   storage: StorageProvider

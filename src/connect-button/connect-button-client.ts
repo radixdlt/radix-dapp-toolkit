@@ -78,6 +78,16 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const onUpdateSharedData$ = fromEvent(
+            connectButtonElement,
+            'onUpdateSharedData'
+          ).pipe(
+            tap(() => {
+              logger?.debug(`onUpdateSharedData`)
+              subjects.onUpdateSharedData.next()
+            })
+          )
+
           const loading$ = subjects.loading.pipe(
             tap((value) => (connectButtonElement.loading = value))
           )
@@ -122,7 +132,8 @@ export const ConnectButtonClient = (input: {
             accounts$,
             personaLabel$,
             connecting$,
-            onDestroy$
+            onDestroy$,
+            onUpdateSharedData$
           )
         })
       )
@@ -132,6 +143,7 @@ export const ConnectButtonClient = (input: {
   return {
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
+    onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     setLoading: (value: boolean) => subjects.loading.next(value),
     setConnecting: (value: boolean) => subjects.connecting.next(value),

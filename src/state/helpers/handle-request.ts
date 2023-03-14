@@ -37,7 +37,12 @@ export const handleRequest = (
   ].reduce((acc, curr) => acc && curr, true)
 
   // TODO: better checking of data requests
-  if (resolvedByState && !dataRequest.oneTimeAccountsWithoutProofOfOwnership) {
+  const canBeResolvedByState =
+    resolvedByState &&
+    !dataRequest.oneTimeAccountsWithoutProofOfOwnership &&
+    !dataRequest.reset?.accounts
+
+  if (canBeResolvedByState) {
     logger?.debug(`resolveByState`, state)
     const data = {
       accounts: state?.accounts!,

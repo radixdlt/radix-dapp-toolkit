@@ -4,8 +4,8 @@ import { State } from '../_types'
 
 export type StateSubjects = ReturnType<typeof StateSubjects>
 export const StateSubjects = () => ({
-  connected: new ReplaySubject<boolean>(),
-  accounts: new ReplaySubject<Account[] | undefined>(),
+  connected: new ReplaySubject<boolean>(1),
+  accounts: new ReplaySubject<Account[] | undefined>(1),
   persona: new ReplaySubject<
     | {
         identityAddress: string
@@ -13,7 +13,8 @@ export const StateSubjects = () => ({
       }
     | undefined
   >(),
-  onInit: new ReplaySubject<State>(),
-  state$: new ReplaySubject<State>(),
+  onInit: new ReplaySubject<State>(1),
+  state$: new ReplaySubject<State>(1),
   setState: new Subject<{ state: Partial<State>; persist: boolean }>(),
+  updateSharedData: new Subject<void>(),
 })

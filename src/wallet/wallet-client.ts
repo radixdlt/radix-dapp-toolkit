@@ -7,6 +7,7 @@ import { Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { GetState } from '../state/helpers/get-state'
 import { DataRequestValue } from '../_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
@@ -15,6 +16,7 @@ export const WalletClient = (input: {
   logger?: Logger<unknown>
   walletSdk: WalletSdkType
   gatewayClient: GatewayClient
+  getState: GetState
 }) => {
   const logger = input.logger
   const requestItemClient =
@@ -30,8 +32,9 @@ export const WalletClient = (input: {
     ongoingAccountsWithoutProofOfOwnership,
     loginWithoutChallenge,
     usePersona,
+    reset = { accounts: false, personaData: false },
   }: Parameters<WalletSdkType['request']>[0]) => {
-    const requestInput: DataRequestValue = {}
+    const requestInput: DataRequestValue = { reset }
 
     if (oneTimeAccountsWithoutProofOfOwnership) {
       const { quantity, quantifier } = oneTimeAccountsWithoutProofOfOwnership
@@ -50,45 +53,47 @@ export const WalletClient = (input: {
 
     if (usePersona) requestInput.usePersona = usePersona
 
-    const requestType = !!requestInput.loginWithoutChallenge
-      ? 'loginRequest'
-      : 'dataRequest'
+    return input.getState().andThen((state) => {
+      // TODO: improve logic for determining requestType
+      const requestType =
+        !!requestInput.loginWithoutChallenge && !state.persona
+          ? 'loginRequest'
+          : 'dataRequest'
+      const { id } = requestItemClient.add(requestType)
 
-    const { id } = requestItemClient.add(requestType)
+      logger?.debug(`⬆️walletRequest`, requestInput)
+      return walletSdk
+        .request(requestInput)
+        .map((response) => {
+          // TODO: response typing should be inferred from request input
+          const {
+            persona,
+            ongoingAccounts = [],
+            oneTimeAccounts = [],
+          } = response as Partial<{
+            oneTimeAccounts: Account[]
+            persona: Persona
+            ongoingAccounts: Account[]
+          }>
 
-    logger?.debug(`⬆️walletRequest`, requestInput)
+          logger?.debug(`⬇️walletSuccessResponse`, response)
+          requestItemClient.updateStatus({ id, status: 'success' })
 
-    return walletSdk
-      .request(requestInput)
-      .map((response) => {
-        // TODO: response typing should be inferred from request input
-        const {
-          persona,
-          ongoingAccounts = [],
-          oneTimeAccounts = [],
-        } = response as Partial<{
-          oneTimeAccounts: Account[]
-          persona: Persona
-          ongoingAccounts: Account[]
-        }>
-
-        logger?.debug(`⬇️walletSuccessResponse`, response)
-        requestItemClient.updateStatus({ id, status: 'success' })
-
-        return {
-          accounts: [...ongoingAccounts, ...oneTimeAccounts],
-          persona: persona,
-        }
-      })
-      .mapErr((error) => {
-        requestItemClient.updateStatus({
-          id,
-          status: 'fail',
-          error: error.error,
+          return {
+            accounts: [...ongoingAccounts, ...oneTimeAccounts],
+            persona: persona,
+          }
         })
-        logger?.debug(`⬇️wallet error response`, error)
-        return error
-      })
+        .mapErr((error) => {
+          requestItemClient.updateStatus({
+            id,
+            status: 'fail',
+            error: error.error,
+          })
+          logger?.debug(`⬇️wallet error response`, error)
+          return error
+        })
+    })
   }
 
   const subscriptions = new Subscription()

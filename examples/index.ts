@@ -123,6 +123,9 @@ class ExampleDapp extends LitElement {
       onInit: ({ accounts }) => {
         this.accounts = accounts ?? []
       },
+      onReset: (requestData) => {
+        requestData({ accounts: { quantifier: 'atLeast', quantity: 2 } })
+      },
       explorer: {
         baseUrl: 'https://hammunet-dashboard.rdx-works-main.extratools.works/',
         accountsPath: 'account/',
@@ -194,6 +197,17 @@ class ExampleDapp extends LitElement {
       }}
     >
       OngoingRequest
+    </radix-button>`
+  }
+
+  private updateSharedDataRequest() {
+    return html`<radix-button
+      fullWidth
+      @click=${() => {
+        this.rdt.updateSharedData()
+      }}
+    >
+      Update shared data
     </radix-button>`
   }
 
@@ -281,7 +295,8 @@ ${JSON.stringify(this.response, null, 2)}</pre
     return html`<div>
       ${this.headerTemplate()}
       <div class="content">
-        ${this.oneTimeRequest()} ${this.ongoingRequest()}
+        ${this.oneTimeRequest()}
+        ${this.ongoingRequest()}${this.updateSharedDataRequest()}
         ${this.createTokenRequest()} ${this.transferToken()}
         ${this.updateMetadata()}${this.disconnect()}${this.walletResponseTemplate()}
       </div>
