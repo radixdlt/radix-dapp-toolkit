@@ -88,6 +88,15 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const onShowPopover$ = fromEvent(
+            connectButtonElement,
+            'onShowPopover'
+          ).pipe(
+            tap(() => {
+              subjects.onShowPopover.next()
+            })
+          )
+
           const loading$ = subjects.loading.pipe(
             tap((value) => (connectButtonElement.loading = value))
           )
@@ -122,6 +131,18 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const showNotification$ = merge(
+            subjects.showNotification,
+            subjects.onShowPopover.pipe(map(() => false)),
+            subjects.requestItems.pipe(map((items) => !!items.length))
+          ).pipe(
+            tap((value) => {
+              const showNotification =
+                !connectButtonElement.showPopover && value
+              connectButtonElement.showNotification = showNotification
+            })
+          )
+
           return merge(
             onConnect$,
             loading$,
@@ -133,7 +154,9 @@ export const ConnectButtonClient = (input: {
             personaLabel$,
             connecting$,
             onDestroy$,
-            onUpdateSharedData$
+            onUpdateSharedData$,
+            onShowPopover$,
+            showNotification$
           )
         })
       )
