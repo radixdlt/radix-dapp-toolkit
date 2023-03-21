@@ -109,6 +109,9 @@ class ExampleDapp extends LitElement {
     (requestData) => {
       requestData({
         accounts: { quantifier: 'atLeast', quantity: 1 },
+        personaData: {
+          fields: ['givenName', 'emailAddress', 'familyName', 'phoneNumber'],
+        },
       }).map((response) => {
         this.accounts = response.data.accounts
         this.response = response
@@ -141,6 +144,15 @@ class ExampleDapp extends LitElement {
         this.rdt
           .requestData({
             accounts: { quantifier: 'exactly', quantity: 1, oneTime: true },
+            personaData: {
+              fields: [
+                'givenName',
+                'emailAddress',
+                'familyName',
+                'phoneNumber',
+              ],
+              oneTime: true,
+            },
           })
           .map((response) => {
             this.accounts = response.accounts
@@ -186,6 +198,7 @@ class ExampleDapp extends LitElement {
         this.rdt
           .requestData({
             accounts: { quantifier: 'exactly', quantity: 3 },
+            personaData: { fields: ['givenName'] },
           })
           .map((response) => {
             this.accounts = response.accounts

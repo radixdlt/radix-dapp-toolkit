@@ -4,6 +4,8 @@ import {
   Account,
   NumberOfAccounts,
   Persona,
+  PersonaDataField,
+  PersonaData,
 } from '@radixdlt/wallet-sdk'
 import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
@@ -25,6 +27,7 @@ export type ConnectButtonProvider = {
   setConnected: (value: boolean) => void
   setRequestItems: (value: RequestItem[]) => void
   setAccounts: (value: Account[]) => void
+  setPersonaData: (value: PersonaData[]) => void
   setPersonaLabel: (value: string) => void
   setConnecting: (value: boolean) => void
   destroy: () => void
@@ -38,22 +41,31 @@ export type SendTransactionRequestValue = Parameters<
 export type State = {
   connected: boolean
   accounts?: Account[]
-  persona?: { identityAddress: string; label: string }
-  sharedData: Partial<{ accounts: NumberOfAccounts }>
+  personaData?: PersonaData[]
+  persona?: Persona
+  sharedData: Partial<{
+    ongoingAccountsWithoutProofOfOwnership: DataRequestValue['ongoingAccountsWithoutProofOfOwnership']
+    ongoingPersonaData: DataRequestValue['ongoingPersonaData']
+  }>
 }
+
+type OneTimeRequest = { oneTime?: boolean; reset?: true }
 
 export type DataRequestInput<IsLoginRequest extends boolean = false> =
   IsLoginRequest extends true
     ? {
         accounts?: NumberOfAccounts
+        personaData?: { fields: PersonaDataField[] }
       }
     : {
-        accounts?: NumberOfAccounts & { oneTime?: boolean; reset?: true }
+        accounts?: NumberOfAccounts & OneTimeRequest
+        personaData?: { fields: PersonaDataField[] } & OneTimeRequest
       }
 
 export type RequestDataResponse = Result<
   {
     accounts: Account[]
+    personaData: PersonaData[]
     persona: Persona
   },
   SdkError
@@ -89,11 +101,8 @@ export type RequestDataOutput = ResultAsync<
   {
     done?: () => void
     data: {
-      accounts: {
-        address: string
-        label: string
-        appearanceId: number
-      }[]
+      accounts: Account[]
+      personaData: PersonaData[]
       persona?: Persona
     }
   },

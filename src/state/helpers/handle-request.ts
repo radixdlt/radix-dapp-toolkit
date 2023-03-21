@@ -2,17 +2,20 @@ import { okAsync } from 'neverthrow'
 import { Logger } from 'tslog'
 import { WalletClient } from '../../wallet/wallet-client'
 import { DataRequestValue, State } from '../../_types'
+import isEqual from 'lodash.isequal'
 
-const verifyAccounts = (
-  accounts: State['accounts'],
-  input?: DataRequestValue['ongoingAccountsWithoutProofOfOwnership']
-) => {
-  if (!input) return true
-  else if (!accounts || !input?.quantity || !input?.quantifier) return false
-  else if (input.quantifier === 'exactly')
-    return accounts.length === input.quantity
-  else return accounts.length >= input.quantity
-}
+const resolvableByState = (state: State, dataRequest: DataRequestValue) =>
+  [
+    !!state?.persona,
+    isEqual(
+      dataRequest.ongoingAccountsWithoutProofOfOwnership,
+      state?.sharedData.ongoingAccountsWithoutProofOfOwnership
+    ),
+    isEqual(
+      dataRequest.ongoingPersonaData,
+      state?.sharedData.ongoingPersonaData
+    ),
+  ].reduce((acc, curr) => acc && curr, true)
 
 export type HandleRequestOutput = ReturnType<typeof handleRequest>
 // Check if requested data can be resolved by cache otherwise send a wallet request
@@ -23,41 +26,37 @@ export const handleRequest = (
     logger,
     walletClient,
   }: {
-    state?: State
+    state: State
     logger?: Logger<unknown>
     walletClient: WalletClient
   }
 ) => {
-  const resolvedByState = [
-    !!state?.persona,
-    verifyAccounts(
-      state?.accounts,
-      dataRequest.ongoingAccountsWithoutProofOfOwnership
-    ),
-  ].reduce((acc, curr) => acc && curr, true)
+  const canBeResolvedByState = resolvableByState(state, dataRequest)
 
-  // TODO: better checking of data requests
-  const canBeResolvedByState =
-    resolvedByState &&
-    !dataRequest.oneTimeAccountsWithoutProofOfOwnership &&
-    !dataRequest.reset?.accounts
+  const containsResetRequest =
+    dataRequest.reset?.accounts || dataRequest.reset?.personaData
 
-  if (canBeResolvedByState) {
-    logger?.debug(`resolveByState`, state)
-    const data = {
-      accounts: state?.accounts!,
-      persona: state?.persona!,
-    }
+  const containsOneTimeRequest =
+    dataRequest.oneTimeAccountsWithoutProofOfOwnership ||
+    dataRequest.oneTimePersonaData
+
+  const resolveByState =
+    canBeResolvedByState && !containsResetRequest && !containsOneTimeRequest
+
+  if (resolveByState) {
+    logger?.debug(`resolvedByState`, state)
     return okAsync({
       resolvedBy: 'state',
-      data,
-      persist: false,
+      data: {
+        accounts: state?.accounts!,
+        persona: state?.persona!,
+        personaData: state?.personaData!,
+      },
     })
   }
   logger?.debug(`resolveByWalletRequest`)
   return walletClient.request(dataRequest).map((data) => ({
     resolvedBy: 'wallet',
-    persist: !dataRequest.oneTimeAccountsWithoutProofOfOwnership,
     data,
   }))
 }

@@ -207,6 +207,7 @@ describe('state management', () => {
         identityAddress: 'abc_123',
         label: 'RadMatt',
       },
+      personaData: [],
     }
 
     expect(await firstValueFrom(responseSubject)).toEqual(expectedResponse)
@@ -215,7 +216,7 @@ describe('state management', () => {
       ...expectedResponse,
       connected: true,
       sharedData: {
-        accounts: {
+        ongoingAccountsWithoutProofOfOwnership: {
           quantifier: 'atLeast',
           quantity: 1,
         },
@@ -241,6 +242,12 @@ describe('state management', () => {
           label: 'RadMatt',
         },
         connected: true,
+        sharedData: {
+          ongoingAccountsWithoutProofOfOwnership: {
+            quantifier: 'exactly',
+            quantity: 1,
+          },
+        },
       }
 
       await storageClient.setData(STATE_KEY, initialState)
@@ -248,7 +255,7 @@ describe('state management', () => {
       const init = new ReplaySubject<State>()
 
       stateClient = StateClient({
-        // logger,
+        logger,
         key: STATE_KEY,
         storageClient,
         connectButtonClient,
@@ -270,6 +277,7 @@ describe('state management', () => {
       })
 
       if (result.isErr()) throw result.error
+
       expect(result.value).toEqual({
         accounts: [
           {
@@ -388,7 +396,7 @@ describe('state management', () => {
           quantifier: 'atLeast',
           quantity: 1,
         },
-        reset: { accounts: false },
+        reset: { accounts: false, personaData: false },
       })
     })
   })

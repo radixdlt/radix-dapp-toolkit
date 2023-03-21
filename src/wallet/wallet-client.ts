@@ -1,6 +1,7 @@
 import {
   Account,
   Persona,
+  PersonaData,
   WalletSdk as WalletSdkType,
 } from '@radixdlt/wallet-sdk'
 import { Subscription, tap } from 'rxjs'
@@ -30,6 +31,8 @@ export const WalletClient = (input: {
   const sendWalletRequest = ({
     oneTimeAccountsWithoutProofOfOwnership,
     ongoingAccountsWithoutProofOfOwnership,
+    ongoingPersonaData,
+    oneTimePersonaData,
     loginWithoutChallenge,
     usePersona,
     reset = { accounts: false, personaData: false },
@@ -47,6 +50,10 @@ export const WalletClient = (input: {
     if (ongoingAccountsWithoutProofOfOwnership)
       requestInput.ongoingAccountsWithoutProofOfOwnership =
         ongoingAccountsWithoutProofOfOwnership
+
+    if (ongoingPersonaData) requestInput.ongoingPersonaData = ongoingPersonaData
+
+    if (oneTimePersonaData) requestInput.oneTimePersonaData = oneTimePersonaData
 
     if (loginWithoutChallenge)
       requestInput.loginWithoutChallenge = loginWithoutChallenge
@@ -70,10 +77,14 @@ export const WalletClient = (input: {
             persona,
             ongoingAccounts = [],
             oneTimeAccounts = [],
+            ongoingPersonaData = [],
+            oneTimePersonaData = [],
           } = response as Partial<{
             oneTimeAccounts: Account[]
             persona: Persona
             ongoingAccounts: Account[]
+            oneTimePersonaData: PersonaData[]
+            ongoingPersonaData: PersonaData[]
           }>
 
           logger?.debug(`⬇️walletSuccessResponse`, response)
@@ -81,6 +92,7 @@ export const WalletClient = (input: {
 
           return {
             accounts: [...ongoingAccounts, ...oneTimeAccounts],
+            personaData: [...ongoingPersonaData, ...oneTimePersonaData],
             persona: persona,
           }
         })
@@ -125,14 +137,14 @@ export const WalletClient = (input: {
         logger?.debug(`⬇️walletErrorResponse`, response)
         return response
       })
-      .andThen(({ transactionIntentHash }) => {
-        return gatewayClient
+      .andThen(({ transactionIntentHash }) =>
+        gatewayClient
           .pollTransactionStatus(transactionIntentHash)
           .map((transactionStatusResponse) => ({
             transactionIntentHash,
             status: transactionStatusResponse.status,
           }))
-      })
+      )
       .map((response) => {
         requestItemClient.updateStatus({
           id,
