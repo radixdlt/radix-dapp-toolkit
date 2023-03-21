@@ -3,6 +3,7 @@ import { StateSubjects } from './subjects'
 import {
   ConnectButtonProvider,
   DataRequestInput,
+  DataRequestValue,
   OnDisconnectCallback,
   OnInitCallback,
   RequestData,
@@ -13,6 +14,7 @@ import {
 import {
   concatMap,
   distinctUntilChanged,
+  EMPTY,
   map,
   merge,
   mergeMap,
@@ -28,6 +30,7 @@ import { handleRequest } from './helpers/handle-request'
 import { withAuth } from './helpers/with-auth'
 import { removeUndefined } from '../helpers/remove-undefined'
 import { GetState } from './helpers/get-state'
+import { ok, Result } from 'neverthrow'
 
 export const defaultState: State = {
   connected: false,
@@ -125,6 +128,8 @@ export const StateClient = (input: {
 
   const accounts$ = state$.pipe(map(({ accounts }) => accounts))
 
+  const personaData$ = state$.pipe(map(({ personaData }) => personaData))
+
   subscriptions.add(
     state$
       .pipe(
@@ -140,6 +145,16 @@ export const StateClient = (input: {
       .pipe(
         tap((accounts) => {
           connectButtonClient.setAccounts(accounts || [])
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    personaData$
+      .pipe(
+        tap((personaData) => {
+          connectButtonClient.setPersonaData(personaData || [])
         })
       )
       .subscribe()
@@ -223,78 +238,106 @@ export const StateClient = (input: {
 
   const requestData = (value: DataRequestInput) =>
     getState().andThen((state) =>
-      handleRequest(
-        withAuth(
-          {
-            [value.accounts?.oneTime
-              ? 'oneTimeAccountsWithoutProofOfOwnership'
-              : 'ongoingAccountsWithoutProofOfOwnership']: value.accounts,
-            reset: { accounts: value.accounts?.reset || false },
-          },
-          state
-        ),
-        {
-          state,
-          logger,
-          walletClient,
-        }
-      ).map(({ data, resolvedBy, persist }) => {
-        if (resolvedBy === 'wallet' && persist) {
-          setState(
-            {
-              ...data,
-              connected: !!state.persona || !!data.persona,
-              sharedData: {
-                accounts: value.accounts
-                  ? {
-                      quantifier: value.accounts.quantifier,
-                      quantity: value.accounts.quantity,
-                    }
-                  : undefined,
-              },
-            },
-            true
-          )
-        }
+      transformRequest(value)
+        .andThen((value) => withAuth(value, state.persona))
+        .asyncAndThen((walletRequest) =>
+          handleRequest(walletRequest, {
+            state,
+            logger,
+            walletClient,
+          }).map(({ data: response, resolvedBy }) => {
+            if (resolvedBy === 'wallet') {
+              const {
+                ongoingAccountsWithoutProofOfOwnership,
+                ongoingPersonaData,
+              } = walletRequest
 
-        return data
-      })
+              setState(
+                {
+                  connected: !!state.persona || !!response.persona,
+                  sharedData: {
+                    ongoingPersonaData,
+                    ongoingAccountsWithoutProofOfOwnership,
+                  },
+                  accounts: response.accounts,
+                  personaData: response.personaData,
+                  persona: response.persona,
+                },
+                true
+              )
+            }
+
+            return response
+          })
+        )
     )
 
-  const handleConnect = (state: State) =>
-    input.connectRequest?.((value: DataRequestInput<true>) => {
+  const transformRequest = (
+    value: DataRequestInput<false>
+  ): Result<DataRequestValue, never> => {
+    const { accounts, personaData } = value
+
+    const output: DataRequestValue = {
+      reset: { accounts: !!accounts?.reset, personaData: !!personaData?.reset },
+    }
+
+    if (accounts) {
+      const key = accounts.oneTime
+        ? 'oneTimeAccountsWithoutProofOfOwnership'
+        : 'ongoingAccountsWithoutProofOfOwnership'
+      output[key] = accounts
+    }
+
+    if (personaData) {
+      const key = personaData.oneTime
+        ? 'oneTimePersonaData'
+        : 'ongoingPersonaData'
+      output[key] = personaData
+    }
+
+    return ok(output)
+  }
+
+  const handleConnect = () =>
+    input.connectRequest!((value: DataRequestInput<true>) => {
       logger?.debug(`connectRequest`, value)
-      return handleRequest(
-        withAuth(
-          {
-            ongoingAccountsWithoutProofOfOwnership: value.accounts,
-          },
-          state
-        ),
-        {
-          state,
-          logger,
-          walletClient,
-        }
+      return getState().andThen((state) =>
+        transformRequest(value)
+          .andThen((value) => withAuth(value, state.persona))
+          .asyncAndThen((walletRequest) =>
+            handleRequest(walletRequest, {
+              state,
+              logger,
+              walletClient,
+            })
+              .map(({ data }) => {
+                const {
+                  ongoingAccountsWithoutProofOfOwnership,
+                  ongoingPersonaData,
+                } = walletRequest
+
+                const sharedData = {
+                  ongoingAccountsWithoutProofOfOwnership,
+                  ongoingPersonaData,
+                }
+
+                const done = () => {
+                  setState({ ...data, connected: true, sharedData }, true)
+                }
+
+                if (!connectDoneCallback) done()
+
+                return {
+                  data,
+                  done,
+                }
+              })
+              .mapErr((error) => {
+                setState({ connected: false }, true)
+                return error
+              })
+          )
       )
-        .map(({ data }) => {
-          if (!connectDoneCallback) {
-            setState({ ...data, connected: true, sharedData: value }, true)
-          }
-
-          const done = () => {
-            setState({ ...data, connected: true, sharedData: value }, true)
-          }
-
-          return {
-            data,
-            done,
-          }
-        })
-        .mapErr((error) => {
-          setState({ connected: false }, true)
-          return error
-        })
     })
 
   subscriptions.add(
@@ -302,14 +345,23 @@ export const StateClient = (input: {
       .pipe(
         withLatestFrom(state$),
         switchMap(([, state]) => {
-          if (!!state.sharedData.accounts) {
-            return requestData(
-              state.sharedData.accounts
-                ? { accounts: { ...state.sharedData.accounts, reset: true } }
-                : {}
-            )
-          }
-          return []
+          const output: DataRequestInput<false> = {}
+
+          if (state.sharedData.ongoingAccountsWithoutProofOfOwnership)
+            output.accounts = {
+              ...state.sharedData.ongoingAccountsWithoutProofOfOwnership,
+              reset: true,
+            }
+
+          if (state.sharedData.ongoingPersonaData)
+            output.personaData = {
+              ...state.sharedData.ongoingPersonaData,
+              reset: true,
+            }
+
+          if (Object.keys(output).length === 0) return EMPTY
+
+          return requestData(output)
         })
       )
       .subscribe()
@@ -317,13 +369,7 @@ export const StateClient = (input: {
 
   subscriptions.add(
     connectButtonClient.onConnect$
-      .pipe(
-        tap(() => {
-          logger?.debug(`onConnect`)
-        }),
-        withLatestFrom(state$),
-        switchMap(([, state]) => handleConnect(state) ?? [])
-      )
+      .pipe(switchMap(() => handleConnect() ?? EMPTY))
       .subscribe()
   )
 

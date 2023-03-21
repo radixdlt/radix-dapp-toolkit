@@ -8,7 +8,12 @@ import {
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
-import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
+import {
+  Account,
+  ConnectButton,
+  PersonaData,
+  RequestItem,
+} from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
 
@@ -48,7 +53,9 @@ export const ConnectButtonClient = (input: {
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
-              onConnect((value) => subjects.onConnect.next(value))
+              onConnect((value) => {
+                subjects.onConnect.next(value)
+              })
             })
           )
 
@@ -119,6 +126,12 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const personaData$ = subjects.personaData.pipe(
+            tap((items) => {
+              connectButtonElement.personaData = items
+            })
+          )
+
           const personaLabel$ = subjects.personaLabel.pipe(
             tap((items) => {
               connectButtonElement.personaLabel = items
@@ -151,6 +164,7 @@ export const ConnectButtonClient = (input: {
             onDisconnect$,
             onCancelRequestItem$,
             accounts$,
+            personaData$,
             personaLabel$,
             connecting$,
             onDestroy$,
@@ -174,6 +188,8 @@ export const ConnectButtonClient = (input: {
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
+    setPersonaData: (personaData: PersonaData[]) =>
+      subjects.personaData.next(personaData),
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
     destroy: () => {
