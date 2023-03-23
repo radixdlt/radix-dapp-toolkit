@@ -426,10 +426,10 @@ describe('state management', () => {
 
       await firstValueFrom(mockGatewayApi.gatewayRequestPayload)
 
-      mockGatewayApi.sendGatewayResponse.next({ status: 'committed_success' })
+      mockGatewayApi.sendGatewayResponse.next({ status: 'CommittedSuccess' })
 
       expect(await firstValueFrom(responseSubject)).toEqual({
-        status: 'committed_success',
+        status: 'CommittedSuccess',
         transactionIntentHash,
       })
     })
