@@ -43,9 +43,9 @@ export const GatewayClient = ({
     const retry = ExponentialBackoff(retryConfig)
 
     const completedTransactionStatus = new Set<TransactionStatus>([
-      'committed_success',
-      'committed_failure',
-      'rejected',
+      'CommittedSuccess',
+      'CommittedFailure',
+      'Rejected',
     ])
 
     return ResultAsync.fromPromise(

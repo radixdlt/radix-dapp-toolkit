@@ -22,10 +22,7 @@ export const GatewayApiClient = (basePath: string) => {
   ) =>
     transactionApi.transactionCommittedDetails({
       transactionCommittedDetailsRequest: {
-        transaction_identifier: {
-          type: 'intent_hash',
-          value_hex: transactionIntentHashHex,
-        },
+        intent_hash_hex: transactionIntentHashHex,
         ...(stateVersion
           ? {
               at_ledger_state: {
