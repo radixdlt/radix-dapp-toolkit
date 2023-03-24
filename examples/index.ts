@@ -100,6 +100,12 @@ class ExampleDapp extends LitElement {
   @state()
   response: any
 
+  get networkId() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const networkId = parseInt(urlParams.get('networkId') || '12', 10)
+    return networkId
+  }
+
   private rdt = RadixDappToolkit(
     {
       dAppDefinitionAddress:
@@ -119,7 +125,7 @@ class ExampleDapp extends LitElement {
     },
     {
       logger: new Logger(),
-      networkId: 12,
+      networkId: this.networkId,
       onDisconnect: () => {
         this.accounts = []
       },
