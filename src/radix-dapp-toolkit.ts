@@ -32,6 +32,7 @@ export type RadixDappToolkitConfiguration = {
   explorer?: Explorer
   gatewayBaseUrl?: string
   onStateChange?: (state: State) => void
+  useCache?: boolean
 }
 export const RadixDappToolkit = (
   { dAppDefinitionAddress, dAppName }: DappMetadata,
@@ -47,6 +48,7 @@ export const RadixDappToolkit = (
     onDisconnect: onDisconnectCallback = () => {},
     explorer,
     gatewayBaseUrl,
+    useCache,
   } = configuration || {}
   const storageClient = providers?.storage || LocalStorageClient()
 
@@ -95,6 +97,7 @@ export const RadixDappToolkit = (
     useDoneCallback: configuration?.useDoneCallback,
     subjects: stateSubjects,
     getState,
+    useCache,
   })
 
   if (configuration?.onStateChange)

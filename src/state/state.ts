@@ -54,6 +54,7 @@ export const StateClient = (input: {
   onDisconnectCallback: OnDisconnectCallback
   useDoneCallback?: boolean
   getState: GetState
+  useCache?: boolean
 }) => {
   const key = input.key
   const subjects = input.subjects
@@ -64,6 +65,7 @@ export const StateClient = (input: {
   const connectDoneCallback = input.useDoneCallback
   const disconnectCallback = input.onDisconnectCallback
   const getState = input.getState
+  const useCache = input.useCache ?? true
   const subscriptions = new Subscription()
 
   const readStateFromStorage = () =>
@@ -252,6 +254,7 @@ export const StateClient = (input: {
             state,
             logger,
             walletClient,
+            useCache,
           })
             .map(({ data: response, resolvedBy }) => {
               if (resolvedBy === 'wallet') {
@@ -318,6 +321,7 @@ export const StateClient = (input: {
               state,
               logger,
               walletClient,
+              useCache,
             })
               .map(({ data }) => {
                 const {
