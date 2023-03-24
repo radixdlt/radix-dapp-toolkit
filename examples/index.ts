@@ -119,7 +119,7 @@ class ExampleDapp extends LitElement {
     },
     {
       logger: new Logger(),
-      networkId: 11,
+      networkId: 12,
       onDisconnect: () => {
         this.accounts = []
       },
