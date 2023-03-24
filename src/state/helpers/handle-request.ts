@@ -25,10 +25,12 @@ export const handleRequest = (
     state,
     logger,
     walletClient,
+    useCache = true,
   }: {
     state: State
     logger?: Logger<unknown>
     walletClient: WalletClient
+    useCache: boolean
   }
 ) => {
   const canBeResolvedByState = resolvableByState(state, dataRequest)
@@ -41,7 +43,10 @@ export const handleRequest = (
     dataRequest.oneTimePersonaData
 
   const resolveByState =
-    canBeResolvedByState && !containsResetRequest && !containsOneTimeRequest
+    canBeResolvedByState &&
+    !containsResetRequest &&
+    !containsOneTimeRequest &&
+    useCache
 
   if (resolveByState) {
     logger?.debug(`resolvedByState`, state)

@@ -134,6 +134,7 @@ class ExampleDapp extends LitElement {
         accountsPath: 'account/',
         transactionPath: 'transaction/',
       },
+      useCache: false,
     }
   )
 
