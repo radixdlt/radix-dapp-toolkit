@@ -1527,19 +1527,19 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.1":
-  version "1.0.0-rc.1.1"
-  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.1.tgz#e4db9a03b17740c06d4a822e71f81f8c6ab4cb64"
-  integrity sha512-bwc6WqYYpB8XqR0JxQ3eemaONcp5UIX6OwVrkLZ8DYb0pY82Ads7Xk9aONlE8k4En1g31PSa+AmzUeLRBO/XPA==
+"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.2":
+  version "1.0.0-rc.1.2"
+  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.2.tgz#6c31f3575d8aeb7dc6eca680dbacf0b679a07cee"
+  integrity sha512-+XFNJFTwLQmKpbhEZcWgHj0tK+Rz1rLw1iBM/9eA/xfHm0fs3fy+YhBwb5c1gckHAm4mNw6Pgvs+MpwY1cZ4Vw==
   dependencies:
     loglevel "^1.8.0"
     neverthrow "^5.0.0"
     rxjs "^7.5.6"
 
-"@radixdlt/connect-button@0.12.0-alpha.2":
-  version "0.12.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.12.0-alpha.2.tgz#693b85503d324c9809de250a09abce1145a371ce"
-  integrity sha512-GQeTVKr4lcVBdDFPF8LpUr6S9qcROidSUyNPLxOnH5CP/fQEMk6WIRIzd148rbJlmeenMtKdnjLghaPIL77HkA==
+"@radixdlt/connect-button@0.12.0-alpha.3":
+  version "0.12.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.12.0-alpha.3.tgz#80bc48ffb666b66f6e12f08c6a7bbefeba95113a"
+  integrity sha512-/syU6LHJykchZnYql0aS5yNaHiS5JHuF7iLwjdgo4G96BmjjuhbdX2poZkxx1aO8YrwCJQwQwuHvYBnUBLyGNg==
   dependencies:
     lit "^2.6.1"
     rxjs "^7.8.0"
