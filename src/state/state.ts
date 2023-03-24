@@ -31,6 +31,7 @@ import { withAuth } from './helpers/with-auth'
 import { removeUndefined } from '../helpers/remove-undefined'
 import { GetState } from './helpers/get-state'
 import { ok, Result } from 'neverthrow'
+import { SdkError } from '@radixdlt/wallet-sdk'
 
 export const defaultState: State = {
   connected: false,
@@ -236,6 +237,12 @@ export const StateClient = (input: {
       .subscribe()
   )
 
+  const handleErrorResponse = (error: SdkError) => {
+    if (error.error === 'invalidPersona') resetState()
+
+    return error
+  }
+
   const requestData = (value: DataRequestInput) =>
     getState().andThen((state) =>
       transformRequest(value)
@@ -245,30 +252,32 @@ export const StateClient = (input: {
             state,
             logger,
             walletClient,
-          }).map(({ data: response, resolvedBy }) => {
-            if (resolvedBy === 'wallet') {
-              const {
-                ongoingAccountsWithoutProofOfOwnership,
-                ongoingPersonaData,
-              } = walletRequest
-
-              setState(
-                {
-                  connected: !!state.persona || !!response.persona,
-                  sharedData: {
-                    ongoingPersonaData,
-                    ongoingAccountsWithoutProofOfOwnership,
-                  },
-                  accounts: response.accounts,
-                  personaData: response.personaData,
-                  persona: response.persona,
-                },
-                true
-              )
-            }
-
-            return response
           })
+            .map(({ data: response, resolvedBy }) => {
+              if (resolvedBy === 'wallet') {
+                const {
+                  ongoingAccountsWithoutProofOfOwnership,
+                  ongoingPersonaData,
+                } = walletRequest
+
+                setState(
+                  {
+                    connected: !!state.persona || !!response.persona,
+                    sharedData: {
+                      ongoingPersonaData,
+                      ongoingAccountsWithoutProofOfOwnership,
+                    },
+                    accounts: response.accounts,
+                    personaData: response.personaData,
+                    persona: response.persona,
+                  },
+                  true
+                )
+              }
+
+              return response
+            })
+            .mapErr(handleErrorResponse)
         )
     )
 
