@@ -5,6 +5,7 @@ import { customElement, state } from 'lit/decorators.js'
 import { Account, PersonaDataField } from '@radixdlt/connect-button'
 import { DataRequestInput } from '../src/_types'
 import { styleMap } from 'lit/directives/style-map.js'
+import { Buffer } from 'buffer'
 
 const update_metadata = (account_component_address: string) =>
   `SET_METADATA ComponentAddress("${account_component_address}") "name" "test name";   
@@ -113,6 +114,18 @@ class ExampleDapp extends LitElement {
 
   @state()
   state: any
+
+  constructor() {
+    super()
+    try {
+      const hash = window.location.hash
+      if (hash) {
+        const stringified = Buffer.from(hash.slice(1), 'base64').toString()
+        const request = JSON.parse(stringified)
+        this.request = request
+      }
+    } catch (error) {}
+  }
 
   get networkId() {
     const urlParams = new URLSearchParams(window.location.search)
@@ -295,6 +308,12 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
     return html`<pre>State ${JSON.stringify(this.state, null, 2)}</pre>`
   }
 
+  private updateRequest(request: DataRequestInput<false>) {
+    const base64 = Buffer.from(JSON.stringify(request)).toString('base64')
+    window.location.hash = base64
+    this.request = request
+  }
+
   render() {
     return html`<div>
       ${this.headerTemplate()}
@@ -309,16 +328,16 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .checked=${!!this.request!.accounts}
                 @click=${() => {
                   const { accounts, ...rest } = this.request!
-                  if (accounts) this.request = rest
+                  if (accounts) this.updateRequest(rest)
                   else
-                    this.request = {
+                    this.updateRequest({
                       accounts: {
                         quantifier: 'atLeast',
                         quantity: 1,
                         reset: false,
                       },
                       ...this.request,
-                    }
+                    })
                 }}
               />
               <label for="accountsInclude">Accounts</label>
@@ -326,10 +345,10 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
             <div style=${styleMap({ marginBottom: '10px' })}>
               <input
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts: { ...this.request!.accounts!, oneTime: true },
-                  }
+                  })
                 }}
                 type="radio"
                 id="accountsOneTime"
@@ -346,10 +365,10 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .disabled=${!this.request?.accounts}
                 @click=${() => {
                   const { oneTime, ...accounts } = this.request!.accounts!
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts,
-                  }
+                  })
                 }}
               />
               <label for="accountsOngoing">ongoing</label>
@@ -357,13 +376,13 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
             <div style=${styleMap({ marginBottom: '10px' })}>
               <input
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts: {
                       ...this.request!.accounts!,
                       quantifier: 'atLeast',
                     },
-                  }
+                  })
                 }}
                 type="radio"
                 id="accountsAtleast"
@@ -379,13 +398,13 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .checked=${this.request?.accounts?.quantifier === 'exactly'}
                 .disabled=${!this.request?.accounts}
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts: {
                       ...this.request!.accounts!,
                       quantifier: 'exactly',
                     },
-                  }
+                  })
                 }}
               />
               <label for="accountsExactly">exactly</label>
@@ -398,13 +417,13 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .checked=${!!this.request?.accounts?.reset}
                 .disabled=${!this.request?.accounts}
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts: {
                       ...this.request?.accounts!,
                       reset: !this.request!.accounts!.reset,
                     },
-                  }
+                  })
                 }}
               />
               <label for="accountsReset">reset</label>
@@ -418,7 +437,7 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 value=${this.request?.accounts?.quantity ?? 0}
                 .disabled=${!this.request?.accounts}
                 @change=${(event: InputEvent) => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     accounts: {
                       ...this.request!.accounts!,
@@ -426,7 +445,7 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                         (event.target as HTMLInputElement)!.value
                       ),
                     },
-                  }
+                  })
                 }}
               />
             </div>
@@ -440,9 +459,9 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .checked=${!!this.request!.personaData}
                 @click=${() => {
                   const { personaData, ...rest } = this.request!
-                  if (personaData) this.request = rest
+                  if (personaData) this.updateRequest(rest)
                   else
-                    this.request = {
+                    this.updateRequest({
                       ...this.request,
                       personaData: {
                         fields: [
@@ -453,7 +472,7 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                         ],
                         reset: false,
                       },
-                    }
+                    })
                 }}
               />
               <label for="personaDataInclude">PersonaData</label>
@@ -461,13 +480,13 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
             <div style=${styleMap({ marginBottom: '10px' })}>
               <input
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     personaData: {
                       ...this.request!.personaData!,
                       oneTime: true,
                     },
-                  }
+                  })
                 }}
                 type="radio"
                 id="personaDataOneTime"
@@ -484,10 +503,10 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .disabled=${!this.request?.personaData}
                 @click=${() => {
                   const { oneTime, ...personaData } = this.request!.personaData!
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     personaData,
-                  }
+                  })
                 }}
               />
               <label for="personaDataOngoing">ongoing</label>
@@ -499,12 +518,14 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                     type="checkbox"
                     id=${'personaDataField' + item}
                     name="personaDataFields"
-                    .checked=${!!this.request!.personaData}
+                    .checked=${!!this.request!.personaData?.fields.includes(
+                      item as PersonaDataField
+                    )}
                     @change=${() => {
                       const field = item as PersonaDataField
                       const fields = this.request!.personaData!.fields
 
-                      this.request = {
+                      this.updateRequest({
                         ...this.request,
                         personaData: {
                           ...this.request?.personaData,
@@ -512,7 +533,7 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                             ? fields.filter((value) => value !== field)
                             : [...fields, field],
                         },
-                      }
+                      })
                     }}
                   />
                   <label for=${'personaDataField' + item}>${item}</label>
@@ -527,13 +548,13 @@ Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
                 .checked=${!!this.request?.personaData?.reset}
                 .disabled=${!this.request?.personaData}
                 @click=${() => {
-                  this.request = {
+                  this.updateRequest({
                     ...this.request,
                     personaData: {
                       ...this.request?.personaData!,
                       reset: !this.request!.personaData!.reset,
                     },
-                  }
+                  })
                 }}
               />
               <label for="personaDataReset">reset</label>
