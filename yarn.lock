@@ -1527,10 +1527,10 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.2":
-  version "1.0.0-rc.1.2"
-  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.2.tgz#6c31f3575d8aeb7dc6eca680dbacf0b679a07cee"
-  integrity sha512-+XFNJFTwLQmKpbhEZcWgHj0tK+Rz1rLw1iBM/9eA/xfHm0fs3fy+YhBwb5c1gckHAm4mNw6Pgvs+MpwY1cZ4Vw==
+"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.3":
+  version "1.0.0-rc.1.3"
+  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.3.tgz#7baa9b2638cdf0ca10c26489c645ee47f11a836b"
+  integrity sha512-uYDW9U9ted7wo7BUU5JgzkFcBIvwp2uTiDJZHOgBnKhP7BZPa5xzhNgEqHxjiXbog0eAR6Us/TpFYwT0fO/xCA==
   dependencies:
     loglevel "^1.8.0"
     neverthrow "^5.0.0"
