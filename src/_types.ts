@@ -49,7 +49,7 @@ export type State = {
   }>
 }
 
-type OneTimeRequest = { oneTime?: boolean; reset?: true }
+type OneTimeRequest = { oneTime?: boolean; reset?: boolean }
 
 export type DataRequestInput<IsLoginRequest extends boolean = false> =
   IsLoginRequest extends true

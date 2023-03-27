@@ -289,8 +289,13 @@ export const StateClient = (input: {
   ): Result<DataRequestValue, never> => {
     const { accounts, personaData } = value
 
-    const output: DataRequestValue = {
-      reset: { accounts: !!accounts?.reset, personaData: !!personaData?.reset },
+    const output: DataRequestValue = {}
+
+    if (accounts?.reset || personaData?.reset) {
+      output.reset = {
+        accounts: !!accounts?.reset,
+        personaData: !!personaData?.reset,
+      }
     }
 
     if (accounts) {
