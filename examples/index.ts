@@ -2,7 +2,9 @@ import { RadixDappToolkit } from '../src/radix-dapp-toolkit'
 import { Logger } from 'tslog'
 import { html, render, LitElement, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
-import { Account } from '@radixdlt/connect-button'
+import { Account, PersonaDataField } from '@radixdlt/connect-button'
+import { DataRequestInput } from '../src/_types'
+import { styleMap } from 'lit/directives/style-map.js'
 
 const update_metadata = (account_component_address: string) =>
   `SET_METADATA ComponentAddress("${account_component_address}") "name" "test name";   
@@ -95,10 +97,22 @@ class ExampleDapp extends LitElement {
     }
   `
   @state()
+  request: DataRequestInput<false> | undefined = {
+    accounts: { quantifier: 'atLeast', quantity: 1, reset: false },
+    personaData: {
+      fields: ['givenName', 'emailAddress', 'familyName', 'phoneNumber'],
+      reset: false,
+    },
+  }
+
+  @state()
   accounts: Account[] = []
 
   @state()
   response: any
+
+  @state()
+  state: any
 
   get networkId() {
     const urlParams = new URLSearchParams(window.location.search)
@@ -113,12 +127,7 @@ class ExampleDapp extends LitElement {
       dAppName: 'Test dApp',
     },
     (requestData) => {
-      requestData({
-        accounts: { quantifier: 'atLeast', quantity: 1 },
-        personaData: {
-          fields: ['givenName', 'emailAddress', 'familyName', 'phoneNumber'],
-        },
-      }).map((response) => {
+      requestData(this.request as any).map((response) => {
         this.accounts = response.data.accounts
         this.response = response
       })
@@ -141,26 +150,18 @@ class ExampleDapp extends LitElement {
         transactionPath: 'transaction/',
       },
       useCache: false,
+      onStateChange: (state) => {
+        this.state = state
+      },
     }
   )
 
-  private oneTimeRequest() {
+  private dataRequest() {
     return html`<radix-button
       fullWidth
       @click=${() => {
         this.rdt
-          .requestData({
-            accounts: { quantifier: 'exactly', quantity: 1, oneTime: true },
-            personaData: {
-              fields: [
-                'givenName',
-                'emailAddress',
-                'familyName',
-                'phoneNumber',
-              ],
-              oneTime: true,
-            },
-          })
+          .requestData(this.request as any)
           .map((response) => {
             this.accounts = response.accounts
             this.response = response
@@ -170,7 +171,7 @@ class ExampleDapp extends LitElement {
           })
       }}
     >
-      OneTimeRequest
+      Send data request
     </radix-button>`
   }
 
@@ -196,28 +197,6 @@ class ExampleDapp extends LitElement {
           Create token
         </radix-button>`
       : ''
-  }
-
-  private ongoingRequest() {
-    return html`<radix-button
-      fullWidth
-      @click=${() => {
-        this.rdt
-          .requestData({
-            accounts: { quantifier: 'exactly', quantity: 3 },
-            personaData: { fields: ['givenName'] },
-          })
-          .map((response) => {
-            this.accounts = response.accounts
-            this.response = response
-          })
-          .mapErr((response) => {
-            this.response = response
-          })
-      }}
-    >
-      OngoingRequest
-    </radix-button>`
   }
 
   private updateSharedDataRequest() {
@@ -303,22 +282,269 @@ class ExampleDapp extends LitElement {
   }
 
   private walletResponseTemplate() {
-    return this.response
-      ? html`<pre>
-Wallet response
-${JSON.stringify(this.response, null, 2)}</pre
-        >`
-      : ''
+    return html`<pre>
+Response ${this.response ? JSON.stringify(this.response, null, 2) : `{}`}</pre
+    >`
+  }
+
+  private walletRequestTemplate() {
+    return html`<pre>Request ${JSON.stringify(this.request, null, 2)}</pre>`
+  }
+
+  private stateTemplate() {
+    return html`<pre>State ${JSON.stringify(this.state, null, 2)}</pre>`
   }
 
   render() {
     return html`<div>
       ${this.headerTemplate()}
       <div class="content">
-        ${this.oneTimeRequest()}
-        ${this.ongoingRequest()}${this.updateSharedDataRequest()}
+        <div style=${styleMap({ width: '600px' })}>
+          <fieldset style=${styleMap({ marginBottom: '15px' })}>
+            <legend>
+              <input
+                type="checkbox"
+                id="accountsInclude"
+                name="accounts"
+                .checked=${!!this.request!.accounts}
+                @click=${() => {
+                  const { accounts, ...rest } = this.request!
+                  if (accounts) this.request = rest
+                  else
+                    this.request = {
+                      accounts: {
+                        quantifier: 'atLeast',
+                        quantity: 1,
+                        reset: false,
+                      },
+                      ...this.request,
+                    }
+                }}
+              />
+              <label for="accountsInclude">Accounts</label>
+            </legend>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    accounts: { ...this.request!.accounts!, oneTime: true },
+                  }
+                }}
+                type="radio"
+                id="accountsOneTime"
+                name="accounts"
+                .checked=${!!this.request?.accounts?.oneTime}
+                .disabled=${!this.request?.accounts}
+              />
+              <label for="accountsOneTime">oneTime</label>
+              <input
+                type="radio"
+                id="accountsOngoing"
+                name="accounts"
+                .checked=${!this.request?.accounts?.oneTime}
+                .disabled=${!this.request?.accounts}
+                @click=${() => {
+                  const { oneTime, ...accounts } = this.request!.accounts!
+                  this.request = {
+                    ...this.request,
+                    accounts,
+                  }
+                }}
+              />
+              <label for="accountsOngoing">ongoing</label>
+            </div>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    accounts: {
+                      ...this.request!.accounts!,
+                      quantifier: 'atLeast',
+                    },
+                  }
+                }}
+                type="radio"
+                id="accountsAtleast"
+                name="accountsQuantity"
+                .checked=${this.request?.accounts?.quantifier === 'atLeast'}
+                .disabled=${!this.request?.accounts}
+              />
+              <label for="accountsAtleast">atLeast</label>
+              <input
+                type="radio"
+                id="accountsExactly"
+                name="accountsQuantity"
+                .checked=${this.request?.accounts?.quantifier === 'exactly'}
+                .disabled=${!this.request?.accounts}
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    accounts: {
+                      ...this.request!.accounts!,
+                      quantifier: 'exactly',
+                    },
+                  }
+                }}
+              />
+              <label for="accountsExactly">exactly</label>
+            </div>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                type="checkbox"
+                id="accountsReset"
+                name="accountsReset"
+                .checked=${!!this.request?.accounts?.reset}
+                .disabled=${!this.request?.accounts}
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    accounts: {
+                      ...this.request?.accounts!,
+                      reset: !this.request!.accounts!.reset,
+                    },
+                  }
+                }}
+              />
+              <label for="accountsReset">reset</label>
+            </div>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                type="number"
+                placeholder="quantity"
+                id="accountsExactly"
+                name="accountsQuantity"
+                value=${this.request?.accounts?.quantity ?? 0}
+                .disabled=${!this.request?.accounts}
+                @change=${(event: InputEvent) => {
+                  this.request = {
+                    ...this.request,
+                    accounts: {
+                      ...this.request!.accounts!,
+                      quantity: parseInt(
+                        (event.target as HTMLInputElement)!.value
+                      ),
+                    },
+                  }
+                }}
+              />
+            </div>
+          </fieldset>
+          <fieldset style=${styleMap({ marginBottom: '15px' })}>
+            <legend>
+              <input
+                type="checkbox"
+                id="personaDataInclude"
+                name="accounts"
+                .checked=${!!this.request!.personaData}
+                @click=${() => {
+                  const { personaData, ...rest } = this.request!
+                  if (personaData) this.request = rest
+                  else
+                    this.request = {
+                      ...this.request,
+                      personaData: {
+                        fields: [
+                          'givenName',
+                          'emailAddress',
+                          'familyName',
+                          'phoneNumber',
+                        ],
+                        reset: false,
+                      },
+                    }
+                }}
+              />
+              <label for="personaDataInclude">PersonaData</label>
+            </legend>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    personaData: {
+                      ...this.request!.personaData!,
+                      oneTime: true,
+                    },
+                  }
+                }}
+                type="radio"
+                id="personaDataOneTime"
+                name="personaData"
+                .checked=${!!this.request?.personaData?.oneTime}
+                .disabled=${!this.request?.personaData}
+              />
+              <label for="personaDataOneTime">oneTime</label>
+              <input
+                type="radio"
+                id="personaDataOngoing"
+                name="personaData"
+                .checked=${!this.request?.personaData?.oneTime}
+                .disabled=${!this.request?.personaData}
+                @click=${() => {
+                  const { oneTime, ...personaData } = this.request!.personaData!
+                  this.request = {
+                    ...this.request,
+                    personaData,
+                  }
+                }}
+              />
+              <label for="personaDataOngoing">ongoing</label>
+            </div>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              ${['givenName', 'emailAddress', 'familyName', 'phoneNumber'].map(
+                (item) => html`
+                  <input
+                    type="checkbox"
+                    id=${'personaDataField' + item}
+                    name="personaDataFields"
+                    .checked=${!!this.request!.personaData}
+                    @change=${() => {
+                      const field = item as PersonaDataField
+                      const fields = this.request!.personaData!.fields
+
+                      this.request = {
+                        ...this.request,
+                        personaData: {
+                          ...this.request?.personaData,
+                          fields: fields.includes(field)
+                            ? fields.filter((value) => value !== field)
+                            : [...fields, field],
+                        },
+                      }
+                    }}
+                  />
+                  <label for=${'personaDataField' + item}>${item}</label>
+                `
+              )}
+            </div>
+            <div style=${styleMap({ marginBottom: '10px' })}>
+              <input
+                type="checkbox"
+                id="personaDataReset"
+                name="personaDataReset"
+                .checked=${!!this.request?.personaData?.reset}
+                .disabled=${!this.request?.personaData}
+                @click=${() => {
+                  this.request = {
+                    ...this.request,
+                    personaData: {
+                      ...this.request?.personaData!,
+                      reset: !this.request!.personaData!.reset,
+                    },
+                  }
+                }}
+              />
+              <label for="personaDataReset">reset</label>
+            </div>
+          </fieldset>
+        </div>
+        ${this.dataRequest()} ${this.updateSharedDataRequest()}
         ${this.createTokenRequest()} ${this.transferToken()}
-        ${this.updateMetadata()}${this.disconnect()}${this.walletResponseTemplate()}
+        ${this.updateMetadata()}${this.disconnect()}
+        <!-- ${this.walletRequestTemplate()}  -->
+        ${this.walletResponseTemplate()} ${this.stateTemplate()}
       </div>
     </div>`
   }
