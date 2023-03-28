@@ -1527,10 +1527,10 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.3":
-  version "1.0.0-rc.1.3"
-  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.3.tgz#7baa9b2638cdf0ca10c26489c645ee47f11a836b"
-  integrity sha512-uYDW9U9ted7wo7BUU5JgzkFcBIvwp2uTiDJZHOgBnKhP7BZPa5xzhNgEqHxjiXbog0eAR6Us/TpFYwT0fO/xCA==
+"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.4":
+  version "1.0.0-rc.1.4"
+  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.4.tgz#afb20f9105586b514aa73a5cb5cd5a95cd663c37"
+  integrity sha512-xn7ct2mYntFH88PI26FMQMamM/5sCW2wObYFvDJkv2NYnysyai84u47RIPZOj2dOjMKDce9IN2RaD/ScPOS0/g==
   dependencies:
     loglevel "^1.8.0"
     neverthrow "^5.0.0"
@@ -1544,10 +1544,10 @@
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.8.0-alpha.2":
-  version "0.8.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.8.0-alpha.2.tgz#ae69eace49c3de9563aefaed77074b1249624540"
-  integrity sha512-HQJpivLmcv6sKU2X3loewNENrLydkBuDSeyZhAptEAwbj6wRWcTr4IVLXra3aTXBMU6GSk1PygJ1tGPv6HrsvA==
+"@radixdlt/wallet-sdk@0.8.0-alpha.3":
+  version "0.8.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.8.0-alpha.3.tgz#7d5978ae782554d7a13a2cbf0ba707c6f22eb2eb"
+  integrity sha512-a9BAsedW2+mFPa/fJy139OlxbmRVmGx9W8jH3e1q+3b49SfRQdmp0kf4QCS9H26IgdFoCicZcJ+MSAj4HmUzIA==
   dependencies:
     lodash.flow "^3.5.0"
     loglevel "^1.8.1"
