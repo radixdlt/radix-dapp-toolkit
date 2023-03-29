@@ -1536,10 +1536,10 @@
     neverthrow "^5.0.0"
     rxjs "^7.5.6"
 
-"@radixdlt/connect-button@0.12.0-alpha.3":
-  version "0.12.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.12.0-alpha.3.tgz#80bc48ffb666b66f6e12f08c6a7bbefeba95113a"
-  integrity sha512-/syU6LHJykchZnYql0aS5yNaHiS5JHuF7iLwjdgo4G96BmjjuhbdX2poZkxx1aO8YrwCJQwQwuHvYBnUBLyGNg==
+"@radixdlt/connect-button@0.12.0-alpha.4":
+  version "0.12.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/@radixdlt/connect-button/-/connect-button-0.12.0-alpha.4.tgz#8ef12919d238eabb2450168adb60bec9800904ff"
+  integrity sha512-tSCUSlLyX8tJwQak3cq68/bvjVfhmaM7k/VW5OOISNyuBAgAahpDi7Yqyyep+gf1rp9QRAaob0r3ZGoOiEb1jg==
   dependencies:
     lit "^2.6.1"
     rxjs "^7.8.0"
