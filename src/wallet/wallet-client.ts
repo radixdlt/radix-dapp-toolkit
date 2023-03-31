@@ -1,11 +1,14 @@
 import {
   Account,
   Persona,
+  PersonaData,
   WalletSdk as WalletSdkType,
 } from '@radixdlt/wallet-sdk'
 import { Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
+import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { GetState } from '../state/helpers/get-state'
 import { DataRequestValue } from '../_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
@@ -13,6 +16,8 @@ export const WalletClient = (input: {
   requestItemClient?: RequestItemClient
   logger?: Logger<unknown>
   walletSdk: WalletSdkType
+  gatewayClient: GatewayClient
+  getState: GetState
 }) => {
   const logger = input.logger
   const requestItemClient =
@@ -21,67 +26,86 @@ export const WalletClient = (input: {
       logger,
     })
   const walletSdk = input.walletSdk
+  const gatewayClient = input.gatewayClient
 
   const sendWalletRequest = ({
     oneTimeAccountsWithoutProofOfOwnership,
     ongoingAccountsWithoutProofOfOwnership,
+    ongoingPersonaData,
+    oneTimePersonaData,
     loginWithoutChallenge,
     usePersona,
+    reset = { accounts: false, personaData: false },
   }: Parameters<WalletSdkType['request']>[0]) => {
-    const requestInput: DataRequestValue = {}
+    const requestInput: DataRequestValue = { reset }
 
-    if (oneTimeAccountsWithoutProofOfOwnership)
-      requestInput.oneTimeAccountsWithoutProofOfOwnership =
-        oneTimeAccountsWithoutProofOfOwnership
+    if (oneTimeAccountsWithoutProofOfOwnership) {
+      const { quantity, quantifier } = oneTimeAccountsWithoutProofOfOwnership
+      requestInput.oneTimeAccountsWithoutProofOfOwnership = {
+        quantity,
+        quantifier,
+      }
+    }
 
     if (ongoingAccountsWithoutProofOfOwnership)
       requestInput.ongoingAccountsWithoutProofOfOwnership =
         ongoingAccountsWithoutProofOfOwnership
+
+    if (ongoingPersonaData) requestInput.ongoingPersonaData = ongoingPersonaData
+
+    if (oneTimePersonaData) requestInput.oneTimePersonaData = oneTimePersonaData
 
     if (loginWithoutChallenge)
       requestInput.loginWithoutChallenge = loginWithoutChallenge
 
     if (usePersona) requestInput.usePersona = usePersona
 
-    const requestType = !!requestInput.loginWithoutChallenge
-      ? 'loginRequest'
-      : 'dataRequest'
+    return input.getState().andThen((state) => {
+      // TODO: improve logic for determining requestType
+      const requestType =
+        !!requestInput.loginWithoutChallenge && !state.persona
+          ? 'loginRequest'
+          : 'dataRequest'
+      const { id } = requestItemClient.add(requestType)
 
-    const { id } = requestItemClient.add(requestType)
+      logger?.debug(`⬆️walletRequest`, requestInput)
+      return walletSdk
+        .request(requestInput)
+        .map((response) => {
+          // TODO: response typing should be inferred from request input
+          const {
+            persona,
+            ongoingAccounts = [],
+            oneTimeAccounts = [],
+            ongoingPersonaData = [],
+            oneTimePersonaData = [],
+          } = response as Partial<{
+            oneTimeAccounts: Account[]
+            persona: Persona
+            ongoingAccounts: Account[]
+            oneTimePersonaData: PersonaData[]
+            ongoingPersonaData: PersonaData[]
+          }>
 
-    logger?.debug(`⬆️walletRequest`, requestInput)
+          logger?.debug(`⬇️walletSuccessResponse`, response)
+          requestItemClient.updateStatus({ id, status: 'success' })
 
-    return walletSdk
-      .request(requestInput)
-      .map((response) => {
-        // TODO: response typing should be inferred from request input
-        const {
-          persona,
-          ongoingAccounts = [],
-          oneTimeAccounts = [],
-        } = response as Partial<{
-          oneTimeAccounts: Account[]
-          persona: Persona
-          ongoingAccounts: Account[]
-        }>
-
-        logger?.debug(`⬇️walletSuccessResponse`, response)
-        requestItemClient.updateStatus({ id, status: 'success' })
-
-        return {
-          accounts: [...ongoingAccounts, ...oneTimeAccounts],
-          persona: persona,
-        }
-      })
-      .mapErr((error) => {
-        requestItemClient.updateStatus({
-          id,
-          status: 'fail',
-          error: error.error,
+          return {
+            accounts: [...ongoingAccounts, ...oneTimeAccounts],
+            personaData: [...ongoingPersonaData, ...oneTimePersonaData],
+            persona: persona,
+          }
         })
-        logger?.debug(`⬇️wallet error response`, error)
-        return error
-      })
+        .mapErr((error) => {
+          requestItemClient.updateStatus({
+            id,
+            status: 'fail',
+            error: error.error,
+          })
+          logger?.debug(`⬇️wallet error response`, error)
+          return error
+        })
+    })
   }
 
   const subscriptions = new Subscription()
@@ -104,6 +128,23 @@ export const WalletClient = (input: {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
       .sendTransaction(input)
+      .mapErr((response) => {
+        requestItemClient.updateStatus({
+          id,
+          status: 'fail',
+          error: response.error,
+        })
+        logger?.debug(`⬇️walletErrorResponse`, response)
+        return response
+      })
+      .andThen(({ transactionIntentHash }) =>
+        gatewayClient
+          .pollTransactionStatus(transactionIntentHash)
+          .map((transactionStatusResponse) => ({
+            transactionIntentHash,
+            status: transactionStatusResponse.status,
+          }))
+      )
       .map((response) => {
         requestItemClient.updateStatus({
           id,
@@ -112,15 +153,6 @@ export const WalletClient = (input: {
         })
         logger?.debug(`⬇️walletSuccessResponse`, response)
         return response
-      })
-      .mapErr((error) => {
-        requestItemClient.updateStatus({
-          id,
-          status: 'fail',
-          error: error.error,
-        })
-        logger?.debug(`⬇️walletErrorResponse`, error)
-        return error
       })
   }
 

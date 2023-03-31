@@ -1,0 +1,50 @@
+replicaCount: 1
+
+image:
+  repository: eu.gcr.io/dev-container-repo/radix-dapp-toolkit
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets:
+  - name: docker-eu-gcr-dev
+
+nameOverride: "radix-dapp-toolkit"
+fullnameOverride: "radix-dapp-toolkit"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "radix-dapp-toolkit"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  limits:
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,9 @@
+project: radix-dapp-toolkit
+
+docker:
+  secrets:
+    region: eu-west-1
+    name: eu.gcr.io/dev-container-repo
+
+image:
+  tag: {{ .StateValues.ci.tag }}

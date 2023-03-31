@@ -8,7 +8,12 @@ import {
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
-import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
+import {
+  Account,
+  ConnectButton,
+  PersonaData,
+  RequestItem,
+} from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
 
@@ -21,7 +26,7 @@ export const ConnectButtonClient = (input: {
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
 }): ConnectButtonProvider => {
-  import('@radixdlt/connect-button')
+  if (import.meta.env.MODE !== 'test') import('@radixdlt/connect-button')
   const subjects = input.subjects || ConnectButtonSubjects()
   const logger = input.logger
   const onConnectDefault = (done: (input?: { challenge: string }) => void) => {
@@ -48,7 +53,9 @@ export const ConnectButtonClient = (input: {
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
-              onConnect((value) => subjects.onConnect.next(value))
+              onConnect((value) => {
+                subjects.onConnect.next(value)
+              })
             })
           )
 
@@ -78,6 +85,25 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const onUpdateSharedData$ = fromEvent(
+            connectButtonElement,
+            'onUpdateSharedData'
+          ).pipe(
+            tap(() => {
+              logger?.debug(`onUpdateSharedData`)
+              subjects.onUpdateSharedData.next()
+            })
+          )
+
+          const onShowPopover$ = fromEvent(
+            connectButtonElement,
+            'onShowPopover'
+          ).pipe(
+            tap(() => {
+              subjects.onShowPopover.next()
+            })
+          )
+
           const loading$ = subjects.loading.pipe(
             tap((value) => (connectButtonElement.loading = value))
           )
@@ -100,6 +126,12 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const personaData$ = subjects.personaData.pipe(
+            tap((items) => {
+              connectButtonElement.personaData = items
+            })
+          )
+
           const personaLabel$ = subjects.personaLabel.pipe(
             tap((items) => {
               connectButtonElement.personaLabel = items
@@ -112,6 +144,18 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const showNotification$ = merge(
+            subjects.showNotification,
+            subjects.onShowPopover.pipe(map(() => false)),
+            subjects.requestItems.pipe(map((items) => !!items.length))
+          ).pipe(
+            tap((value) => {
+              const showNotification =
+                !connectButtonElement.showPopover && value
+              connectButtonElement.showNotification = showNotification
+            })
+          )
+
           return merge(
             onConnect$,
             loading$,
@@ -120,9 +164,13 @@ export const ConnectButtonClient = (input: {
             onDisconnect$,
             onCancelRequestItem$,
             accounts$,
+            personaData$,
             personaLabel$,
             connecting$,
-            onDestroy$
+            onDestroy$,
+            onUpdateSharedData$,
+            onShowPopover$,
+            showNotification$
           )
         })
       )
@@ -132,6 +180,7 @@ export const ConnectButtonClient = (input: {
   return {
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
+    onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     setLoading: (value: boolean) => subjects.loading.next(value),
     setConnecting: (value: boolean) => subjects.connecting.next(value),
@@ -139,6 +188,8 @@ export const ConnectButtonClient = (input: {
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
+    setPersonaData: (personaData: PersonaData[]) =>
+      subjects.personaData.next(personaData),
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
     destroy: () => {
