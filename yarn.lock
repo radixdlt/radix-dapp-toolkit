@@ -1544,10 +1544,10 @@
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.8.0-alpha.3":
-  version "0.8.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.8.0-alpha.3.tgz#7d5978ae782554d7a13a2cbf0ba707c6f22eb2eb"
-  integrity sha512-a9BAsedW2+mFPa/fJy139OlxbmRVmGx9W8jH3e1q+3b49SfRQdmp0kf4QCS9H26IgdFoCicZcJ+MSAj4HmUzIA==
+"@radixdlt/wallet-sdk@0.8.0-alpha.4":
+  version "0.8.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.8.0-alpha.4.tgz#afa0321517b9a82a8052759da02e2c3fa689ab20"
+  integrity sha512-nj6JnoXPYPzpYVcY/R/47iXLv46olvY7A0c7Str+NjrkGh2tvlwqWLILMVNz0oF6CZ2fvihkZFQ5amvdfpz6Sg==
   dependencies:
     lodash.flow "^3.5.0"
     loglevel "^1.8.1"
@@ -1987,6 +1987,11 @@ base64-js@^1.3.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+
+blakejs@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.2.1.tgz#5057e4206eadb4a97f7c0b6e197a505042fc3814"
+  integrity sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==
 
 brace-expansion@^1.1.7:
   version "1.1.11"

@@ -115,5 +115,6 @@ export const RadixDappToolkit = (
       stateClient.destroy()
       subscriptions.unsubscribe()
     },
+    gatewayApi: gatewayClient.gatewayApi,
   }
 }
