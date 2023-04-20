@@ -138,6 +138,7 @@ describe('state management', () => {
       }),
       logger,
       getState,
+      onCancelRequestItem$: new Subject(),
     })
 
     storageClient = InMemoryClient()
@@ -181,6 +182,7 @@ describe('state management', () => {
     expect(rest).toEqual({
       type: 'loginRequest',
       status: 'pending',
+      showCancel: true,
     })
 
     await waitForLoadingStatus(true)
@@ -343,6 +345,7 @@ describe('state management', () => {
       expect(rest).toEqual({
         type: 'dataRequest',
         status: 'pending',
+        showCancel: true,
       })
     })
   })
@@ -419,6 +422,7 @@ describe('state management', () => {
       expect(rest).toEqual({
         type: 'sendTransaction',
         status: 'pending',
+        showCancel: true,
       })
 
       const transactionIntentHash =
