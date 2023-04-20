@@ -75,10 +75,11 @@ export const RadixDappToolkit = (
     providers?.walletClient ||
     WalletClient({
       logger,
+      onCancelRequestItem$: connectButtonClient.onCancelRequestItem$,
       walletSdk: WalletSdk({
         networkId,
         dAppDefinitionAddress,
-        logLevel: 'debug',
+        logger,
       }),
       gatewayClient,
       getState,

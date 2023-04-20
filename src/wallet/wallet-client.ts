@@ -4,12 +4,22 @@ import {
   PersonaData,
   WalletSdk as WalletSdkType,
 } from '@radixdlt/wallet-sdk'
-import { Subscription, tap } from 'rxjs'
+import {
+  Observable,
+  Subject,
+  Subscription,
+  filter,
+  firstValueFrom,
+  merge,
+  switchMap,
+  tap,
+} from 'rxjs'
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { GetState } from '../state/helpers/get-state'
 import { DataRequestValue } from '../_types'
+import { MessageLifeCycleEvent } from '@radixdlt/wallet-sdk/dist/messages/events/_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -18,6 +28,7 @@ export const WalletClient = (input: {
   walletSdk: WalletSdkType
   gatewayClient: GatewayClient
   getState: GetState
+  onCancelRequestItem$: Observable<string>
 }) => {
   const logger = input.logger
   const requestItemClient =
@@ -27,6 +38,33 @@ export const WalletClient = (input: {
     })
   const walletSdk = input.walletSdk
   const gatewayClient = input.gatewayClient
+
+  const cancelRequestControl = (id: string) => {
+    const messageLifeCycleEvent = new Subject<MessageLifeCycleEvent>()
+    return {
+      eventCallback: (event) => {
+        messageLifeCycleEvent.next(event)
+      },
+      requestControl: ({ cancelRequest }) => {
+        firstValueFrom(
+          merge(
+            messageLifeCycleEvent.pipe(
+              filter((event) => event === 'receivedByWallet'),
+              tap(() => {
+                requestItemClient.patch(id, { showCancel: false })
+              })
+            ),
+            input.onCancelRequestItem$.pipe(
+              filter((requestItemId) => requestItemId === id),
+              switchMap(() =>
+                cancelRequest().map(() => requestItemClient.cancel(id))
+              )
+            )
+          )
+        )
+      },
+    } satisfies Parameters<WalletSdkType['request']>[1]
+  }
 
   const sendWalletRequest = ({
     oneTimeAccountsWithoutProofOfOwnership,
@@ -69,8 +107,9 @@ export const WalletClient = (input: {
       const { id } = requestItemClient.add(requestType)
 
       logger?.debug(`⬆️walletRequest`, requestInput)
+
       return walletSdk
-        .request(requestInput)
+        .request(requestInput, cancelRequestControl(id))
         .map((response) => {
           // TODO: response typing should be inferred from request input
           const {
@@ -127,7 +166,7 @@ export const WalletClient = (input: {
   ) => {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
-      .sendTransaction(input)
+      .sendTransaction(input, cancelRequestControl(id))
       .mapErr((response) => {
         requestItemClient.updateStatus({
           id,

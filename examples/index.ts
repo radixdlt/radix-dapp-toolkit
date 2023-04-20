@@ -1,5 +1,4 @@
 import { RadixDappToolkit } from '../src/radix-dapp-toolkit'
-import { Logger } from 'tslog'
 import { html, render, LitElement, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
 import { Account, PersonaDataField } from '@radixdlt/connect-button'
@@ -14,7 +13,12 @@ import { GatewayApiClient } from '../src/gateway/gateway-api'
 import { networkIdMap } from '../src/gateway/_types'
 import { getCreateBadgeManifest } from './manifests/create-badge'
 import { getDeployPackageManifest } from './manifests/deploy-package'
-import { Decimal, Expression, ManifestBuilder } from '@radixdlt/wallet-sdk'
+import {
+  Decimal,
+  Expression,
+  ManifestBuilder,
+  createLogger,
+} from '@radixdlt/wallet-sdk'
 import {
   ExampleOptions,
   getExample1,
@@ -129,7 +133,7 @@ class ExampleDapp extends LitElement {
       })
     },
     {
-      logger: new Logger(),
+      logger: createLogger(1),
       networkId: this.networkId,
       onDisconnect: () => {
         this.accounts = []
