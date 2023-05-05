@@ -34,6 +34,9 @@ export type RadixDappToolkitConfiguration = {
   onStateChange?: (state: State) => void
   useCache?: boolean
 }
+
+export type RadixDappToolkit = ReturnType<typeof RadixDappToolkit>
+
 export const RadixDappToolkit = (
   { dAppDefinitionAddress, dAppName }: DappMetadata,
   onConnect?: OnConnect,

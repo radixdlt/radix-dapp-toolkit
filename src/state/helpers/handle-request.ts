@@ -46,6 +46,7 @@ export const handleRequest = (
     canBeResolvedByState &&
     !containsResetRequest &&
     !containsOneTimeRequest &&
+    !dataRequest.loginWithChallenge &&
     useCache
 
   if (resolveByState) {

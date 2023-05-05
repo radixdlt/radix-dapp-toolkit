@@ -30,7 +30,7 @@ import { handleRequest } from './helpers/handle-request'
 import { withAuth } from './helpers/with-auth'
 import { removeUndefined } from '../helpers/remove-undefined'
 import { GetState } from './helpers/get-state'
-import { ok, Result } from 'neverthrow'
+import { ok, Result, ResultAsync } from 'neverthrow'
 import { SdkError } from '@radixdlt/wallet-sdk'
 
 export const defaultState: State = {
@@ -49,7 +49,9 @@ export const StateClient = (input: {
   connectButtonClient: ConnectButtonProvider
   walletClient: WalletClient
   storageClient: StorageProvider
-  connectRequest?: (requestData: RequestData) => RequestDataOutput
+  connectRequest?: (
+    requestData: RequestData
+  ) => ResultAsync<RequestDataOutput, SdkError>
   onInitCallback: OnInitCallback
   onDisconnectCallback: OnDisconnectCallback
   useDoneCallback?: boolean
@@ -76,7 +78,7 @@ export const StateClient = (input: {
 
   const writeStateToStorage = (value: State) => {
     return storageClient.setData(key, value).map(() => {
-      logger?.debug('writeToStorage', value)
+      logger?.trace('writeToStorage', value)
     })
   }
 
@@ -245,9 +247,11 @@ export const StateClient = (input: {
     return error
   }
 
-  const requestData = (value: DataRequestInput) =>
+  const requestData = (
+    value: DataRequestInput
+  ): ResultAsync<RequestDataOutput['data'], SdkError> =>
     getState().andThen((state) =>
-      transformRequest(value)
+      transformRequest(value, false)
         .andThen((value) => withAuth(value, state.persona))
         .asyncAndThen((walletRequest) =>
           handleRequest(walletRequest, {
@@ -285,7 +289,8 @@ export const StateClient = (input: {
     )
 
   const transformRequest = (
-    value: DataRequestInput<false>
+    value: DataRequestInput<false>,
+    isConnect: boolean
   ): Result<DataRequestValue, never> => {
     const { accounts, personaData } = value
 
@@ -299,19 +304,24 @@ export const StateClient = (input: {
     }
 
     if (accounts) {
-      const key = accounts.oneTime
-        ? 'oneTimeAccountsWithoutProofOfOwnership'
-        : 'ongoingAccountsWithoutProofOfOwnership'
+      const key =
+        accounts.oneTime && !isConnect
+          ? 'oneTimeAccountsWithoutProofOfOwnership'
+          : 'ongoingAccountsWithoutProofOfOwnership'
       output[key] = accounts
     }
 
     if (personaData) {
-      const key = personaData.oneTime
-        ? 'oneTimePersonaData'
-        : 'ongoingPersonaData'
+      const key =
+        personaData.oneTime && !isConnect
+          ? 'oneTimePersonaData'
+          : 'ongoingPersonaData'
       output[key] = personaData
     }
 
+    if (value.challenge) {
+      output['loginWithChallenge'] = { challenge: value.challenge }
+    }
     return ok(output)
   }
 
@@ -319,7 +329,7 @@ export const StateClient = (input: {
     input.connectRequest!((value: DataRequestInput<true>) => {
       logger?.debug(`connectRequest`, value)
       return getState().andThen((state) =>
-        transformRequest(value)
+        transformRequest(value, true)
           .andThen((value) => withAuth(value, state.persona))
           .asyncAndThen((walletRequest) =>
             handleRequest(walletRequest, {

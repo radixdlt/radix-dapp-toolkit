@@ -1540,10 +1540,10 @@
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/wallet-sdk@0.9.0-alpha.2":
-  version "0.9.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.9.0-alpha.2.tgz#623a7f40d44e753013f1a2317320324cf60e36ee"
-  integrity sha512-vTPlYUU3o/nLXikwLcPJuqME4zP2rApR8ubP3ZnZZlTx2b9YFMBfL8l6rg901OIITuUZY4mVkAXORz7200Qmnw==
+"@radixdlt/wallet-sdk@0.9.0-alpha.3":
+  version "0.9.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.9.0-alpha.3.tgz#c7a391fbe5019b2e0b1ac1a12a3ebf3819340fe8"
+  integrity sha512-LhNDqjXz1s+0gDtZc+AufzsyAjT7GrMkzFYpj7mzF89YuPQsi3b5GVnj566K3J+7UYlNLgkcp+mLcDroqfML/A==
   dependencies:
     lodash.flow "^3.5.0"
     neverthrow "^6.0.0"
@@ -4060,6 +4060,13 @@ rxjs@^7.8.0:
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.8.0.tgz#90a938862a82888ff4c7359811a595e14e1e09a4"
   integrity sha512-F2+gxDshqmIub1KdvZkaEfGDwLNpPvk9Fs6LD/MyQxNgMds/WH9OdDDXOmxUZpME+iSK3rQCctkL0DYyytUqMg==
+  dependencies:
+    tslib "^2.1.0"
+
+rxjs@^7.8.1:
+  version "7.8.1"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.8.1.tgz#6f6f3d99ea8044291efd92e7c7fcf562c4057543"
+  integrity sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==
   dependencies:
     tslib "^2.1.0"
 
