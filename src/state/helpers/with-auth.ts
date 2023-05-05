@@ -11,18 +11,19 @@ export const withAuth = (
     request.ongoingPersonaData
 
   if (shouldAuthenticateRequest) {
-    if (persona)
+    if (persona && !request.loginWithChallenge)
       return ok({
         ...request,
         usePersona: {
           identityAddress: persona.identityAddress,
         },
       })
-    else
+    else if (!request.loginWithChallenge) {
       return ok({
         ...request,
-        loginWithoutChallenge: { discriminator: 'login' },
+        loginWithoutChallenge: { discriminator: 'loginWithoutChallenge' },
       })
+    } else return ok(request)
   }
 
   return ok(request)

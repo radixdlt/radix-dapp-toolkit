@@ -5,7 +5,7 @@ import { errorIdentity } from '../helpers/error-identity'
 export type GatewayApiClient = ReturnType<typeof GatewayApiClient>
 
 export const GatewayApiClient = (basePath: string) => {
-  const { transaction, state } = BabylonGatewayApiClient.initialize({
+  const { transaction, state, status } = BabylonGatewayApiClient.initialize({
     basePath,
   })
 
@@ -22,7 +22,10 @@ export const GatewayApiClient = (basePath: string) => {
     )
 
   const getEntityDetails = (address: string) =>
-    ResultAsync.fromPromise(state.getEntityDetailsVaultAggregated(address), errorIdentity)
+    ResultAsync.fromPromise(
+      state.getEntityDetailsVaultAggregated(address),
+      errorIdentity
+    )
 
   const getEntitiesDetails = (addresses: string[]) =>
     ResultAsync.fromPromise(
@@ -50,11 +53,17 @@ export const GatewayApiClient = (basePath: string) => {
       errorIdentity
     )
 
+  const getNetworkConfiguration = () =>
+    ResultAsync.fromPromise(status.getNetworkConfiguration(), errorIdentity)
+
   return {
     getTransactionStatus,
     getTransactionDetails,
     getEntityDetails,
     getEntitiesDetails,
     getEntityNonFungibleIds,
+    getNetworkConfiguration,
+    transactionApi: transaction,
+    stateApi: status,
   }
 }

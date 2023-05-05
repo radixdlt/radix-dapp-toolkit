@@ -1,4 +1,4 @@
-import { Result, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 import {
   WalletSdk,
   Account,
@@ -6,6 +6,7 @@ import {
   Persona,
   PersonaDataField,
   PersonaData,
+  AuthLoginWithChallengeRequestResponseItem,
 } from '@radixdlt/wallet-sdk'
 import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
@@ -56,29 +57,25 @@ export type DataRequestInput<IsLoginRequest extends boolean = false> =
     ? {
         accounts?: NumberOfAccounts
         personaData?: { fields: PersonaDataField[] }
+        challenge?: string
       }
     : {
         accounts?: NumberOfAccounts & OneTimeRequest
         personaData?: { fields: PersonaDataField[] } & OneTimeRequest
+        challenge?: string
       }
-
-export type RequestDataResponse = Result<
-  {
-    accounts: Account[]
-    personaData: PersonaData[]
-    persona: Persona
-  },
-  SdkError
->
 
 export type Connect = {
   onConnect: (done: (input?: { challenge: string }) => void) => void
-  onResponse: (result: RequestDataResponse, done: () => void) => void
+  onResponse: (
+    result: ResultAsync<RequestDataOutput, SdkError>,
+    done: () => void
+  ) => void
   requestData: DataRequestInput<true>
 }
 
 export type OnConnectCallback = (
-  result: RequestDataResponse,
+  result: ResultAsync<RequestDataOutput, SdkError>,
   done: () => void
 ) => void
 
@@ -87,7 +84,9 @@ export type OnInitCallback = (state: State) => void
 export type OnDisconnectCallback = () => void
 
 export type OnResetCallback = (
-  value: (value: DataRequestInput<true>) => RequestDataOutput
+  value: (
+    value: DataRequestInput<true>
+  ) => ResultAsync<RequestDataOutput, SdkError>
 ) => any
 
 export type Providers = {
@@ -97,19 +96,20 @@ export type Providers = {
   gatewayClient: GatewayClient
 }
 
-export type RequestDataOutput = ResultAsync<
-  {
-    done?: () => void
-    data: {
-      accounts: Account[]
-      personaData: PersonaData[]
-      persona?: Persona
-    }
-  },
-  SdkError
->
+export type RequestDataOutput = {
+  done?: () => void
+  data: {
+    accounts: Account[]
+    personaData: PersonaData[]
+    persona?: Persona
+    challenge?: string
+    proof?: AuthLoginWithChallengeRequestResponseItem['proof']
+  }
+}
 
-export type RequestData = (value: DataRequestInput) => RequestDataOutput
+export type RequestData = (
+  value: DataRequestInput
+) => ResultAsync<RequestDataOutput, SdkError>
 
 export type DappMetadata = {
   dAppDefinitionAddress: string
@@ -117,7 +117,9 @@ export type DappMetadata = {
 }
 
 export type OnConnect = (
-  value: (value: DataRequestInput<true>) => RequestDataOutput
+  value: (
+    value: DataRequestInput<true>
+  ) => ResultAsync<RequestDataOutput, SdkError>
 ) => any
 
 export type Explorer = {

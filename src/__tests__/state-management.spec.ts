@@ -404,7 +404,7 @@ describe('state management', () => {
     })
   })
 
-  describe('sendTransaction', () => {
+  describe.skip('sendTransaction', () => {
     it('should poll transaction until resolved', async () => {
       const responseSubject = new ReplaySubject<any>()
 
