@@ -1,5 +1,6 @@
 import {
   Account,
+  AuthLoginWithChallengeRequestResponseItem,
   Persona,
   PersonaData,
   WalletSdk as WalletSdkType,
@@ -68,10 +69,13 @@ export const WalletClient = (input: {
 
   const sendWalletRequest = ({
     oneTimeAccountsWithoutProofOfOwnership,
+    oneTimeAccountsWithProofOfOwnership,
     ongoingAccountsWithoutProofOfOwnership,
+    ongoingAccountsWithProofOfOwnership,
     ongoingPersonaData,
     oneTimePersonaData,
     loginWithoutChallenge,
+    loginWithChallenge,
     usePersona,
     reset = { accounts: false, personaData: false },
   }: Parameters<WalletSdkType['request']>[0]) => {
@@ -85,9 +89,24 @@ export const WalletClient = (input: {
       }
     }
 
+    if (oneTimeAccountsWithProofOfOwnership) {
+      const { quantity, quantifier, challenge } =
+        oneTimeAccountsWithProofOfOwnership
+      requestInput.oneTimeAccountsWithProofOfOwnership = {
+        quantity,
+        quantifier,
+        challenge,
+      }
+    }
+
     if (ongoingAccountsWithoutProofOfOwnership)
       requestInput.ongoingAccountsWithoutProofOfOwnership =
         ongoingAccountsWithoutProofOfOwnership
+
+    if (ongoingAccountsWithProofOfOwnership) {
+      requestInput.ongoingAccountsWithProofOfOwnership =
+        ongoingAccountsWithProofOfOwnership
+    }
 
     if (ongoingPersonaData) requestInput.ongoingPersonaData = ongoingPersonaData
 
@@ -96,12 +115,15 @@ export const WalletClient = (input: {
     if (loginWithoutChallenge)
       requestInput.loginWithoutChallenge = loginWithoutChallenge
 
+    if (loginWithChallenge) requestInput.loginWithChallenge = loginWithChallenge
+
     if (usePersona) requestInput.usePersona = usePersona
 
     return input.getState().andThen((state) => {
       // TODO: improve logic for determining requestType
       const requestType =
-        !!requestInput.loginWithoutChallenge && !state.persona
+        (!!requestInput.loginWithoutChallenge && !state.persona) ||
+        (!!requestInput.loginWithChallenge && !state.persona)
           ? 'loginRequest'
           : 'dataRequest'
       const { id } = requestItemClient.add(requestType)
@@ -118,12 +140,16 @@ export const WalletClient = (input: {
             oneTimeAccounts = [],
             ongoingPersonaData = [],
             oneTimePersonaData = [],
+            challenge,
+            proof,
           } = response as Partial<{
             oneTimeAccounts: Account[]
             persona: Persona
             ongoingAccounts: Account[]
             oneTimePersonaData: PersonaData[]
             ongoingPersonaData: PersonaData[]
+            challenge: string
+            proof: AuthLoginWithChallengeRequestResponseItem['proof']
           }>
 
           logger?.debug(`⬇️walletSuccessResponse`, response)
@@ -133,6 +159,8 @@ export const WalletClient = (input: {
             accounts: [...ongoingAccounts, ...oneTimeAccounts],
             personaData: [...ongoingPersonaData, ...oneTimePersonaData],
             persona: persona,
+            challenge,
+            proof,
           }
         })
         .mapErr((error) => {

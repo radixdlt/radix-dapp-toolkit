@@ -304,10 +304,23 @@ export const StateClient = (input: {
     }
 
     if (accounts) {
-      const key =
-        accounts.oneTime && !isConnect
-          ? 'oneTimeAccountsWithoutProofOfOwnership'
-          : 'ongoingAccountsWithoutProofOfOwnership'
+      let key:
+        | 'oneTimeAccountsWithProofOfOwnership'
+        | 'ongoingAccountsWithProofOfOwnership'
+        | 'oneTimeAccountsWithoutProofOfOwnership'
+        | 'ongoingAccountsWithoutProofOfOwnership'
+
+      if (accounts.challenge) {
+        key =
+          accounts.oneTime && !isConnect
+            ? 'oneTimeAccountsWithProofOfOwnership'
+            : 'ongoingAccountsWithProofOfOwnership'
+      } else {
+        key =
+          accounts.oneTime && !isConnect
+            ? 'oneTimeAccountsWithoutProofOfOwnership'
+            : 'ongoingAccountsWithoutProofOfOwnership'
+      }
       output[key] = accounts
     }
 
