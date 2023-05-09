@@ -55,12 +55,12 @@ type OneTimeRequest = { oneTime?: boolean; reset?: boolean }
 export type DataRequestInput<IsLoginRequest extends boolean = false> =
   IsLoginRequest extends true
     ? {
-        accounts?: NumberOfAccounts
+        accounts?: NumberOfAccounts & { challenge?: string }
         personaData?: { fields: PersonaDataField[] }
         challenge?: string
       }
     : {
-        accounts?: NumberOfAccounts & OneTimeRequest
+        accounts?: NumberOfAccounts & OneTimeRequest & { challenge?: string }
         personaData?: { fields: PersonaDataField[] } & OneTimeRequest
         challenge?: string
       }
@@ -94,6 +94,15 @@ export type Providers = {
   connectButton: ConnectButtonProvider
   walletClient: WalletClient
   gatewayClient: GatewayClient
+}
+
+export type ConnectRequestOutput = {
+  done?: () => void
+  data: {
+    accounts: Account[]
+    personaData: PersonaData[]
+    persona?: Persona
+  }
 }
 
 export type RequestDataOutput = {

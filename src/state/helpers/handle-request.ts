@@ -47,6 +47,8 @@ export const handleRequest = (
     !containsResetRequest &&
     !containsOneTimeRequest &&
     !dataRequest.loginWithChallenge &&
+    !dataRequest.oneTimeAccountsWithProofOfOwnership &&
+    !dataRequest.ongoingAccountsWithProofOfOwnership &&
     useCache
 
   if (resolveByState) {

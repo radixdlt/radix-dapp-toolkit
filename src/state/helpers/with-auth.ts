@@ -8,6 +8,7 @@ export const withAuth = (
   const shouldAuthenticateRequest =
     Object.keys(request).length === 0 ||
     request.ongoingAccountsWithoutProofOfOwnership ||
+    request.ongoingAccountsWithProofOfOwnership ||
     request.ongoingPersonaData
 
   if (shouldAuthenticateRequest) {
