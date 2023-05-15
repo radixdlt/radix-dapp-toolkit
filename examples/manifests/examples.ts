@@ -1,15 +1,5 @@
-import { Bucket, Expression, ManifestBuilder } from '@radixdlt/wallet-sdk'
-
-export type ExampleOptions = {
-  accountA: string
-  accountB: string
-  accountC: string
-  xrdAddress: string
-  gumballMachineComponentAddress: string
-  gumballMachineComponent2Address: string
-  gumballResourceAddress: string
-  adminBadgeAddress: string
-}
+import { ManifestValue, ManifestBuilder } from '@radixdlt/wallet-sdk'
+import { GumballMachineState } from '../integration-tests/state'
 
 export const getExample1 = ({
   accountA,
@@ -17,7 +7,7 @@ export const getExample1 = ({
   xrdAddress,
   gumballMachineComponentAddress,
   gumballResourceAddress,
-}: ExampleOptions) => `
+}: any) => `
 CALL_METHOD Address("${accountA}") "withdraw" Address("${xrdAddress}") Decimal("10");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("10") Address("${xrdAddress}") Bucket("xrd");
 CALL_METHOD Address("${gumballMachineComponentAddress}") "buy_gumball" Bucket("xrd");
@@ -31,7 +21,7 @@ export const getExample2 = ({
   accountB,
   xrdAddress,
   gumballMachineComponentAddress,
-}: ExampleOptions) => `
+}: any) => `
 CALL_METHOD Address("${accountA}") "withdraw" Address("${xrdAddress}") Decimal("0.5");
 CALL_METHOD Address("${accountB}") "withdraw" Address("${xrdAddress}") Decimal("0.5");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("1") Address("${xrdAddress}") Bucket("xrd");
@@ -44,7 +34,7 @@ export const getExample3 = ({
   accountC,
   xrdAddress,
   gumballMachineComponentAddress,
-}: ExampleOptions) => `
+}: any) => `
 CALL_METHOD Address("${accountA}") "withdraw" Address("${xrdAddress}") Decimal("5");
 CALL_METHOD Address("${accountA}") "withdraw" Address("${xrdAddress}") Decimal("3");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("2") Address("${xrdAddress}") Bucket("Delta");
@@ -60,11 +50,13 @@ export const getExample4 = ({
   accountA,
   gumballMachineComponentAddress,
   adminBadgeAddress,
-}: ExampleOptions) =>
+}: any) =>
   new ManifestBuilder()
     .createProofFromAccount(accountA, adminBadgeAddress)
     .callMethod(gumballMachineComponentAddress, 'withdraw_earnings', [])
-    .callMethod(accountA, 'deposit_batch', [Expression('ENTIRE_WORKTOP')])
+    .callMethod(accountA, 'deposit_batch', [
+      ManifestValue.Expression('ENTIRE_WORKTOP'),
+    ])
     .build()
     .toString()
 
@@ -74,7 +66,7 @@ export const getExample5 = ({
   xrdAddress,
   gumballMachineComponentAddress,
   adminBadgeAddress,
-}: ExampleOptions) =>
+}: any) =>
   `CALL_METHOD Address("${accountB}") "withdraw" Address("${xrdAddress}") Decimal("10");
 CALL_METHOD Address("${accountA}") "create_proof" Address("${adminBadgeAddress}");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("5") Address("${xrdAddress}") Bucket("xrd");
@@ -89,7 +81,7 @@ export const getExample6 = ({
   xrdAddress,
   gumballMachineComponentAddress,
   gumballMachineComponent2Address,
-}: ExampleOptions) =>
+}: any) =>
   `
 CALL_METHOD Address("${accountA}") "withdraw"  Address("${xrdAddress}") Decimal("2");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("2") Address("${xrdAddress}") Bucket("xrd");

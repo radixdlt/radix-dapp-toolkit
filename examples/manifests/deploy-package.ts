@@ -2,31 +2,26 @@ import { hash } from '../helpers/hash'
 
 export const getDeployPackageManifest = ({
   wasm,
-  abi,
+  schema,
   nftAddress,
-  nftId,
 }: {
   wasm: string
-  abi: string
+  schema: string
   nftAddress: string
-  nftId: string
 }) => {
   const codeHash: string = hash(wasm).toString('hex')
-  const abiHash: string = hash(abi).toString('hex')
+  const schemaHash: string = hash(schema).toString('hex')
   return `
     PUBLISH_PACKAGE 
     Blob("${codeHash}") 
-    Blob("${abiHash}") 
+    Blob("${schemaHash}") 
     Map<String, Tuple>()       # Royalty Configuration
     Map<String, String>()      # Metadata 
     Tuple(                     # Access Rules Struct
-        Map<Tuple, Enum>(       # Method auth Field
+        Map<Tuple, Enum>(      # Method auth Field
             Tuple(
-                Enum("NodeModuleId::SELF"),
-                "set_royalty_config"
-            ),
-            Enum(
-                "AccessRuleEntry::AccessRule", 
+                Enum("NodeModuleId::SELF"), "set_royalty_config"),
+            Enum("AccessRuleEntry::AccessRule", 
                 Enum(
                     "AccessRule::Protected", 
                     Enum(
@@ -35,7 +30,7 @@ export const getDeployPackageManifest = ({
                             "ProofRule::Require", 
                             Enum(
                                 "SoftResourceOrNonFungible::StaticNonFungible", 
-                                NonFungibleGlobalId("${nftAddress}:${nftId}")
+                                NonFungibleGlobalId("${nftAddress}")
                             )
                         )
                     )
@@ -55,7 +50,7 @@ export const getDeployPackageManifest = ({
                             "ProofRule::Require", 
                             Enum(
                                 "SoftResourceOrNonFungible::StaticNonFungible", 
-                                NonFungibleGlobalId("${nftAddress}:${nftId}")
+                                NonFungibleGlobalId("${nftAddress}")
                             )
                         )
                     )
@@ -75,7 +70,7 @@ export const getDeployPackageManifest = ({
                             "ProofRule::Require", 
                             Enum(
                                 "SoftResourceOrNonFungible::StaticNonFungible", 
-                                NonFungibleGlobalId("${nftAddress}:${nftId}")
+                                NonFungibleGlobalId("${nftAddress}")
                             )
                         )
                     )
@@ -90,9 +85,9 @@ export const getDeployPackageManifest = ({
                 Enum("AccessRule::AllowAll")
             )
         ), 
-        Map<String, Enum>(),     # Grouped Auth Field
-        Enum("AccessRule::DenyAll"),         # Default Auth Field
-        Map<Tuple, Enum>(         # Method Auth Mutability Field
+        Map<String, Enum>(),            # Grouped Auth Field
+        Enum("AccessRule::DenyAll"),    # Default Auth Field
+        Map<Tuple, Enum>(               # Method Auth Mutability Field
             Tuple(
                 Enum("NodeModuleId::SELF"),
                 "set_royalty_config"
@@ -105,7 +100,7 @@ export const getDeployPackageManifest = ({
                         "ProofRule::Require", 
                         Enum(
                             "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}:${nftId}")
+                            NonFungibleGlobalId("${nftAddress}")
                         )
                     )
                 )
@@ -122,7 +117,7 @@ export const getDeployPackageManifest = ({
                         "ProofRule::Require", 
                         Enum(
                             "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}:${nftId}")
+                            NonFungibleGlobalId("${nftAddress}")
                         )
                     )
                 )
@@ -139,7 +134,7 @@ export const getDeployPackageManifest = ({
                         "ProofRule::Require", 
                         Enum(
                             "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}:${nftId}")
+                            NonFungibleGlobalId("${nftAddress}")
                         )
                     )
                 )
@@ -156,7 +151,7 @@ export const getDeployPackageManifest = ({
                         "ProofRule::Require", 
                         Enum(
                             "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}:${nftId}")
+                            NonFungibleGlobalId("${nftAddress}")
                         )
                     )
                 )
@@ -164,6 +159,5 @@ export const getDeployPackageManifest = ({
         ), 
         Map<String, Enum>(),     # Group Auth Mutability Field
         Enum("AccessRule::DenyAll")          # Default Auth Mutability Field
-    );
-      `
+    );`
 }
