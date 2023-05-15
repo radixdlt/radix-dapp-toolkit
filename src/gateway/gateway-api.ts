@@ -64,6 +64,7 @@ export const GatewayApiClient = (basePath: string) => {
     getEntityNonFungibleIds,
     getNetworkConfiguration,
     transactionApi: transaction,
-    stateApi: status,
+    stateApi: state,
+    statusApi: status,
   }
 }

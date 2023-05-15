@@ -1,8 +1,5 @@
 import {
-  Account,
-  AuthLoginWithChallengeRequestResponseItem,
-  Persona,
-  PersonaData,
+  MessageLifeCycleEvent,
   WalletSdk as WalletSdkType,
 } from '@radixdlt/wallet-sdk'
 import {
@@ -18,30 +15,24 @@ import {
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
-import { GetState } from '../state/helpers/get-state'
-import { DataRequestValue } from '../_types'
-import { MessageLifeCycleEvent } from '@radixdlt/wallet-sdk/dist/messages/events/_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
-  requestItemClient?: RequestItemClient
+  requestItemClient: RequestItemClient
   logger?: Logger<unknown>
   walletSdk: WalletSdkType
   gatewayClient: GatewayClient
-  getState: GetState
   onCancelRequestItem$: Observable<string>
 }) => {
   const logger = input.logger
-  const requestItemClient =
-    input.requestItemClient ||
-    RequestItemClient({
-      logger,
-    })
+  const requestItemClient = input.requestItemClient
   const walletSdk = input.walletSdk
   const gatewayClient = input.gatewayClient
 
   const cancelRequestControl = (id: string) => {
-    const messageLifeCycleEvent = new Subject<MessageLifeCycleEvent>()
+    const messageLifeCycleEvent = new Subject<
+      MessageLifeCycleEvent['eventType']
+    >()
     return {
       eventCallback: (event) => {
         messageLifeCycleEvent.next(event)
@@ -67,127 +58,29 @@ export const WalletClient = (input: {
     } satisfies Parameters<WalletSdkType['request']>[1]
   }
 
-  const sendWalletRequest = ({
-    oneTimeAccountsWithoutProofOfOwnership,
-    oneTimeAccountsWithProofOfOwnership,
-    ongoingAccountsWithoutProofOfOwnership,
-    ongoingAccountsWithProofOfOwnership,
-    ongoingPersonaData,
-    oneTimePersonaData,
-    loginWithoutChallenge,
-    loginWithChallenge,
-    usePersona,
-    reset = { accounts: false, personaData: false },
-  }: Parameters<WalletSdkType['request']>[0]) => {
-    const requestInput: DataRequestValue = { reset }
-
-    if (oneTimeAccountsWithoutProofOfOwnership) {
-      const { quantity, quantifier } = oneTimeAccountsWithoutProofOfOwnership
-      requestInput.oneTimeAccountsWithoutProofOfOwnership = {
-        quantity,
-        quantifier,
-      }
-    }
-
-    if (oneTimeAccountsWithProofOfOwnership) {
-      const { quantity, quantifier, challenge } =
-        oneTimeAccountsWithProofOfOwnership
-      requestInput.oneTimeAccountsWithProofOfOwnership = {
-        quantity,
-        quantifier,
-        challenge,
-      }
-    }
-
-    if (ongoingAccountsWithoutProofOfOwnership)
-      requestInput.ongoingAccountsWithoutProofOfOwnership =
-        ongoingAccountsWithoutProofOfOwnership
-
-    if (ongoingAccountsWithProofOfOwnership) {
-      requestInput.ongoingAccountsWithProofOfOwnership =
-        ongoingAccountsWithProofOfOwnership
-    }
-
-    if (ongoingPersonaData) requestInput.ongoingPersonaData = ongoingPersonaData
-
-    if (oneTimePersonaData) requestInput.oneTimePersonaData = oneTimePersonaData
-
-    if (loginWithoutChallenge)
-      requestInput.loginWithoutChallenge = loginWithoutChallenge
-
-    if (loginWithChallenge) requestInput.loginWithChallenge = loginWithChallenge
-
-    if (usePersona) requestInput.usePersona = usePersona
-
-    return input.getState().andThen((state) => {
-      // TODO: improve logic for determining requestType
-      const requestType =
-        (!!requestInput.loginWithoutChallenge && !state.persona) ||
-        (!!requestInput.loginWithChallenge && !state.persona)
-          ? 'loginRequest'
-          : 'dataRequest'
-      const { id } = requestItemClient.add(requestType)
-
-      logger?.debug(`⬆️walletRequest`, requestInput)
-
-      return walletSdk
-        .request(requestInput, cancelRequestControl(id))
-        .map((response) => {
-          // TODO: response typing should be inferred from request input
-          const {
-            persona,
-            ongoingAccounts = [],
-            oneTimeAccounts = [],
-            ongoingPersonaData = [],
-            oneTimePersonaData = [],
-            challenge,
-            proof,
-          } = response as Partial<{
-            oneTimeAccounts: Account[]
-            persona: Persona
-            ongoingAccounts: Account[]
-            oneTimePersonaData: PersonaData[]
-            ongoingPersonaData: PersonaData[]
-            challenge: string
-            proof: AuthLoginWithChallengeRequestResponseItem['proof']
-          }>
-
-          logger?.debug(`⬇️walletSuccessResponse`, response)
-          requestItemClient.updateStatus({ id, status: 'success' })
-
-          return {
-            accounts: [...ongoingAccounts, ...oneTimeAccounts],
-            personaData: [...ongoingPersonaData, ...oneTimePersonaData],
-            persona: persona,
-            challenge,
-            proof,
-          }
+  const sendWalletRequest = (
+    input: Parameters<WalletSdkType['request']>[0],
+    requestItemId: string
+  ) => {
+    return walletSdk
+      .request(input, cancelRequestControl(requestItemId))
+      .map((response) => {
+        logger?.debug(`⬇️walletSuccessResponse`, response)
+        requestItemClient.updateStatus({ id: requestItemId, status: 'success' })
+        return response
+      })
+      .mapErr((error) => {
+        logger?.debug(`⬇️walletErrorResponse`, error)
+        requestItemClient.updateStatus({
+          id: requestItemId,
+          status: 'fail',
+          error: error.error,
         })
-        .mapErr((error) => {
-          requestItemClient.updateStatus({
-            id,
-            status: 'fail',
-            error: error.error,
-          })
-          logger?.debug(`⬇️wallet error response`, error)
-          return error
-        })
-    })
+        return error
+      })
   }
 
   const subscriptions = new Subscription()
-
-  subscriptions.add(
-    requestItemClient.items$
-      .pipe(
-        tap((items) => {
-          requestItemClient.subjects.pendingItems.next(
-            items.some((item) => item.status === 'pending')
-          )
-        })
-      )
-      .subscribe()
-  )
 
   const sendTransaction = (
     input: Parameters<WalletSdkType['sendTransaction']>[0]
@@ -218,6 +111,7 @@ export const WalletClient = (input: {
           status: 'success',
           transactionIntentHash: response.transactionIntentHash,
         })
+
         logger?.debug(`⬇️walletSuccessResponse`, response)
         return response
       })
@@ -226,7 +120,6 @@ export const WalletClient = (input: {
   return {
     request: sendWalletRequest,
     sendTransaction,
-    pendingRequests$: requestItemClient.subjects.pendingItems.asObservable(),
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,
     destroy: () => {

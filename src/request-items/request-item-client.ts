@@ -27,7 +27,7 @@ export const RequestItemClient = (input: {
     requestsItemStore.set(item.id, item)
     requestItemIds.add(item.id)
     subjects.onChange.next()
-    logger?.debug(`addRequestItem`, {
+    logger?.trace(`addRequestItem`, {
       id: item.id,
       status: item.status,
     })
@@ -39,7 +39,7 @@ export const RequestItemClient = (input: {
       requestsItemStore.delete(id)
       requestItemIds.delete(id)
       subjects.onChange.next()
-      logger?.debug(`removeRequestItem`, id)
+      logger?.trace(`removeRequestItem`, id)
     }
   }
 
@@ -52,14 +52,14 @@ export const RequestItemClient = (input: {
       } as RequestItem
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`patchRequestItemStatus`, updated)
+      logger?.trace(`patchRequestItemStatus`, updated)
     }
   }
 
   const cancel = (id: string) => {
     if (requestsItemStore.has(id)) {
       patch(id, { status: 'fail', error: errorType.canceledByUser })
-      logger?.debug(`cancelRequestItem`, id)
+      logger?.trace(`cancelRequestItem`, id)
     }
   }
 
@@ -67,7 +67,7 @@ export const RequestItemClient = (input: {
     requestsItemStore.clear()
     requestItemIds.clear()
     subjects.onChange.next()
-    logger?.debug(`resetRequestItems`)
+    logger?.trace(`resetRequestItems`)
   }
 
   const updateStatus = ({
@@ -95,7 +95,7 @@ export const RequestItemClient = (input: {
       }
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`updateRequestItemStatus`, updated)
+      logger?.trace(`updateRequestItemStatus`, updated)
     }
   }
 

@@ -9,8 +9,7 @@ import {
   ExponentialBackoff,
   ExponentialBackoffInput,
 } from './helpers/exponential-backoff'
-import { Logger } from 'tslog'
-import { createSdkError, SdkError } from '@radixdlt/wallet-sdk'
+import { AppLogger, createSdkError, SdkError } from '@radixdlt/wallet-sdk'
 
 export type GatewayClient = ReturnType<typeof GatewayClient>
 
@@ -20,7 +19,7 @@ export const GatewayClient = ({
   retryConfig,
 }: {
   gatewayApi: GatewayApiClient
-  logger?: Logger<unknown>
+  logger?: AppLogger
   retryConfig?: ExponentialBackoffInput
 }) => {
   const pollTransactionStatus = (transactionIntentHashHex: string) => {
