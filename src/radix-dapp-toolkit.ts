@@ -1,65 +1,70 @@
-import {
-  DappMetadata,
-  Explorer,
-  OnConnect,
-  OnDisconnectCallback,
-  OnInitCallback,
-  Providers,
-  State,
-} from './_types'
-import { Logger } from 'tslog'
+import { OnConnect, Providers } from './_types'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
-import { LocalStorageClient } from './storage/local-storage-client'
-import { WalletSdk } from '@radixdlt/wallet-sdk'
+import { AppLogger, Metadata, WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
 import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
 import { GatewayClient } from './gateway/gateway'
-import { Subscription, tap } from 'rxjs'
-import { createGetState } from './state/helpers/get-state'
-import { StateSubjects } from './state/subjects'
+import {
+  EMPTY,
+  Subject,
+  Subscription,
+  delay,
+  first,
+  firstValueFrom,
+  merge,
+  switchMap,
+  tap,
+} from 'rxjs'
+import { DataRequestInput, RdtState, rdtStateDefault } from './io/schemas'
+import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { RequestItemClient } from './request-items/request-item-client'
+import { LocalStorageClient } from './storage/local-storage-client'
+import {
+  RequestWalletData,
+  requestWalletDataFactory,
+} from './wallet/request-wallet-data'
 
-export type RadixDappToolkitConfiguration = {
-  initialState?: State
-  logger?: Logger<unknown>
-  networkId?: number
-  onInit?: OnInitCallback
-  onDisconnect?: OnDisconnectCallback
-  onReset?: OnConnect
-  providers?: Partial<Providers>
-  useDoneCallback?: boolean
-  explorer?: Explorer
-  gatewayBaseUrl?: string
-  onStateChange?: (state: State) => void
-  useCache?: boolean
-}
+export type RadixDappToolkitOptions = Partial<{
+  logger: AppLogger
+  onInit: (state: RdtState) => void
+  onDisconnect: () => void
+  explorer: {
+    baseUrl: string
+    transactionPath: string
+    accountsPath: string
+  }
+  gatewayBaseUrl: string
+  onStateChange: (state: RdtState) => void
+  providers: Partial<Providers>
+  useCache: boolean
+}>
 
 export type RadixDappToolkit = ReturnType<typeof RadixDappToolkit>
 
 export const RadixDappToolkit = (
-  { dAppDefinitionAddress, dAppName }: DappMetadata,
+  { dAppDefinitionAddress, networkId }: Omit<Metadata, 'version'>,
   onConnect?: OnConnect,
-  configuration?: RadixDappToolkitConfiguration
+  options?: RadixDappToolkitOptions
 ) => {
   const {
-    networkId = 0x01,
     providers,
     logger,
-    initialState,
-    onInit: onInitCallback = () => {},
-    onDisconnect: onDisconnectCallback = () => {},
+    onDisconnect,
     explorer,
     gatewayBaseUrl,
-    useCache,
-  } = configuration || {}
-  const storageClient = providers?.storage || LocalStorageClient()
+    useCache = true,
+  } = options || {}
 
+  const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
+  const WalletInteractionDataFormatVersion = 1
+  const updateSharedDataSubject = new Subject<void>()
   const subscriptions = new Subscription()
 
   const connectButtonClient =
     providers?.connectButton ||
-    ConnectButtonClient({ logger, dAppName, explorer })
+    ConnectButtonClient({ logger, dAppName: '', explorer })
 
   const gatewayClient =
     providers?.gatewayClient ||
@@ -70,55 +75,206 @@ export const RadixDappToolkit = (
       ),
     })
 
-  const stateSubjects = StateSubjects()
+  const walletSdk =
+    providers?.walletSdk ??
+    WalletSdk({
+      networkId,
+      dAppDefinitionAddress,
+      logger,
+      version: WalletInteractionDataFormatVersion,
+    })
 
-  const getState = createGetState(stateSubjects.state$)
+  const requestItemClient =
+    providers?.requestItemClient ||
+    RequestItemClient({
+      logger,
+    })
 
   const walletClient =
     providers?.walletClient ||
     WalletClient({
       logger,
       onCancelRequestItem$: connectButtonClient.onCancelRequestItem$,
-      walletSdk: WalletSdk({
-        networkId,
-        dAppDefinitionAddress,
-        logger,
-      }),
+      walletSdk,
       gatewayClient,
-      getState,
+      requestItemClient,
     })
 
-  const stateClient = StateClient({
-    connectButtonClient,
-    initialState,
-    key: `rdt:${dAppDefinitionAddress}:${networkId}`,
-    logger,
-    onInitCallback,
-    onDisconnectCallback,
-    storageClient,
-    walletClient,
-    connectRequest: onConnect,
-    useDoneCallback: configuration?.useDoneCallback,
-    subjects: stateSubjects,
-    getState,
-    useCache,
-  })
+  const storageClient = providers?.storageClient || LocalStorageClient()
 
-  if (configuration?.onStateChange)
+  const stateClient =
+    providers?.stateClient ||
+    StateClient(storageKey, storageClient, {
+      logger,
+    })
+
+  const requestWalletData = requestWalletDataFactory(
+    requestItemClient,
+    walletClient,
+    stateClient,
+    useCache
+  )
+
+  subscriptions.add(
+    stateClient.state$
+      .pipe(
+        first(),
+        delay(1),
+        tap((state) => {
+          options?.onInit?.(state)
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    stateClient.state$
+      .pipe(tap((state) => options?.onStateChange?.(state)))
+      .subscribe()
+  )
+
+  const handleWalletDataRequest = (
+    done: boolean | void | Promise<boolean | void>,
+    unresolvedWalletResponse: RequestWalletData
+  ) => {
+    const doneResult =
+      done instanceof Promise
+        ? ResultAsync.fromPromise(done, (error) => error)
+        : okAsync(done)
+
+    return ResultAsync.combine([unresolvedWalletResponse, doneResult])
+      .mapErr((err) => {
+        if (err.error === 'invalidPersona')
+          stateClient.setState(rdtStateDefault)
+        return err
+      })
+      .map(([walletResponse]) => walletResponse)
+  }
+
+  if (onConnect)
     subscriptions.add(
-      stateClient.state$.pipe(tap(configuration.onStateChange)).subscribe()
+      connectButtonClient.onConnect$
+        .pipe(
+          tap(() => {
+            stateClient.setState(rdtStateDefault)
+            const resolved = new Subject<RequestWalletData>()
+            return handleWalletDataRequest(
+              onConnect((data) =>
+                requestWalletData({ isConnect: true, data })
+                  .map((walletResponse) => {
+                    resolved.next(okAsync(walletResponse))
+                    return walletResponse
+                  })
+                  .mapErr((error) => {
+                    resolved.next(errAsync(error))
+                    return error
+                  })
+              ),
+              ResultAsync.fromSafePromise(firstValueFrom(resolved)).andThen(
+                (result) => result
+              )
+            )
+          })
+        )
+        .subscribe()
     )
 
+  subscriptions.add(
+    connectButtonClient.onDisconnect$
+      .pipe(
+        tap(() => {
+          stateClient.reset()
+          walletClient.resetRequestItems()
+          if (onDisconnect) onDisconnect()
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    stateClient.state$
+      .pipe(
+        tap((state) => {
+          connectButtonClient.setAccounts(state.walletData.accounts ?? [])
+          connectButtonClient.setPersonaData(state.walletData.personaData ?? [])
+          connectButtonClient.setPersonaLabel(
+            state.walletData?.persona?.label ?? ''
+          )
+          connectButtonClient.setConnected(state.connected)
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    walletClient.requestItems$
+      .pipe(
+        tap((items) => {
+          connectButtonClient.setRequestItems(items)
+          connectButtonClient.setConnecting(
+            items.some(
+              (item) =>
+                item.status === 'pending' && item.type === 'loginRequest'
+            )
+          )
+          connectButtonClient.setLoading(
+            items.some((item) => item.status === 'pending')
+          )
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    merge(connectButtonClient.onUpdateSharedData$, updateSharedDataSubject)
+      .pipe(
+        switchMap(() => {
+          const data: DataRequestInput = {}
+          const state = stateClient.getState()
+
+          if (state.sharedData?.ongoingAccounts)
+            data['accounts'] = {
+              ...state.sharedData.ongoingAccounts,
+              reset: true,
+              oneTime: false,
+            }
+
+          if (state.sharedData?.ongoingPersonaData)
+            data['personaData'] = {
+              ...state.sharedData.ongoingPersonaData,
+              reset: true,
+              oneTime: false,
+            }
+
+          if (Object.keys(data).length === 0) return EMPTY
+
+          return requestWalletData({ isConnect: false, data })
+        })
+      )
+      .subscribe()
+  )
+
   return {
-    requestData: stateClient.requestData,
+    requestData: (data: DataRequestInput) =>
+      handleWalletDataRequest(
+        undefined,
+        requestWalletData({ isConnect: false, data })
+      ),
     sendTransaction: walletClient.sendTransaction,
-    state$: stateClient.state$,
-    updateSharedData: () => stateClient.subjects.updateSharedData.next(),
-    disconnect: stateClient.reset,
-    destroy: () => {
-      stateClient.destroy()
-      subscriptions.unsubscribe()
+    updateSharedData: () => {
+      updateSharedDataSubject.next()
     },
     gatewayApi: gatewayClient.gatewayApi,
+    state$: stateClient.state$,
+    disconnect: () => {
+      walletClient.resetRequestItems()
+      stateClient.reset()
+    },
+    destroy: () => {
+      stateClient.destroy()
+      walletClient.destroy()
+      subscriptions.unsubscribe()
+      connectButtonClient.destroy()
+    },
   }
 }

@@ -5,5 +5,4 @@ export type RequestItemSubjects = ReturnType<typeof RequestItemSubjects>
 export const RequestItemSubjects = () => ({
   onChange: new Subject<void>(),
   items: new BehaviorSubject<RequestItem[]>([]),
-  pendingItems: new BehaviorSubject<boolean>(false),
 })
