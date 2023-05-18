@@ -4,8 +4,17 @@ import {
   Persona,
   PersonaData,
   PersonaDataField,
+  Proof,
 } from '@radixdlt/wallet-sdk'
-import { array, boolean, object, string, z } from 'zod'
+import {
+  array,
+  boolean,
+  discriminatedUnion,
+  literal,
+  object,
+  string,
+  z,
+} from 'zod'
 
 const DataRequestAccounts = NumberOfAccounts.merge(
   object({
@@ -40,6 +49,33 @@ export const DataRequestInput = object({
   personaData: DataRequestPersonaData.optional(),
 })
 
+export const proofType = {
+  persona: 'persona',
+  account: 'account',
+} as const
+
+export type RdtPersonaProof = z.infer<typeof RdtPersonaProof>
+export const RdtPersonaProof = object({
+  challenge: string(),
+  proof: Proof,
+  identityAddress: string(),
+  type: literal(proofType.persona),
+})
+
+export type RdtAccountProof = z.infer<typeof RdtAccountProof>
+export const RdtAccountProof = object({
+  challenge: string(),
+  proof: Proof,
+  accountAddress: string(),
+  type: literal(proofType.account),
+})
+
+export type RdtProof = z.infer<typeof RdtProof>
+export const RdtProof = discriminatedUnion('type', [
+  RdtPersonaProof,
+  RdtAccountProof,
+])
+
 export type RdtStateWalletData = z.infer<typeof RdtStateWalletData>
 export const RdtStateWalletData = object({
   accounts: array(Account).default([]),
@@ -72,3 +108,10 @@ export const rdtStateDefault = {
   },
   sharedData: {},
 } satisfies RdtState
+
+export type DataRequestOutput = z.infer<typeof DataRequestOutput>
+export const DataRequestOutput = RdtStateWalletData.and(
+  object({
+    signedChallenges: RdtProof.array(),
+  })
+)

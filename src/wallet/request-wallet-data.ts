@@ -1,8 +1,9 @@
 import {
+  SdkError,
   WalletAuthorizedRequestItems,
   WalletUnauthorizedRequestItems,
 } from '@radixdlt/wallet-sdk'
-import { RdtState } from '../io/schemas'
+import { DataRequestOutput, RdtState } from '../io/schemas'
 import {
   TransformRdtDataRequestToWalletRequestInput,
   transformRdtDataRequestToWalletRequest,
@@ -15,7 +16,7 @@ import {
 import { RequestItemClient } from '../request-items/request-item-client'
 import { StateClient } from '../state/state'
 import { WalletClient } from './wallet-client'
-import { okAsync } from 'neverthrow'
+import { ResultAsync, okAsync } from 'neverthrow'
 
 export const canDataRequestBeResolvedByRdtState = (
   dataRequest: WalletUnauthorizedRequestItems | WalletAuthorizedRequestItems,
@@ -68,7 +69,9 @@ export const requestWalletDataFactory =
     stateClient: StateClient,
     useCache: boolean
   ) =>
-  (input: TransformRdtDataRequestToWalletRequestInput) => {
+  (
+    input: TransformRdtDataRequestToWalletRequestInput
+  ): ResultAsync<DataRequestOutput, SdkError> => {
     const state = stateClient.getState()
 
     return transformRdtDataRequestToWalletRequest(input, state).asyncAndThen(
@@ -94,7 +97,7 @@ export const requestWalletDataFactory =
           .request(walletDataRequest, id)
           .andThen((walletDataResponse) =>
             transformWalletResponseToRdtWalletData(walletDataResponse).map(
-              (rdtStateWalletData) => {
+              (rdtStateWalletData): DataRequestOutput => {
                 const sharedData = transformSharedData(
                   {
                     walletDataRequest,

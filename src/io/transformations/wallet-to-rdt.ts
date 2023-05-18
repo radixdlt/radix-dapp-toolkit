@@ -1,10 +1,15 @@
 import {
-  Proof,
   WalletAuthorizedRequestResponseItems,
   WalletUnauthorizedRequestResponseItems,
 } from '@radixdlt/wallet-sdk'
 import { Result, ok } from 'neverthrow'
-import { RdtStateWalletData, rdtStateDefault } from '../schemas'
+import {
+  RdtAccountProof,
+  RdtProof,
+  RdtStateWalletData,
+  proofType,
+  rdtStateDefault,
+} from '../schemas'
 import { WalletClient } from '../../wallet/wallet-client'
 
 export type TransformWalletResponseToRdtDataInput =
@@ -62,59 +67,36 @@ export const transformWalletResponseToRdtWalletData = (
     .andThen(withPersonaData(input))
     .andThen(withPersona(input))
 
-export const proofType = {
-  persona: 'persona',
-  account: 'account',
-} as const
-
-export type PersonaProof = {
-  challenge: string
-  proof: Proof
-  identityAddress: string
-  type: (typeof proofType)['persona']
-}
-
-export type AccountProof = {
-  challenge: string
-  proof: Proof
-  accountAddress: string
-  type: (typeof proofType)['account']
-}
-
-export type Proofs = PersonaProof | AccountProof
-
 type WalletDataResponse = ReturnType<
   Awaited<ReturnType<WalletClient['request']>>['_unsafeUnwrap']
 >
 
 export const withProofs = (walletDataResponse: WalletDataResponse) => {
-  let proofs: Proofs[] = []
+  let proofs: RdtProof[] = []
 
   if (walletDataResponse.discriminator === 'authorizedRequest') {
     if (walletDataResponse.auth.discriminator === 'loginWithChallenge')
-      proofs = [
-        ...proofs,
-        {
-          challenge: walletDataResponse.auth.challenge,
-          proof: walletDataResponse.auth.proof,
-          identityAddress: walletDataResponse.auth.persona.identityAddress,
-          type: proofType.persona,
-        },
-      ]
+      proofs.push({
+        challenge: walletDataResponse.auth.challenge,
+        proof: walletDataResponse.auth.proof,
+        identityAddress: walletDataResponse.auth.persona.identityAddress,
+        type: proofType.persona,
+      })
 
     if (
       walletDataResponse.ongoingAccounts?.challenge &&
       walletDataResponse.ongoingAccounts.proofs?.length
     ) {
       const challenge = walletDataResponse.ongoingAccounts.challenge!
-      const accountProofs = walletDataResponse.ongoingAccounts.proofs.map(
-        (item): AccountProof => ({
+      const accountProof = walletDataResponse.ongoingAccounts.proofs.map(
+        (item) => ({
           ...item,
           challenge,
           type: proofType.account,
         })
       )
-      proofs = [...proofs, ...accountProofs]
+
+      proofs = [...proofs, ...accountProof]
     }
 
     if (
@@ -123,7 +105,7 @@ export const withProofs = (walletDataResponse: WalletDataResponse) => {
     ) {
       const challenge = walletDataResponse.oneTimeAccounts.challenge!
       const accountProofs = walletDataResponse.oneTimeAccounts.proofs.map(
-        (item): AccountProof => ({
+        (item): RdtAccountProof => ({
           ...item,
           challenge,
           type: proofType.account,
