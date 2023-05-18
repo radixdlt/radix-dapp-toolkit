@@ -2,7 +2,7 @@ import { OnConnect, Providers } from './_types'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
-import { AppLogger, Metadata, WalletSdk } from '@radixdlt/wallet-sdk'
+import { AppLogger, Metadata, SdkError, WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
 import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
 import { GatewayClient } from './gateway/gateway'
@@ -17,7 +17,12 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import { DataRequestInput, RdtState, rdtStateDefault } from './io/schemas'
+import {
+  DataRequestInput,
+  DataRequestOutput,
+  RdtState,
+  rdtStateDefault,
+} from './io/schemas'
 import { ResultAsync, errAsync, okAsync } from 'neverthrow'
 import { RequestItemClient } from './request-items/request-item-client'
 import { LocalStorageClient } from './storage/local-storage-client'
@@ -136,7 +141,7 @@ export const RadixDappToolkit = (
   const handleWalletDataRequest = (
     done: boolean | void | Promise<boolean | void>,
     unresolvedWalletResponse: RequestWalletData
-  ) => {
+  ): ResultAsync<DataRequestOutput, SdkError> => {
     const doneResult =
       done instanceof Promise
         ? ResultAsync.fromPromise(done, (error) => error)
@@ -255,7 +260,9 @@ export const RadixDappToolkit = (
   )
 
   return {
-    requestData: (data: DataRequestInput) =>
+    requestData: (
+      data: DataRequestInput
+    ): ResultAsync<DataRequestOutput, SdkError> =>
       handleWalletDataRequest(
         undefined,
         requestWalletData({ isConnect: false, data })
