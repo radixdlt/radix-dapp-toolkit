@@ -4,9 +4,9 @@ import {
 } from '@radixdlt/wallet-sdk'
 import { Result, ok } from 'neverthrow'
 import {
-  RdtAccountProof,
-  RdtProof,
   RdtStateWalletData,
+  SignedChallenge,
+  SignedChallengeAccount,
   proofType,
   rdtStateDefault,
 } from '../schemas'
@@ -72,14 +72,14 @@ type WalletDataResponse = ReturnType<
 >
 
 export const withProofs = (walletDataResponse: WalletDataResponse) => {
-  let proofs: RdtProof[] = []
+  let proofs: SignedChallenge[] = []
 
   if (walletDataResponse.discriminator === 'authorizedRequest') {
     if (walletDataResponse.auth.discriminator === 'loginWithChallenge')
       proofs.push({
         challenge: walletDataResponse.auth.challenge,
         proof: walletDataResponse.auth.proof,
-        identityAddress: walletDataResponse.auth.persona.identityAddress,
+        address: walletDataResponse.auth.persona.identityAddress,
         type: proofType.persona,
       })
 
@@ -89,8 +89,9 @@ export const withProofs = (walletDataResponse: WalletDataResponse) => {
     ) {
       const challenge = walletDataResponse.ongoingAccounts.challenge!
       const accountProof = walletDataResponse.ongoingAccounts.proofs.map(
-        (item) => ({
-          ...item,
+        ({ accountAddress, proof }) => ({
+          proof,
+          address: accountAddress,
           challenge,
           type: proofType.account,
         })
@@ -105,8 +106,9 @@ export const withProofs = (walletDataResponse: WalletDataResponse) => {
     ) {
       const challenge = walletDataResponse.oneTimeAccounts.challenge!
       const accountProofs = walletDataResponse.oneTimeAccounts.proofs.map(
-        (item): RdtAccountProof => ({
-          ...item,
+        ({ accountAddress, proof }): SignedChallengeAccount => ({
+          proof,
+          address: accountAddress,
           challenge,
           type: proofType.account,
         })

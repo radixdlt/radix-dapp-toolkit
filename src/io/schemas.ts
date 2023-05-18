@@ -54,26 +54,26 @@ export const proofType = {
   account: 'account',
 } as const
 
-export type RdtPersonaProof = z.infer<typeof RdtPersonaProof>
-export const RdtPersonaProof = object({
+export type SignedChallengePersona = z.infer<typeof SignedChallengePersona>
+export const SignedChallengePersona = object({
   challenge: string(),
   proof: Proof,
-  identityAddress: string(),
+  address: string(),
   type: literal(proofType.persona),
 })
 
-export type RdtAccountProof = z.infer<typeof RdtAccountProof>
-export const RdtAccountProof = object({
+export type SignedChallengeAccount = z.infer<typeof SignedChallengeAccount>
+export const SignedChallengeAccount = object({
   challenge: string(),
   proof: Proof,
-  accountAddress: string(),
+  address: string(),
   type: literal(proofType.account),
 })
 
-export type RdtProof = z.infer<typeof RdtProof>
-export const RdtProof = discriminatedUnion('type', [
-  RdtPersonaProof,
-  RdtAccountProof,
+export type SignedChallenge = z.infer<typeof SignedChallenge>
+export const SignedChallenge = discriminatedUnion('type', [
+  SignedChallengePersona,
+  SignedChallengeAccount,
 ])
 
 export type RdtStateWalletData = z.infer<typeof RdtStateWalletData>
@@ -112,6 +112,6 @@ export const rdtStateDefault = {
 export type DataRequestOutput = z.infer<typeof DataRequestOutput>
 export const DataRequestOutput = RdtStateWalletData.and(
   object({
-    signedChallenges: RdtProof.array(),
+    signedChallenges: SignedChallenge.array(),
   })
 )
