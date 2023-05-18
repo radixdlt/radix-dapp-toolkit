@@ -1,4 +1,4 @@
-import { OnConnect, Providers } from './_types'
+import { Providers } from './_types'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
@@ -18,6 +18,7 @@ import {
   tap,
 } from 'rxjs'
 import {
+  ConnectButtonDataRequestInput,
   DataRequestInput,
   DataRequestOutput,
   RdtState,
@@ -50,7 +51,11 @@ export type RadixDappToolkit = ReturnType<typeof RadixDappToolkit>
 
 export const RadixDappToolkit = (
   { dAppDefinitionAddress, networkId }: Omit<Metadata, 'version'>,
-  onConnect?: OnConnect,
+  onConnect?: (
+    value: (
+      input: ConnectButtonDataRequestInput
+    ) => ResultAsync<DataRequestOutput, SdkError>
+  ) => void | boolean | Promise<void | boolean>,
   options?: RadixDappToolkitOptions
 ) => {
   const {
@@ -153,7 +158,7 @@ export const RadixDappToolkit = (
           stateClient.setState(rdtStateDefault)
         return err
       })
-      .map(([walletResponse]) => walletResponse)
+      .map(([walletResponse]): DataRequestOutput => walletResponse)
   }
 
   if (onConnect)
