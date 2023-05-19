@@ -24,6 +24,24 @@ function Root(props: BoxProps) {
   )
 }
 
+function Row(props: BoxProps) {
+  return (
+    <Box
+      {...props}
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          '> *': { flexGrow: 1, width: '50%' },
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}
+    />
+  )
+}
+
 function Header(props: BoxProps) {
   return (
     <Box
@@ -152,4 +170,5 @@ export default {
   SidePane,
   SideDrawer,
   Main,
+  Row,
 }

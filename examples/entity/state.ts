@@ -281,14 +281,14 @@ export const addEntities = (
 
         const item = curr as Entity['account'] | Entity['component']
 
-        const fungibleTokens = item.fungibleTokens.map((item) => ({
+        const fungibleTokens = item.fungibleTokens.map((fungibleToken) => ({
           type: entityType.fungibleToken,
-          ...item,
+          ...fungibleToken,
         })) satisfies AddEntityToCollectionInput[]
 
-        const nftCollections = item.nftCollections.map((item) => ({
+        const nftCollections = item.nftCollections.map((nftCollection) => ({
           type: entityType.nftCollection,
-          ...item,
+          ...nftCollection,
           ownerAddress: item.address,
         }))
         return [...acc, ...fungibleTokens, ...nftCollections]

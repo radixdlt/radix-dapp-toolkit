@@ -1,11 +1,13 @@
 import * as React from 'react'
 import Box from '@mui/joy/Box'
 import { DeployGumballMachineCard } from './GumballMachine/DeployGumballMachineCard'
-import { InstantiateGumballMachineCard } from './GumballMachine/InstantiateGumballMachineCard'
 import { GumballMachineExamples } from './GumballMachine/GumballMachineExamples'
-import { SetPriceCard } from './GumballMachine/SetPriceCard'
+import { useGumballMachineState } from './state'
+import { GumballMachineCard } from './GumballMachine/GumballMachineCard'
 
 export const IntegrationTestsPage = () => {
+  const { components } = useGumballMachineState()
+
   return (
     <Box
       sx={{
@@ -15,13 +17,16 @@ export const IntegrationTestsPage = () => {
           sm: 'minmax(300px, 1fr)',
           md: 'repeat(2, minmax(0, 1fr))',
           lg: 'repeat(2, minmax(0, 1fr))',
-          xl: 'repeat(4, minmax(0, 1fr))',
+          xl: 'repeat(3, minmax(0, 1fr))',
+          xxl: 'repeat(4, minmax(0, 1fr))',
         },
         gap: 2,
       }}
     >
       <DeployGumballMachineCard />
-      <SetPriceCard />
+      {Object.values(components).map((component) => (
+        <GumballMachineCard key={component.address} {...component}></GumballMachineCard>
+      ))}
       {GumballMachineExamples()}
     </Box>
   )

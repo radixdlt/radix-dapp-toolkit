@@ -63,7 +63,7 @@ export const DeployGumballMachineCard = () => {
         addLog(`gumball machine packageAddress ${packageAddress}`)
         setGumballMachineState({
           gumballMachinePackageAddress: packageAddress,
-          components: [],
+          components: {},
         })
         setState((prev) => ({ ...prev, loading: false }))
         return packageAddress
@@ -83,7 +83,7 @@ export const DeployGumballMachineCard = () => {
           onClick={() => {
             setGumballMachineState({
               gumballMachinePackageAddress: '',
-              components: [],
+              components: {},
             })
             reset()
           }}
