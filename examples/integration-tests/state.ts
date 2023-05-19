@@ -1,18 +1,26 @@
 import { BehaviorSubject } from 'rxjs'
 import { createObservableHook } from '../helpers/create-observable-hook'
 
+export type GumballMachineComponentState = {
+  address: string
+  ownerAccountAddress: string
+  entities: {
+    adminBadge: string
+    staffBadge: string
+    gumballToken: string
+  }
+  gumballPrice: number
+  gumballFlavour: string
+}
+
 export type GumballMachineState = {
   gumballMachinePackageAddress: string
-  components: {
-    address: string
-    ownerAccountAddress: string
-    entities: string[]
-  }[]
+  components: Record<string, GumballMachineComponentState>
 }
 
 const gumballMachineStateDefaults = {
   gumballMachinePackageAddress: '',
-  components: [],
+  components: {},
 } satisfies GumballMachineState
 
 const getGumballMachineState = (): GumballMachineState => {
@@ -34,6 +42,18 @@ export const useGumballMachineState = createObservableHook(
   gumballMachineState,
   getGumballMachineState()
 )
+
+export const addGumballMachineComponent = (value: GumballMachineComponentState) => {
+  const state = getGumballMachineState()
+  state.components[value.address] = value
+  setGumballMachineState(state)
+}
+
+export const setGumballPrice = (componentAddress: string, price: number) => {
+  const state = getGumballMachineState()
+  state.components[componentAddress].gumballPrice = price
+  setGumballMachineState(state)
+}
 
 export const setGumballMachineState = (value: GumballMachineState) => {
   localStorage.setItem('gumballMachineState', JSON.stringify(value))

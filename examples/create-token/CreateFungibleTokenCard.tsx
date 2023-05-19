@@ -103,7 +103,7 @@ export const CreateFungibleTokenCard = () => {
           const values = state.fungible
           await rdt
             .requestData({
-              accounts: { oneTime: true, quantifier: 'exactly', quantity: 1 },
+              accounts: { oneTime: true, quantifier: 'exactly', quantity: 1, reset: false },
             })
             .andThen(({ accounts }) => {
               const transactionManifest = createToken(

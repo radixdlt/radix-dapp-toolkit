@@ -4,20 +4,19 @@ import { useRdt } from '../../rdt/hooks/useRdt'
 import { Card } from '../../components/Card'
 import {
   setGumballMachineState,
-  // useGumballMachinePackageAddress,
+  addGumballMachineComponent,
   useGumballMachineState,
 } from '../state'
 import { ManifestValue, ManifestBuilder } from '@radixdlt/wallet-sdk'
 import { useLogger } from '../../components/Logger'
-import { Code } from '../../components/Code'
-import { useXrdAddress } from '../../network/state'
-import { Box, Select, Option } from '@mui/joy'
-import { useEntities } from '../../entity/state'
+import { Box, Input, FormControl, FormLabel } from '@mui/joy'
 import { useAccounts } from '../../account/state'
 import { SelectAccount } from '../../account/SelectAccount'
 
 const getInstantiateGumballMachineManifest = (
   ownerAddress: string,
+  gumballPrice: number,
+  gumballFlavour: string,
   gumballMachinePackageAddress: string
 ) =>
   new ManifestBuilder()
@@ -25,7 +24,7 @@ const getInstantiateGumballMachineManifest = (
       gumballMachinePackageAddress,
       'GumballMachine',
       'instantiate_gumball_machine',
-      [ManifestValue.Decimal(1), `"GUM"`]
+      [ManifestValue.Decimal(gumballPrice), `"${gumballFlavour}"`]
     )
     .callMethod(ownerAddress, 'deposit_batch', [
       ManifestValue.Expression('ENTIRE_WORKTOP'),
@@ -35,25 +34,36 @@ const getInstantiateGumballMachineManifest = (
 
 export const InstantiateGumballMachineCard = () => {
   const rdt = useRdt()
-  // const gumballMachinePackageAddress = useGumballMachinePackageAddress()
   const gumballMachineState = useGumballMachineState()
   const { Logger, addLog, reset } = useLogger()
-  const xrdAddress = useXrdAddress()
-  const entities = useEntities()
   const accounts = useAccounts()
-  const [state, setState] = React.useState({ ownerAccount: '' })
+  const [state, setState] = React.useState({
+    ownerAccount: '',
+    gumballPrice: 1,
+    gumballFlavour: 'GUM',
+  })
 
   const getAccounts = () => {
     addLog('getting account from wallet...')
     return rdt.requestData({
-      accounts: { quantifier: 'atLeast', quantity: 1 },
+      accounts: {
+        quantifier: 'atLeast',
+        quantity: 1,
+        reset: false,
+        oneTime: true,
+      },
     })
   }
 
   const instantiateComponent = (address: string) => {
     return rdt
       .sendTransaction({
-        transactionManifest: getInstantiateGumballMachineManifest(address, ''),
+        transactionManifest: getInstantiateGumballMachineManifest(
+          address,
+          state.gumballPrice,
+          state.gumballFlavour,
+          gumballMachineState.gumballMachinePackageAddress
+        ),
         version: 1,
       })
       .andThen(({ transactionIntentHash }) =>
@@ -65,7 +75,19 @@ export const InstantiateGumballMachineCard = () => {
     addLog(`instantiating gumball machine component`)
     return instantiateComponent(state.ownerAccount)
       .map((values) => {
-        // setGumballMachineState(values)
+        const entities = {
+          adminBadge: values.details.referenced_global_entities[1],
+          staffBadge: values.details.referenced_global_entities[2],
+          gumballToken: values.details.referenced_global_entities[3],
+        }
+
+        addGumballMachineComponent({
+          address: values.details.referenced_global_entities[0],
+          entities,
+          gumballPrice: state.gumballPrice,
+          gumballFlavour: state.gumballFlavour,
+          ownerAccountAddress: state.ownerAccount,
+        })
       })
       .mapErr((err) => {
         addLog(`${JSON.stringify(err, null, 2)}`)
@@ -80,7 +102,11 @@ export const InstantiateGumballMachineCard = () => {
           variant="outlined"
           onClick={() => {
             reset()
-            // setGumballMachineState()
+            setGumballMachineState({
+              gumballMachinePackageAddress:
+                gumballMachineState.gumballMachinePackageAddress,
+              components: {},
+            })
           }}
         >
           Reset
@@ -97,11 +123,36 @@ export const InstantiateGumballMachineCard = () => {
               setState((prev) => ({ ...prev, ownerAccount: value as string }))
             }}
           />
-          <Button
-            disabled={!state.ownerAccount || true}
-            fullWidth
-            onClick={exec}
-          >
+          <FormControl>
+            <FormLabel>Gumball Price</FormLabel>
+            <Input
+              type="number"
+              onChange={(ev) => {
+                setState((prev) => ({
+                  ...prev,
+                  gumballPrice: Number(ev.target.value) ?? 1,
+                }))
+              }}
+              sx={{ mb: 1 }}
+              placeholder="Type Gumball price... (default: 1)"
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Gumball Flavour</FormLabel>
+            <Input
+              onChange={(ev) => {
+                setState((prev) => ({
+                  ...prev,
+                  gumballFlavour: ev.target.value || 'GUM',
+                }))
+              }}
+              sx={{ mb: 1 }}
+              placeholder="Type Gumball Flavour... (default: GUM)"
+            />
+          </FormControl>
+
+          <Button disabled={!state.ownerAccount} fullWidth onClick={exec}>
             Run flow
           </Button>
         </Box>
@@ -109,13 +160,6 @@ export const InstantiateGumballMachineCard = () => {
         <Button fullWidth onClick={getAccounts} sx={{ mb: 2 }}>
           Connect
         </Button>
-      )}
-      {gumballMachineState && (
-        <Box sx={{ mb: 1 }}>
-          <Code>
-            {JSON.stringify({ ...gumballMachineState, entities }, null, 2)}
-          </Code>
-        </Box>
       )}
       {Logger}
     </Card>

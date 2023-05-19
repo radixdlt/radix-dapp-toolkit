@@ -15,7 +15,12 @@ const networkId = networkIdSubject.value
 const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
   try {
     const raw = localStorage.getItem('dAppDefinitionAddress')
-    if (!raw) return {}
+    if (!raw) {
+      appLogger.debug('No dAppDefinitionAddress found in localStorage, defaulting')
+      return {
+        '12': 'account_tdx_c_1pymgvah8w4dq6asplwzuqerekrwatkaq24d8k9tfas3s3rwel2',
+      }
+    }
 
     const parsed = JSON.parse(raw)
     return parsed

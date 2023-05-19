@@ -16,7 +16,7 @@ export const SelectNftCollection = ({
 }) => {
   const entity = useEntities()
 
-  const nftCollections = Object.values(entity.nftCollection)
+  const nftCollections = entity.account?.[account]?.nftCollections || []
 
   return (
     <Select
