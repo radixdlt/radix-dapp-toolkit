@@ -7,6 +7,7 @@ import { GatewayApiClient } from './gateway/gateway-api'
 import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
 import { GatewayClient } from './gateway/gateway'
 import {
+  BehaviorSubject,
   EMPTY,
   Subject,
   Subscription,
@@ -70,11 +71,13 @@ export const RadixDappToolkit = (
   const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
   const WalletInteractionDataFormatVersion = 1
   const updateSharedDataSubject = new Subject<void>()
+  const dAppDefinitionAddressSubject = new BehaviorSubject<string>(
+    dAppDefinitionAddress
+  )
   const subscriptions = new Subscription()
 
   const connectButtonClient =
-    providers?.connectButton ||
-    ConnectButtonClient({ logger, dAppName: '', explorer })
+    providers?.connectButton || ConnectButtonClient({ logger, explorer })
 
   const gatewayClient =
     providers?.gatewayClient ||
@@ -140,6 +143,25 @@ export const RadixDappToolkit = (
   subscriptions.add(
     stateClient.state$
       .pipe(tap((state) => options?.onStateChange?.(state)))
+      .subscribe()
+  )
+
+  subscriptions.add(
+    dAppDefinitionAddressSubject
+      .pipe(
+        switchMap((address) =>
+          gatewayClient.gatewayApi
+            .getEntityDetails(address)
+            .map(
+              (details) =>
+                details?.metadata.items.find((item) => item.key === 'name')
+                  ?.value?.as_string
+            )
+            .map((dAppName) => {
+              connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')
+            })
+        )
+      )
       .subscribe()
   )
 
