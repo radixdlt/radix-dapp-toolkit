@@ -20,7 +20,6 @@ import { ConnectButtonSubjects } from './subjects'
 export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
-  dAppName: string
   explorer?: ConnectButton['explorer']
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
@@ -46,8 +45,6 @@ export const ConnectButtonClient = (input: {
         filter((element): element is ConnectButton => !!element),
         switchMap((connectButtonElement) => {
           logger?.debug(`connectButtonDiscovered`)
-
-          connectButtonElement.dAppName = input.dAppName
 
           if (input.explorer) connectButtonElement.explorer = input.explorer
 
@@ -144,6 +141,12 @@ export const ConnectButtonClient = (input: {
             })
           )
 
+          const dAppName$ = subjects.dAppName.pipe(
+            tap((value) => {
+              connectButtonElement.dAppName = value
+            })
+          )
+
           const showNotification$ = merge(
             subjects.showNotification,
             subjects.onShowPopover.pipe(map(() => false)),
@@ -170,7 +173,8 @@ export const ConnectButtonClient = (input: {
             onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
-            showNotification$
+            showNotification$,
+            dAppName$
           )
         })
       )
@@ -192,6 +196,7 @@ export const ConnectButtonClient = (input: {
       subjects.personaData.next(personaData),
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
+    setDappName: (dAppName: string) => subjects.dAppName.next(dAppName),
     destroy: () => {
       subscriptions.unsubscribe()
     },

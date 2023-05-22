@@ -16,4 +16,5 @@ export const ConnectButtonSubjects = () => ({
   showNotification: new BehaviorSubject(false),
   personaLabel: new BehaviorSubject<string>(''),
   personaData: new BehaviorSubject<PersonaData[]>([]),
+  dAppName: new BehaviorSubject<string>(''),
 })

@@ -23,6 +23,7 @@ export type ConnectButtonProvider = {
   setAccounts: (value: Account[]) => void
   setPersonaData: (value: PersonaData[]) => void
   setPersonaLabel: (value: string) => void
+  setDappName: (value: string) => void
   setConnecting: (value: boolean) => void
   destroy: () => void
 }
