@@ -10,32 +10,35 @@
 // * The bytes of the origin UTF-8 encoded
 
 import { Buffer } from 'buffer'
-import { ok, Result, err } from 'neverthrow'
-import { blake2b } from './blake2b'
+import type { Result } from 'neverthrow'
+import { blake2b } from '../crypto/blake2b'
 
-export const createSignatureMessage = (
-  challenge: Buffer,
-  dAppDefinitionAddress: string,
+export const createSignatureMessage = ({
+  challenge,
+  dAppDefinitionAddress,
+  origin,
+}: {
+  challenge: string
+  dAppDefinitionAddress: string
   origin: string
-): Result<Buffer, Error> => {
-  try {
-    const lengthOfDappDefAddress = dAppDefinitionAddress.length
-    const lengthOfDappDefAddressBuffer = Buffer.from(
-      lengthOfDappDefAddress.toString(16),
-      'hex'
-    )
-    const dappDefAddressBuffer = Buffer.from(dAppDefinitionAddress, 'utf-8')
-    const originBuffer = Buffer.from(origin, 'utf8')
+}): Result<string, { reason: string; jsError: Error }> => {
+  const lengthOfDappDefAddress = dAppDefinitionAddress.length
+  const lengthOfDappDefAddressBuffer = Buffer.from(
+    lengthOfDappDefAddress.toString(16),
+    'hex'
+  )
+  const dappDefAddressBuffer = Buffer.from(dAppDefinitionAddress, 'utf-8')
+  const originBuffer = Buffer.from(origin, 'utf8')
+  const challengeBuffer = Buffer.from(challenge, 'hex')
 
-    const messageBuffer = Buffer.concat([
-      challenge,
-      lengthOfDappDefAddressBuffer,
-      dappDefAddressBuffer,
-      originBuffer,
-    ])
+  const messageBuffer = Buffer.concat([
+    challengeBuffer,
+    lengthOfDappDefAddressBuffer,
+    dappDefAddressBuffer,
+    originBuffer,
+  ])
 
-    return blake2b(messageBuffer)
-  } catch (error) {
-    return err(error as Error)
-  }
+  return blake2b(messageBuffer)
+    .map((hash) => Buffer.from(hash).toString('hex'))
+    .mapErr((jsError) => ({ reason: 'couldNotHashMessage', jsError }))
 }

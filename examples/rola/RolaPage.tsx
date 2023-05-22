@@ -5,14 +5,11 @@ import { createChallenge } from '../helpers/create-challenge'
 import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
 import { Code } from '../components/Code'
-import { createSignatureMessage } from './helpers/create-signature-message'
 
 import { useDAppDefinitionAddress } from '../rdt/rdt'
-import { Rola } from './helpers/rola'
+import { RolaFactory } from './rola'
 import { useNetworkId } from '../network/state'
-import { useEntities } from '../entity/state'
-import { useRdtState } from '../rdt/hooks/useRdtState'
-import { PersonaProof } from '../../src/io/transformations/wallet-to-rdt'
+import { GatewayService } from './gateway'
 
 export const RolaPage = () => {
   const dAppDefinitionAddress = useDAppDefinitionAddress()
@@ -20,24 +17,20 @@ export const RolaPage = () => {
   const defaults = {
     challenge: createChallenge(),
     loading: false,
-    signature: '',
-    publicKey: '',
-    curve: '',
     verified: false,
   }
-  const [
-    { challenge, loading, signature, publicKey, curve, verified },
-    setState,
-  ] = React.useState(defaults)
+  const [{ challenge, loading, verified, signedChallenge }, setState] =
+    React.useState<any>(defaults)
   const rdt = useRdt()
-  const rdtState = useRdtState()
   const networkId = useNetworkId()
   const { Logger, addLog } = useLogger()
-  const entities = useEntities()
-  // const metadataPublicKeys =
-  //   entities[rdtState?.persona?.identityAddress!]?.metadata[0]?.value
-  //     .as_string_collection ?? []
-  // const identityAddress = rdtState?.persona?.identityAddress
+  const rola = RolaFactory({
+    gatewayService: GatewayService(),
+    expectedOrigin: origin,
+    dAppDefinitionAddress,
+    networkId,
+  })
+
   return (
     <Box>
       <Card title="ROLA (Radix Off-Ledger Authentication)">
@@ -63,68 +56,50 @@ export const RolaPage = () => {
             rdt
               .requestData({ challenge })
               .map((response) => {
-                const { proof, challenge, identityAddress } =
-                  response.signedChallenges.find(
-                    (item): item is PersonaProof => item.type === 'persona'
-                  )!
-                const { curve, publicKey, signature } = proof
-
                 addLog('Got challenge response')
+                const signedChallenge = response.signedChallenges[0]
 
                 setState((prev) => ({
                   ...prev,
                   challenge,
-                  curve,
-                  publicKey,
-                  signature,
+                  signedChallenge,
                   loading: false,
                 }))
 
-                return Rola({
-                  curve,
-                  publicKeyHex: publicKey,
-                  networkId,
-                  addressType: 'identity',
-                  address: identityAddress,
-                  origin,
-                  dAppDefinitionAddress,
-                  challenge,
-                  signature,
-                  metadataPublicKeys: [],
-                })
+                return rola(signedChallenge)
               })
-              // .map((verified) => {
-              //   setState((prev) => ({
-              //     ...prev,
-              //     verified,
-              //   }))
-              // })
+              .map(() => {
+                setState((prev) => ({
+                  ...prev,
+                  verified: true,
+                }))
+              })
               .mapErr(() => {
-                setState((prev) => ({ ...prev, loading: false }))
+                setState((prev) => ({
+                  ...prev,
+                  loading: false,
+                  verified: false,
+                }))
               })
           }}
         >
           Send login request
         </Button>
-        {/* <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 2 }}>
           <Code>
             {JSON.stringify(
               {
                 challenge,
-                signature,
-                publicKey,
+                signedChallenge,
                 dAppDefinitionAddress,
                 origin,
-                curve,
                 verified,
-                identityAddress,
-                metadataPublicKeys,
               },
               null,
               2
             )}
           </Code>
-        </Box> */}
+        </Box>
         {Logger}
       </Card>
     </Box>
