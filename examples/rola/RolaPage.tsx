@@ -55,7 +55,7 @@ export const RolaPage = () => {
             addLog('Sending login request with challenge...')
             rdt
               .requestData({ challenge })
-              .map((response) => {
+              .andThen((response) => {
                 addLog('Got challenge response')
                 const signedChallenge = response.signedChallenges[0]
 
