@@ -24,7 +24,7 @@ const getInstantiateGumballMachineManifest = (
       gumballMachinePackageAddress,
       'GumballMachine',
       'instantiate_gumball_machine',
-      [ManifestValue.Decimal(gumballPrice), `"${gumballFlavour}"`]
+      [ManifestValue.Decimal(gumballPrice), `"${gumballFlavour}"`, `"${ownerAddress}"`]
     )
     .callMethod(ownerAddress, 'deposit_batch', [
       ManifestValue.Expression('ENTIRE_WORKTOP'),
