@@ -11,7 +11,6 @@ import {
   EMPTY,
   Subject,
   Subscription,
-  delay,
   first,
   firstValueFrom,
   merge,
@@ -132,7 +131,6 @@ export const RadixDappToolkit = (
     stateClient.state$
       .pipe(
         first(),
-        delay(1),
         tap((state) => {
           options?.onInit?.(state)
         })
