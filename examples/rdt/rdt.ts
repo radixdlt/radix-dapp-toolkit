@@ -18,7 +18,7 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
     if (!raw) {
       appLogger.debug('No dAppDefinitionAddress found in localStorage, defaulting')
       return {
-        '12': 'account_tdx_c_1pymgvah8w4dq6asplwzuqerekrwatkaq24d8k9tfas3s3rwel2',
+        '12': 'account_tdx_c_1pysl6ft839lj0murylf2vsmn57e67v20px435v37tejqv0famt',
       }
     }
 
