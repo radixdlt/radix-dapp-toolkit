@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { RadixDappToolkit } from './radix-dapp-toolkit'
 import { rdtStateDefault } from './io'
 import { createLogger } from '@radixdlt/wallet-sdk'
@@ -7,12 +8,11 @@ import { delayAsync } from './test-helpers/delay-async'
 
 let onInitSpy = jest.fn()
 let onStateChangeSpy = jest.fn()
+let mockProviders: MockContext
+let providers: Context
 const logger = createLogger(2)
 
 describe('RadixDappToolkit', () => {
-  let mockProviders: MockContext
-  let providers: Context
-
   const createRdt = (
     ...params: Partial<Parameters<typeof RadixDappToolkit>>
   ) => {
