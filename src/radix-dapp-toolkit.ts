@@ -185,7 +185,7 @@ export const RadixDappToolkit = (
     subscriptions.add(
       connectButtonClient.onConnect$
         .pipe(
-          tap(() => {
+          switchMap(() => {
             stateClient.setState(rdtStateDefault)
             const resolved = new Subject<RequestWalletData>()
             return handleWalletDataRequest(
@@ -298,6 +298,7 @@ export const RadixDappToolkit = (
     },
     gatewayApi: gatewayClient.gatewayApi,
     state$: stateClient.state$,
+    getState: stateClient.getState,
     disconnect: () => {
       walletClient.resetRequestItems()
       stateClient.reset()

@@ -46,9 +46,12 @@ export const StateClient = (
 
   const initializeState = () =>
     readStateFromStorage()
-      .andThen((state) =>
-        ResultAsync.fromPromise(RdtState.parseAsync(state), (error) => error)
-      )
+      .andThen((state) => {
+        return ResultAsync.fromPromise(
+          RdtState.parseAsync(state),
+          (error) => error
+        )
+      })
       .mapErr(() => {
         logger?.debug(`loadedCorruptedStateFromStorage`)
         subjects.state.next(rdtStateDefault)
