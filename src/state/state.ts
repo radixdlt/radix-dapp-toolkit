@@ -1,7 +1,7 @@
 import { Logger } from 'tslog'
 import { StateSubjects } from './subjects'
 import { StorageProvider } from '../_types'
-import { Subscription, switchMap } from 'rxjs'
+import { Subscription, filter, first, skip, switchMap, tap } from 'rxjs'
 import { removeUndefined } from '../helpers/remove-undefined'
 import { RdtState, rdtStateDefault } from '../io/schemas'
 import { ResultAsync } from 'neverthrow'
@@ -72,11 +72,27 @@ export const StateClient = (
     subjects.state.pipe(switchMap(writeStateToStorage)).subscribe()
   )
 
+  subscriptions.add(
+    subjects.state
+      .pipe(
+        skip(1),
+        first(),
+        tap(() => {
+          subjects.initialized.next(true)
+        })
+      )
+      .subscribe()
+  )
+
   return {
     setState,
     getState: () => subjects.state.value,
-    state$: subjects.state.asObservable(),
+    state$: subjects.initialized.pipe(
+      filter((initialized) => initialized),
+      switchMap(() => subjects.state)
+    ),
     reset: resetState,
+    stateInitialized$: subjects.initialized.asObservable(),
     destroy: () => {
       resetState()
       subscriptions.unsubscribe()

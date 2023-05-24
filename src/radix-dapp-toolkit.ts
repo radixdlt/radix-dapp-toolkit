@@ -14,6 +14,7 @@ import {
   first,
   firstValueFrom,
   merge,
+  skip,
   switchMap,
   tap,
 } from 'rxjs'
@@ -140,7 +141,10 @@ export const RadixDappToolkit = (
 
   subscriptions.add(
     stateClient.state$
-      .pipe(tap((state) => options?.onStateChange?.(state)))
+      .pipe(
+        skip(1),
+        tap((state) => options?.onStateChange?.(state))
+      )
       .subscribe()
   )
 
