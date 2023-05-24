@@ -1,23 +1,20 @@
 import { BehaviorSubject } from 'rxjs'
-import { rdt } from '../rdt/rdt'
 import { createObservableHook } from '../helpers/create-observable-hook'
-import { getNetworkId } from '../helpers/get-network-id'
 import { appLogger } from '../logger/state'
 import { networkIdMap } from '../../src/gateway/_types'
+import { GatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk'
 
-export const bootstrapNetwork = () => {
-  rdt.gatewayApi
-    .getNetworkConfiguration()
-    .map((response) => {
-      appLogger.debug({
-        ...response,
-        gateway: networkIdMap.get(response.network_id),
-      })
-      return xrdAddress.next(response.well_known_addresses.xrd)
+export const bootstrapNetwork = (networkId: number) => {
+  const gatewayApi = GatewayApiClient.initialize({
+    basePath: networkIdMap.get(networkId),
+  })
+  gatewayApi.status.getNetworkConfiguration().then((response) => {
+    appLogger.debug({
+      ...response,
+      gateway: networkIdMap.get(response.network_id),
     })
-    .mapErr((error) => {
-      throw error
-    })
+    return xrdAddress.next(response.well_known_addresses.xrd)
+  })
 }
 
 const xrdAddress = new BehaviorSubject<string | undefined>(undefined)
