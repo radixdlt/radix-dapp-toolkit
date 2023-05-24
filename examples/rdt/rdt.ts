@@ -68,7 +68,7 @@ const options: Parameters<typeof RadixDappToolkit>[2] = {
       ])
   },
   onInit: () => {
-    bootstrapNetwork()
+    bootstrapNetwork(networkId)
     setTimeout(() => {
       appLogger.debug('RDT initialized with', { metaData, options })
     })
