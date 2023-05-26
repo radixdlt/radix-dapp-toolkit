@@ -55,19 +55,22 @@ const metaData = {
   networkId,
 }
 
+const onStateChange = (state) => {
+     setAccounts(state.walletData.accounts || [])
+     if (state.walletData.persona)
+       addEntities([
+         {
+           address: state.walletData.persona?.identityAddress,
+           type: 'identity',
+         },
+       ])
+}
+
 const options: Parameters<typeof RadixDappToolkit>[2] = {
   logger: appLogger as any,
-  onStateChange: (state) => {
-    setAccounts(state.walletData.accounts || [])
-    if (state.walletData.persona)
-      addEntities([
-        {
-          address: state.walletData.persona?.identityAddress,
-          type: 'identity',
-        },
-      ])
-  },
-  onInit: () => {
+  onStateChange,
+  onInit: (state) => {
+    onStateChange(state)
     bootstrapNetwork(networkId)
     setTimeout(() => {
       appLogger.debug('RDT initialized with', { metaData, options })
