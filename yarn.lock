@@ -1800,10 +1800,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.7.tgz#ccab5c8f7dc557a52ca3288c10075c9ccd37fff7"
   integrity sha512-Cr4OjIkipTtcXKjAsm8agyleBuDHvxzeBoa1v543lbv1YaIwQjESsVcmjiWiPEbC1FIeHOG/Op9kdCmAmiS3Kw==
 
-"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.8":
-  version "1.0.0-rc.1.8"
-  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.8.tgz#0c092370bfdb4c74b32e307bbd286d2bf2622e7f"
-  integrity sha512-E6rqgU7mzwNhw9j453GzO3h1c1ALe97CMaJ4KZX5wvLSASuskBe6NXRkeneJwNR+6bWBgnSY7YEEhs2lRQxFdw==
+"@radixdlt/babylon-gateway-api-sdk@^1.0.0-ash.2":
+  version "1.0.0-ash.2"
+  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-ash.2.tgz#d7446c861ab5c10686431566cc4ff793cb100ebd"
+  integrity sha512-5WCWJ9dmdeuTYSf4ljQoM22c9fK2bJqunAKP+opxCUw3VtHQ0Zvj0REl3jmwa8/WC0mMkQoR7eWLCv/2AY8lFw==
 
 "@radixdlt/connect-button@0.13.0-alpha.1":
   version "0.13.0-alpha.1"
