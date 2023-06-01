@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { RdtProvider } from './rdt/RdtProvider'
 import { rdt } from './rdt/rdt'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { router } from './router'
 
 export const DApp = () => {

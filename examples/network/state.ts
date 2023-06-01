@@ -24,7 +24,7 @@ export const useXrdAddress = createObservableHook(xrdAddress, '')
 const getNetworkIdDefault = () => {
   const urlParams = new URLSearchParams(window.location.search)
   const networkId = parseInt(
-    urlParams.get('networkId') || localStorage.getItem('networkId') || '12',
+    urlParams.get('networkId') || localStorage.getItem('networkId') || '34',
     10
   )
   return networkId
@@ -37,4 +37,4 @@ export const setNetworkId = (value: number) => {
   location.reload()
 }
 
-export const useNetworkId = createObservableHook(networkId, 12)
+export const useNetworkId = createObservableHook(networkId, getNetworkIdDefault())
