@@ -59,7 +59,7 @@ export const DeployGumballMachineCard = () => {
       .andThen(({ transactionIntentHash }) =>
         rdt.gatewayApi
           .getTransactionDetails(transactionIntentHash)
-          .map((response) => (response.transaction.receipt?.state_updates as any)?.new_global_entities?.[0])
+          .map((response) => (response.transaction.receipt?.state_updates as any)?.new_global_entities?.[0]?.entity_address)
       )
       .map((packageAddress) => {
         addLog(`gumball machine packageAddress ${packageAddress}`)
