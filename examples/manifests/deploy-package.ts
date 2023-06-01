@@ -9,19 +9,22 @@ export const getDeployPackageManifest = ({
   schema: string
   nftAddress: string
 }) => {
-  const codeHash: string = hash(wasm).toString('hex')
-  const schemaHash: string = hash(schema).toString('hex')
+  const wasmHash = hash(wasm).toString('hex')
   return `
-    PUBLISH_PACKAGE 
-    Blob("${codeHash}") 
-    Blob("${schemaHash}") 
+    PUBLISH_PACKAGE_ADVANCED
+    Blob("${wasmHash}") 
+    ${schema}
     Map<String, Tuple>()       # Royalty Configuration
     Map<String, String>()      # Metadata 
-    Tuple(                     # Access Rules Struct
-        Map<Tuple, Enum>(      # Method auth Field
+    Tuple(                     # Access Rules Config Struct
+        Map<Tuple, Enum>(),     # Direct Access Method auth Field
+        Map<Tuple, Enum>(       # Method auth Field
             Tuple(
-                Enum("NodeModuleId::SELF"), "set_royalty_config"),
-            Enum("AccessRuleEntry::AccessRule", 
+                Enum("TypedModuleId::ObjectState"),
+                "set_royalty_config"
+            ),
+            Enum(
+                "AccessRuleEntry::AccessRule", 
                 Enum(
                     "AccessRule::Protected", 
                     Enum(
@@ -37,7 +40,7 @@ export const getDeployPackageManifest = ({
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::SELF"),
+                Enum("TypedModuleId::ObjectState"),
                 "claim_royalty"
             ),
             Enum(
@@ -57,7 +60,7 @@ export const getDeployPackageManifest = ({
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::Metadata"),
+                Enum("TypedModuleId::Metadata"),
                 "set"
             ),
             Enum(
@@ -77,7 +80,7 @@ export const getDeployPackageManifest = ({
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::Metadata"),
+                Enum("TypedModuleId::Metadata"),
                 "get"
             ),
             Enum(
@@ -85,79 +88,97 @@ export const getDeployPackageManifest = ({
                 Enum("AccessRule::AllowAll")
             )
         ), 
-        Map<String, Enum>(),            # Grouped Auth Field
-        Enum("AccessRule::DenyAll"),    # Default Auth Field
-        Map<Tuple, Enum>(               # Method Auth Mutability Field
+        Map<String, Enum>(),     # Grouped Auth Field
+        Enum(
+            "AccessRuleEntry::AccessRule",
+            Enum("AccessRule::DenyAll")         # Default Auth Field
+        ),
+        Map<Tuple, Enum>(         # Method Auth Mutability Field
             Tuple(
-                Enum("NodeModuleId::SELF"),
+                Enum("TypedModuleId::ObjectState"),
                 "set_royalty_config"
             ),
             Enum(
-                "AccessRule::Protected", 
+                "AccessRuleEntry::AccessRule",
                 Enum(
-                    "AccessRuleNode::ProofRule", 
+                    "AccessRule::Protected",
                     Enum(
-                        "ProofRule::Require", 
+                        "AccessRuleNode::ProofRule",
                         Enum(
-                            "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}")
+                            "ProofRule::Require",
+                            Enum(
+                                "SoftResourceOrNonFungible::StaticNonFungible",
+                                NonFungibleGlobalId("${nftAddress}")
+                            )
                         )
                     )
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::SELF"),
+                Enum("TypedModuleId::ObjectState"),
                 "claim_royalty"
             ),
             Enum(
-                "AccessRule::Protected", 
+                "AccessRuleEntry::AccessRule",
                 Enum(
-                    "AccessRuleNode::ProofRule", 
+                    "AccessRule::Protected",
                     Enum(
-                        "ProofRule::Require", 
+                        "AccessRuleNode::ProofRule",
                         Enum(
-                            "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}")
+                            "ProofRule::Require",
+                            Enum(
+                                "SoftResourceOrNonFungible::StaticNonFungible",
+                                NonFungibleGlobalId("${nftAddress}")
+                            )
                         )
                     )
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::Metadata"),
+                Enum("TypedModuleId::Metadata"),
                 "set"
-            ), 
+            ),
             Enum(
-                "AccessRule::Protected", 
+                "AccessRuleEntry::AccessRule",
                 Enum(
-                    "AccessRuleNode::ProofRule", 
+                    "AccessRule::Protected",
                     Enum(
-                        "ProofRule::Require", 
+                        "AccessRuleNode::ProofRule",
                         Enum(
-                            "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}")
+                            "ProofRule::Require",
+                            Enum(
+                                "SoftResourceOrNonFungible::StaticNonFungible",
+                                NonFungibleGlobalId("${nftAddress}")
+                            )
                         )
                     )
                 )
             ),
             Tuple(
-                Enum("NodeModuleId::Metadata"),
+                Enum("TypedModuleId::Metadata"),
                 "get"
             ),
             Enum(
-                "AccessRule::Protected", 
+                "AccessRuleEntry::AccessRule",
                 Enum(
-                    "AccessRuleNode::ProofRule", 
+                    "AccessRule::Protected",
                     Enum(
-                        "ProofRule::Require", 
+                        "AccessRuleNode::ProofRule",
                         Enum(
-                            "SoftResourceOrNonFungible::StaticNonFungible", 
-                            NonFungibleGlobalId("${nftAddress}")
+                            "ProofRule::Require",
+                            Enum(
+                                "SoftResourceOrNonFungible::StaticNonFungible",
+                                NonFungibleGlobalId("${nftAddress}")
+                            )
                         )
                     )
                 )
             )
         ), 
         Map<String, Enum>(),     # Group Auth Mutability Field
-        Enum("AccessRule::DenyAll")          # Default Auth Mutability Field
+        Enum(
+            "AccessRuleEntry::AccessRule",
+            Enum("AccessRule::DenyAll")          # Default Auth Mutability Field
+        )
     );`
 }

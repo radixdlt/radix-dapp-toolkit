@@ -9,6 +9,7 @@ import {
 import { createObservableHook } from '../helpers/create-observable-hook'
 import { setAccounts } from '../account/state'
 import { addEntities } from '../entity/state'
+import { networkIdMap } from '../../src/gateway/_types'
 
 const networkId = networkIdSubject.value
 
@@ -19,6 +20,7 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
       appLogger.debug('No dAppDefinitionAddress found in localStorage, defaulting')
       return {
         '12': 'account_tdx_c_1pysl6ft839lj0murylf2vsmn57e67v20px435v37tejqv0famt',
+        '34': 'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
       }
     }
 
@@ -69,6 +71,11 @@ const onStateChange = (state) => {
 const options: Parameters<typeof RadixDappToolkit>[2] = {
   logger: appLogger as any,
   onStateChange,
+  explorer: {
+    baseUrl: networkIdMap.get(networkId) || '',
+    transactionPath: '/transaction/',
+    accountsPath: '/account/',
+  },
   onInit: (state) => {
     onStateChange(state)
     bootstrapNetwork(networkId)

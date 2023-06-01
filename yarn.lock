@@ -1813,10 +1813,10 @@
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/radix-engine-toolkit@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@radixdlt/radix-engine-toolkit/-/radix-engine-toolkit-0.1.8.tgz#685f543ccf87359f4621a22e45a0cb90524e1e01"
-  integrity sha512-74VKfrKlpllygNFQE1bpY4y9ZiyyKwl8pURTZQjsBTo3MGu1XvekMhnXyW8bwQceCDMhi2xHd7fSPL9rWl44Mg==
+"@radixdlt/radix-engine-toolkit@^0.2.0-ash.1":
+  version "0.2.0-ash.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/radix-engine-toolkit/-/radix-engine-toolkit-0.2.0-ash.1.tgz#c58ab0ecbb64d3fa681c2d1b5d6d1b0d5790597b"
+  integrity sha512-E7+tJqblsFfbBBKlm1DIf67pY0JGNAk/O4YbfaJbM/J7mdoji5H2hF7nWxyvsqaEef85atXNDbmu2CB2qoSGlQ==
   dependencies:
     "@noble/ed25519" "2.0.0"
     "@noble/hashes" "1.3.0"
