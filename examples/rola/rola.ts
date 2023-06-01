@@ -34,7 +34,7 @@ export const RolaFactory =
 
     const getDerivedAddress = () =>
       deriveVirtualIdentityAddress(signedChallenge.proof.publicKey, networkId)
-        .map(({ address }) => address)
+        .map(({ value }) => value)
         .mapErr((jsError) => ({
           reason: 'couldNotDeriveAddressFromPublicKey',
           jsError,
