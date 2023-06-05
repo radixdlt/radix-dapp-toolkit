@@ -210,7 +210,7 @@ jobs:
       - name: Configure AWS credentials for deployment
         uses: aws-actions/configure-aws-credentials@bab55d3830fe69833c9fecaa51fe2c829a7508f3
         with:
-          role-to-assume: ${{ secrets.DEPLOY_RELEASE_IAM_ROLE }}
+          role-to-assume: ${{ secrets.DEPLOY_RELEASES_IAM_ROLE }}
           aws-region: eu-west-2
       - name: Deploy application
         working-directory: deploy/helm
@@ -232,7 +232,7 @@ jobs:
 
           kubectl apply -f subns-manifest.yaml
 
-          helmfile --environment release --namespace radix-dapp-toolkit-$NORMALIZED_BRANCH_NAME \
+          helmfile --environment dev --namespace radix-dapp-toolkit-$NORMALIZED_BRANCH_NAME \
                    --state-values-set "ci.tag=${{ env.CI_TAG }}" \
                    --state-values-set "ci.ingressDomain=radix-dapp-toolkit-${NORMALIZED_BRANCH_NAME}.${{ env.INGRESS_DOMAIN }}" \
                    apply
