@@ -19,8 +19,8 @@ import {
 const DataRequestAccounts = NumberOfAccounts.merge(
   object({
     challenge: string().optional(),
-    reset: boolean().optional().default(false),
-    oneTime: boolean().optional().default(false),
+    reset: boolean().default(false).optional(),
+    oneTime: boolean().default(false).optional(),
   })
 )
 

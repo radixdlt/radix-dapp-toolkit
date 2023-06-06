@@ -48,43 +48,90 @@ export const RolaPage = () => {
             Generate challenge
           </Button>
         </Box>
-        <Button
-          disabled={loading}
-          onClick={() => {
-            setState((prev) => ({ ...defaults, loading: true }))
-            addLog('Sending login request with challenge...')
-            rdt
-              .requestData({ challenge })
-              .andThen((response) => {
-                addLog('Got challenge response')
-                const signedChallenge = response.signedChallenges[0]
+        <Box>
+          <Button
+            disabled={loading}
+            onClick={() => {
+              setState(() => ({ ...defaults, loading: true }))
+              addLog('Sending login request with challenge...')
+              rdt
+                .requestData({ challenge })
+                .andThen((response) => {
+                  addLog('Got challenge response')
+                  const signedChallenge = response.signedChallenges[0]
 
-                setState((prev) => ({
-                  ...prev,
-                  challenge,
-                  signedChallenge,
-                  loading: false,
-                }))
+                  setState((prev) => ({
+                    ...prev,
+                    challenge,
+                    signedChallenge,
+                    loading: false,
+                  }))
 
-                return rola(signedChallenge)
-              })
-              .map(() => {
-                setState((prev) => ({
-                  ...prev,
-                  verified: true,
-                }))
-              })
-              .mapErr(() => {
-                setState((prev) => ({
-                  ...prev,
-                  loading: false,
-                  verified: false,
-                }))
-              })
-          }}
-        >
-          Send login request
-        </Button>
+                  return rola(signedChallenge)
+                })
+                .map(() => {
+                  setState((prev) => ({
+                    ...prev,
+                    verified: true,
+                  }))
+                })
+                .mapErr(() => {
+                  setState((prev) => ({
+                    ...prev,
+                    loading: false,
+                    verified: false,
+                  }))
+                })
+            }}
+          >
+            Send login request
+          </Button>
+        </Box>
+        <Box sx={{ mt: 2 }}>
+          <Button
+            disabled={loading}
+            onClick={() => {
+              setState(() => ({ ...defaults, loading: true }))
+              addLog('Sending account request with challenge...')
+              rdt
+                .requestData({
+                  accounts: {
+                    quantifier: 'atLeast',
+                    quantity: 1,
+                    challenge,
+                  },
+                })
+                .andThen((response) => {
+                  addLog('Got challenge response')
+                  const signedChallenge = response.signedChallenges[0]
+
+                  setState((prev) => ({
+                    ...prev,
+                    challenge,
+                    signedChallenge,
+                    loading: false,
+                  }))
+
+                  return rola(signedChallenge)
+                })
+                .map(() => {
+                  setState((prev) => ({
+                    ...prev,
+                    verified: true,
+                  }))
+                })
+                .mapErr(() => {
+                  setState((prev) => ({
+                    ...prev,
+                    loading: false,
+                    verified: false,
+                  }))
+                })
+            }}
+          >
+            Verify accounts
+          </Button>
+        </Box>
         <Box sx={{ mt: 2 }}>
           <Code>
             {JSON.stringify(
