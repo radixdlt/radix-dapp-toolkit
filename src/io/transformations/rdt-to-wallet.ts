@@ -26,8 +26,8 @@ const isAuthorized = (
 
   const requiresChallengeSigning = !!challenge
   const shouldResetData = accounts?.reset || personaData?.reset
-  const isOngoingAccountsRequest = accounts?.oneTime === false
-  const isOngoingPersonaDataRequest = personaData?.oneTime === false
+  const isOngoingAccountsRequest = !accounts?.oneTime
+  const isOngoingPersonaDataRequest = !personaData?.oneTime
 
   const isAuthorizedRequest = !!(
     requiresChallengeSigning ||

@@ -1,7 +1,7 @@
 import { ResultAsync, err, ok } from 'neverthrow'
 import { createSignatureMessage } from './helpers/create-signature-message'
 import { verifyProofFactory } from './helpers/verify-proof'
-import { deriveVirtualIdentityAddress } from './helpers/derive-address-from-public-key'
+import { deriveVirtualAddress } from './helpers/derive-address-from-public-key'
 import { SignedChallenge } from '../../src/io/schemas'
 import { GatewayService } from './gateway'
 
@@ -33,7 +33,7 @@ export const RolaFactory =
     const verifyProof = verifyProofFactory(signedChallenge)
 
     const getDerivedAddress = () =>
-      deriveVirtualIdentityAddress(signedChallenge.proof.publicKey, networkId)
+      deriveVirtualAddress(signedChallenge, networkId)
         .map(({ value }) => value)
         .mapErr((jsError) => ({
           reason: 'couldNotDeriveAddressFromPublicKey',
