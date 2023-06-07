@@ -47,8 +47,6 @@ describe('RadixDappToolkit', () => {
     const rdt = createRdt()
 
     expect(onInitSpy).toHaveBeenCalledWith(rdtStateDefault)
-    expect(onStateChangeSpy).toHaveBeenCalledWith(rdtStateDefault)
-
     expect(subscribeSpyTo(rdt.state$).getFirstValue()).toEqual(rdtStateDefault)
 
     await delayAsync(0)

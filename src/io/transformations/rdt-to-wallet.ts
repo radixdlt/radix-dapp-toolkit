@@ -78,13 +78,22 @@ const withAccountRequestItem =
           quantity: accounts.quantity,
         },
       }
-      if (!input.isConnect && input.data.accounts?.oneTime)
+      if (!input.isConnect && input.data.accounts?.oneTime) {
         updatedRequestItems['oneTimeAccounts'] = data
+      }
 
-      if (updatedRequestItems.discriminator === 'authorizedRequest')
+      const isOngoingRequest =
+        !input.isConnect &&
+        updatedRequestItems.discriminator === 'authorizedRequest' &&
+        !input.data.accounts?.oneTime
+
+      const isConnectOngoingRequest =
+        input.isConnect &&
+        updatedRequestItems.discriminator === 'authorizedRequest'
+
+      if (isOngoingRequest || isConnectOngoingRequest)
         updatedRequestItems['ongoingAccounts'] = data
     }
-
     return ok<T, never>(updatedRequestItems)
   }
 
@@ -150,7 +159,8 @@ export const transformRdtDataRequestToWalletRequest = <
 ): Result<
   WalletUnauthorizedRequestItems | WalletAuthorizedRequestItems,
   never
-> =>
-  isAuthorized(input)
+> => {
+  return isAuthorized(input)
     ? createAuthorizedRequestItems(input, state.walletData.persona)
     : createUnauthorizedRequestItems(input)
+}
