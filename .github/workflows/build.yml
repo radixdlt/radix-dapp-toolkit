@@ -35,6 +35,9 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v2
+
   setup-tags:
     runs-on: ubuntu-latest
     outputs:
