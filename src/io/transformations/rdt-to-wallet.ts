@@ -113,7 +113,16 @@ const withPersonaDataRequestItem =
       if (!input.isConnect && input.data.personaData?.oneTime)
         updatedRequestItems['oneTimePersonaData'] = data
 
-      if (updatedRequestItems.discriminator === 'authorizedRequest')
+      const isOngoingRequest =
+        !input.isConnect &&
+        updatedRequestItems.discriminator === 'authorizedRequest' &&
+        !input.data.personaData?.oneTime
+
+      const isConnectOngoingRequest =
+        input.isConnect &&
+        updatedRequestItems.discriminator === 'authorizedRequest'
+
+      if (isOngoingRequest || isConnectOngoingRequest)
         updatedRequestItems['ongoingPersonaData'] = data
     }
     return ok(updatedRequestItems)
