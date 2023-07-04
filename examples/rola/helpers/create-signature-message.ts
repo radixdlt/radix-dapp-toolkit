@@ -4,6 +4,7 @@
 //   "origin": "https://www.instabridge.com"
 // }
 // SPECIFICALLY THE FOLLOWING CONCATENATED RAW BYTES:
+// * Y = 82 (R in ASCII for ROLA)
 // * 32 raw bytes of the challenge
 // * 1 byte - the length of the UTF-8-encoded bech32-encoded dapp-definition address
 // * The bytes of the UTF-8-encoded bech32-encoded address
@@ -22,16 +23,18 @@ export const createSignatureMessage = ({
   dAppDefinitionAddress: string
   origin: string
 }): Result<string, { reason: string; jsError: Error }> => {
+  const prefix = Buffer.from('R', 'utf-8')
   const lengthOfDappDefAddress = dAppDefinitionAddress.length
   const lengthOfDappDefAddressBuffer = Buffer.from(
     lengthOfDappDefAddress.toString(16),
     'hex'
   )
   const dappDefAddressBuffer = Buffer.from(dAppDefinitionAddress, 'utf-8')
-  const originBuffer = Buffer.from(origin, 'utf8')
+  const originBuffer = Buffer.from(origin, 'utf-8')
   const challengeBuffer = Buffer.from(challenge, 'hex')
 
   const messageBuffer = Buffer.concat([
+    prefix,
     challengeBuffer,
     lengthOfDappDefAddressBuffer,
     dappDefAddressBuffer,
