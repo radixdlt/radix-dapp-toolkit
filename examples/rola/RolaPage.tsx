@@ -7,7 +7,7 @@ import { useLogger } from '../components/Logger'
 import { Code } from '../components/Code'
 
 import { useDAppDefinitionAddress } from '../rdt/rdt'
-import { RolaFactory } from './rola'
+import { RolaError, RolaFactory } from './rola'
 import { useNetworkId } from '../network/state'
 import { GatewayService } from './gateway'
 
@@ -75,7 +75,10 @@ export const RolaPage = () => {
                     verified: true,
                   }))
                 })
-                .mapErr(() => {
+                .mapErr((error) => {
+                  addLog(
+                    `ROLA error: ${(error as unknown as RolaError).reason}`
+                  )
                   setState((prev) => ({
                     ...prev,
                     loading: false,
@@ -120,7 +123,10 @@ export const RolaPage = () => {
                     verified: true,
                   }))
                 })
-                .mapErr(() => {
+                .mapErr((error) => {
+                  addLog(
+                    `ROLA error: ${(error as unknown as RolaError).reason}`
+                  )
                   setState((prev) => ({
                     ...prev,
                     loading: false,

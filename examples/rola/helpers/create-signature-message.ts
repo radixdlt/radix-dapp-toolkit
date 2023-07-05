@@ -23,7 +23,7 @@ export const createSignatureMessage = ({
   dAppDefinitionAddress: string
   origin: string
 }): Result<string, { reason: string; jsError: Error }> => {
-  const prefix = Buffer.from('R', 'utf-8')
+  const prefix = Buffer.from('R', 'ascii')
   const lengthOfDappDefAddress = dAppDefinitionAddress.length
   const lengthOfDappDefAddressBuffer = Buffer.from(
     lengthOfDappDefAddress.toString(16),
