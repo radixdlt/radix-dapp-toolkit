@@ -69,7 +69,7 @@ export const RadixDappToolkit = (
   } = options || {}
 
   const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
-  const WalletInteractionDataFormatVersion = 1
+  const WalletInteractionDataFormatVersion = 2
   const updateSharedDataSubject = new Subject<void>()
   const dAppDefinitionAddressSubject = new BehaviorSubject<string>(
     dAppDefinitionAddress

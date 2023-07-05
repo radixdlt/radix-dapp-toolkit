@@ -1829,10 +1829,10 @@
     reflect-metadata "0.1.13"
     secp256k1 "5.0.0"
 
-"@radixdlt/wallet-sdk@0.9.0-alpha.10":
-  version "0.9.0-alpha.10"
-  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.9.0-alpha.10.tgz#179f5dfa8d676b9fb7b5ee4d5d626ba984a55ce9"
-  integrity sha512-V5qsrZpCQYJJ6/UrkPK2N9DcA3A7xInwt2Y9hBkHFz4sKL796stnrJId0fl8fyIfZeNJiWIhVX8DjBuqJu1ouA==
+"@radixdlt/wallet-sdk@0.9.0-pre-alpha.1":
+  version "0.9.0-pre-alpha.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/wallet-sdk/-/wallet-sdk-0.9.0-pre-alpha.1.tgz#9a443baec27397c8da96220f7c29fd92b9ee77a2"
+  integrity sha512-TpNywtPRdl0KF4tOyfdDg16zbqb5wNgoxxavVbjGUo++9HYB0O9HJC44ni5BwRKT0dbAomee1CTbGHnnvTTe4w==
   dependencies:
     neverthrow "^6.0.0"
     rxjs "^7.8.1"
