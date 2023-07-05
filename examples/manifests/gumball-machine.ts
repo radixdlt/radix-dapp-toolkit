@@ -20,14 +20,12 @@ export const GumballMachineTransactionManifests = (
   }
 ) => {
   const setRelatedEntities = () => `
-    CALL_METHOD Address("${ownerAccountAddress}") "create_proof" Address("${entities.adminBadge}");
     SET_METADATA Address("${ownerAccountAddress}") "claimed_entities" Enum(1u8, Array<Enum>(
       Enum(0u8, "${entities.adminBadge}"),
       Enum(0u8, "${entities.staffBadge}"),
       Enum(0u8, "${entities.gumballToken}"),
       Enum(0u8, "${gumballMachineComponentAddress}")
     ));
-    SET_METADATA Address("${gumballMachineComponentAddress}") "dapp_definition" Enum(0u8, Enum(0u8, "${ownerAccountAddress}"));
   `
 
   const setPrice = (
