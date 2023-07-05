@@ -7,6 +7,11 @@ module.exports = {
       channel: 'alpha',
       prerelease: 'alpha',
     },
+    {
+      name: 'release/([a-z]+)',
+      channel: '${name.replace(/^release\\//g, "")}',
+      prerelease: '${name.replace(/^release\\//g, "")}'
+    }
   ],
   plugins: [
     [

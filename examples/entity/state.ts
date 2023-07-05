@@ -217,8 +217,8 @@ const fetchEntity = (entity: AddEntityToCollectionInput) =>
                   (item) =>
                     ({
                       entityType: entityType.nft,
-                      nftId: item.non_fungible_id,
-                      address: `${entity.address}:${item.non_fungible_id}`,
+                      nftId: item,
+                      address: `${entity.address}:${item}`,
                       nftCollectionAddress: entity.address,
                       ownerAddress: entity.ownerAddress,
                     } satisfies Entity['nft'])

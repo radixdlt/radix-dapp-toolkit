@@ -75,14 +75,15 @@ export const InstantiateGumballMachineCard = () => {
     addLog(`instantiating gumball machine component`)
     return instantiateComponent(state.ownerAccount)
       .map((values) => {
+        const createdEntities = (values.transaction.receipt?.state_updates as any)?.new_global_entities.map((entity) => entity.entity_address)
         const entities = {
-          adminBadge: values.details.referenced_global_entities[1],
-          staffBadge: values.details.referenced_global_entities[2],
-          gumballToken: values.details.referenced_global_entities[3],
+          adminBadge: createdEntities[1],
+          staffBadge: createdEntities[2],
+          gumballToken: createdEntities[3],
         }
 
         addGumballMachineComponent({
-          address: values.details.referenced_global_entities[0],
+          address: createdEntities[0],
           entities,
           gumballPrice: state.gumballPrice,
           gumballFlavour: state.gumballFlavour,

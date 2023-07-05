@@ -1800,10 +1800,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.7.tgz#ccab5c8f7dc557a52ca3288c10075c9ccd37fff7"
   integrity sha512-Cr4OjIkipTtcXKjAsm8agyleBuDHvxzeBoa1v543lbv1YaIwQjESsVcmjiWiPEbC1FIeHOG/Op9kdCmAmiS3Kw==
 
-"@radixdlt/babylon-gateway-api-sdk@^1.0.0-rc.1.8":
-  version "1.0.0-rc.1.8"
-  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-rc.1.8.tgz#0c092370bfdb4c74b32e307bbd286d2bf2622e7f"
-  integrity sha512-E6rqgU7mzwNhw9j453GzO3h1c1ALe97CMaJ4KZX5wvLSASuskBe6NXRkeneJwNR+6bWBgnSY7YEEhs2lRQxFdw==
+"@radixdlt/babylon-gateway-api-sdk@^1.0.0-ash.2":
+  version "1.0.0-ash.2"
+  resolved "https://registry.yarnpkg.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.0.0-ash.2.tgz#d7446c861ab5c10686431566cc4ff793cb100ebd"
+  integrity sha512-5WCWJ9dmdeuTYSf4ljQoM22c9fK2bJqunAKP+opxCUw3VtHQ0Zvj0REl3jmwa8/WC0mMkQoR7eWLCv/2AY8lFw==
 
 "@radixdlt/connect-button@0.13.0-alpha.1":
   version "0.13.0-alpha.1"
@@ -1813,10 +1813,10 @@
     lit "^2.6.1"
     rxjs "^7.8.0"
 
-"@radixdlt/radix-engine-toolkit@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@radixdlt/radix-engine-toolkit/-/radix-engine-toolkit-0.1.8.tgz#685f543ccf87359f4621a22e45a0cb90524e1e01"
-  integrity sha512-74VKfrKlpllygNFQE1bpY4y9ZiyyKwl8pURTZQjsBTo3MGu1XvekMhnXyW8bwQceCDMhi2xHd7fSPL9rWl44Mg==
+"@radixdlt/radix-engine-toolkit@^0.2.0-ash.1":
+  version "0.2.0-ash.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/radix-engine-toolkit/-/radix-engine-toolkit-0.2.0-ash.1.tgz#c58ab0ecbb64d3fa681c2d1b5d6d1b0d5790597b"
+  integrity sha512-E7+tJqblsFfbBBKlm1DIf67pY0JGNAk/O4YbfaJbM/J7mdoji5H2hF7nWxyvsqaEef85atXNDbmu2CB2qoSGlQ==
   dependencies:
     "@noble/ed25519" "2.0.0"
     "@noble/hashes" "1.3.0"
