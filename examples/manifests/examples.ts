@@ -1,4 +1,3 @@
-import { ManifestValue, ManifestBuilder } from '@radixdlt/wallet-sdk'
 import { GumballMachineExampleConfig } from '../integration-tests/GumballMachine/GumballMachineExample'
 
 export const getExample1 = (
@@ -42,18 +41,12 @@ CALL_METHOD Address("${accountAlpha}") "deposit_batch" Expression("ENTIRE_WORKTO
 export const getExample4 = (
   _: string,
   { accountAlpha, componentAlpha }: GumballMachineExampleConfig
-) =>
-  new ManifestBuilder()
-    .createProofFromAccount(
-      accountAlpha!,
-      componentAlpha?.entities?.adminBadge!
-    )
-    .callMethod(componentAlpha?.address!, 'withdraw_earnings', [])
-    .callMethod(accountAlpha!, 'deposit_batch', [
-      ManifestValue.Expression('ENTIRE_WORKTOP'),
-    ])
-    .build()
-    .toString()
+) => `
+  CALL_METHOD Address("${componentAlpha?.address!}") "create_proof" Address("${componentAlpha
+  ?.entities?.adminBadge!}");
+  CALL_METHOD Address("${componentAlpha?.address!}") "withdraw_earnings";
+  CALL_METHOD Address("${accountAlpha!}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+`
 
 export const getExample5 = (
   xrdAddress: string,

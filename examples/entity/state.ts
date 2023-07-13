@@ -1,6 +1,6 @@
 import { BehaviorSubject } from 'rxjs'
 import { ResultAsync, errAsync, okAsync } from 'neverthrow'
-import { rdt } from '../rdt/rdt'
+import { gatewayApi, rdt } from '../rdt/rdt'
 import {
   EntityMetadataItem,
   FungibleResourcesCollectionItemVaultAggregated,
@@ -139,7 +139,7 @@ const setEntities = (entities: EntityCollections) => {
 }
 
 const fetchEntity = (entity: AddEntityToCollectionInput) =>
-  rdt.gatewayApi
+  gatewayApi
     .getEntityDetails(entity.address)
     .andThen(
       ({
@@ -206,7 +206,7 @@ const fetchEntity = (entity: AddEntityToCollectionInput) =>
             ])
 
           case entityType.nftCollection:
-            return rdt.gatewayApi
+            return gatewayApi
               .getEntityNonFungibleIds({
                 accountAddress: entity.ownerAddress,
                 nftAddress: entity.address,

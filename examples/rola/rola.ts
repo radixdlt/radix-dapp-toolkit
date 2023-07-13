@@ -2,9 +2,9 @@ import { ResultAsync, err, errAsync, ok } from 'neverthrow'
 import { createSignatureMessage } from './helpers/create-signature-message'
 import { verifyProofFactory } from './helpers/verify-proof'
 import { deriveVirtualAddress } from './helpers/derive-address-from-public-key'
-import { SignedChallenge } from '../../src/io/schemas'
 import { GatewayService } from './gateway'
 import { createPublicKeyHash } from './helpers/create-public-key-hash'
+import { SignedChallenge } from '../../src'
 
 export type RolaError = { reason: string; jsError?: Error }
 

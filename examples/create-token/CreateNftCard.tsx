@@ -14,6 +14,7 @@ import { createToken } from '../manifests/tokens'
 import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
 import { CreateFungibleTokenCard } from './CreateFungibleTokenCard'
+import { accounts } from '../../src/data-request/builders/accounts'
 
 type CreateTokenBase = {
   name: string
@@ -260,13 +261,11 @@ export const CreateNftCard = () => {
         fullWidth
         onClick={async () => {
           const values = state.nft
-          await rdt
-            .requestData({
-              accounts: { oneTime: true, quantifier: 'exactly', quantity: 1 },
-            })
+          await rdt.walletData
+            .oneTimeRequest(accounts().exactly(1))
             .andThen(({ accounts }) =>
               rdt.sendTransaction({
-                transactionManifest: createToken(accounts[0].address).nft({
+                transactionManifest: createToken(accounts![0].address).nft({
                   name: values.name,
                   description: values.description,
                   iconUrl: values.iconUrl,

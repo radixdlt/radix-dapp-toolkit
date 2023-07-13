@@ -1,48 +1,50 @@
 import * as React from 'react'
 import Box from '@mui/joy/Box'
-import Divider from '@mui/joy/Divider'
 import RadioGroup from '@mui/joy/RadioGroup'
 import Radio from '@mui/joy/Radio'
 import Input from '@mui/joy/Input'
 import Checkbox from '@mui/joy/Checkbox'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
-import { accountsState, useAccountsState } from './state'
-import { Buffer } from 'buffer'
+import { useDataRequestState } from './state'
 import { Card } from '../components/Card'
-import { createChallenge } from '../helpers/create-challenge'
+import { rdt } from '../rdt/rdt'
+import { RequestBuilder } from '../../src'
 
 export const AccountsCard = () => {
-  const { enabled, reset, quantifier, quantity, oneTime, challenge } =
-    useAccountsState()
+  const dataRequestState = useDataRequestState()
+  const disabled = !dataRequestState.accounts
   return (
     <Card
       title="Accounts"
       side={
         <Checkbox
-          checked={enabled}
+          checked={!!dataRequestState.accounts}
           onChange={(ev) => {
-            accountsState.next({
-              ...accountsState.value,
-              enabled: ev.target.checked,
-            })
+            if (!ev.target.checked) rdt.walletData.removeRequestData('accounts')
+            else rdt.walletData.patchRequestData(RequestBuilder.accounts())
           }}
         />
       }
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ mb: 4 }}>
-          <FormControl disabled={!enabled}>
+          <FormControl disabled={disabled}>
             <FormLabel>Quantity</FormLabel>
             <Input
               type="number"
               size="sm"
-              value={quantity}
+              value={dataRequestState.accounts?.numberOfAccounts.quantity || 0}
               onChange={(ev) => {
-                accountsState.next({
-                  ...accountsState.value,
-                  quantity: parseInt(ev.target.value, 10),
-                })
+                rdt.walletData.patchRequestData(
+                  RequestBuilder.accounts({
+                    ...dataRequestState.accounts!,
+                    numberOfAccounts: {
+                      ...dataRequestState.accounts!.numberOfAccounts,
+                      quantity: parseInt(ev.target.value, 10),
+                    },
+                  })
+                )
               }}
             />
           </FormControl>
@@ -51,22 +53,29 @@ export const AccountsCard = () => {
         <Box sx={{ mb: 4, mt: 4 }}>
           <RadioGroup
             name="accountsQuantifier"
-            value={quantifier}
+            value={
+              dataRequestState.accounts?.numberOfAccounts.quantifier ?? null
+            }
             onChange={(ev) => {
-              accountsState.next({
-                ...accountsState.value,
-                quantifier: ev.target.value,
-              })
+              rdt.walletData.patchRequestData(
+                RequestBuilder.accounts({
+                  ...dataRequestState.accounts!,
+                  numberOfAccounts: {
+                    ...dataRequestState.accounts!.numberOfAccounts,
+                    quantifier: ev.target.value as any,
+                  },
+                })
+              )
             }}
           >
             <Radio
-              disabled={!enabled}
+              disabled={disabled}
               label="At least"
               value="atLeast"
               size="sm"
             />
             <Radio
-              disabled={!enabled}
+              disabled={disabled}
               label="Exactly"
               value="exactly"
               size="sm"
@@ -76,44 +85,34 @@ export const AccountsCard = () => {
 
         <Box sx={{ mt: 4 }}>
           <Checkbox
-            label="With proof of ownership"
+            disabled={disabled}
+            label="With proof"
             size="sm"
-            checked={!!challenge}
+            checked={!!dataRequestState.accounts?.withProof}
             onChange={(ev) => {
-              accountsState.next({
-                ...accountsState.value,
-                challenge: ev.target.checked ? createChallenge() : undefined,
-              })
+              rdt.walletData.patchRequestData(
+                RequestBuilder.accounts({
+                  ...dataRequestState.accounts!,
+                  withProof: ev.target.checked,
+                })
+              )
             }}
           />
         </Box>
 
         <Box>
           <Checkbox
-            disabled={!enabled}
-            label="One time request"
-            size="sm"
-            checked={oneTime}
-            onChange={(ev) => {
-              accountsState.next({
-                ...accountsState.value,
-                oneTime: ev.target.checked,
-              })
-            }}
-          />
-        </Box>
-
-        <Box>
-          <Checkbox
-            disabled={!enabled}
+            disabled={disabled}
             label="Reset"
             size="sm"
-            checked={reset}
+            checked={!!dataRequestState.accounts?.reset}
             onChange={(ev) => {
-              accountsState.next({
-                ...accountsState.value,
-                reset: ev.target.checked,
-              })
+              rdt.walletData.patchRequestData(
+                RequestBuilder.accounts({
+                  ...dataRequestState.accounts!,
+                  reset: ev.target.checked,
+                })
+              )
             }}
           />
         </Box>

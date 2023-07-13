@@ -3,8 +3,8 @@ import { StateSubjects } from './subjects'
 import { StorageProvider } from '../_types'
 import { Subscription, filter, first, skip, switchMap, tap } from 'rxjs'
 import { removeUndefined } from '../helpers/remove-undefined'
-import { RdtState, rdtStateDefault } from '../io/schemas'
 import { ResultAsync } from 'neverthrow'
+import { RdtState } from './types'
 
 export type StateClient = ReturnType<typeof StateClient>
 
@@ -41,7 +41,7 @@ export const StateClient = (
   }
 
   const resetState = () => {
-    subjects.state.next(rdtStateDefault)
+    subjects.state.next({ walletData: {}, sharedData: {} })
   }
 
   const initializeState = () =>
@@ -54,7 +54,7 @@ export const StateClient = (
       })
       .mapErr(() => {
         logger?.debug(`loadedCorruptedStateFromStorage`)
-        subjects.state.next(rdtStateDefault)
+        resetState()
       })
       .map((storedState) => {
         if (storedState) {
@@ -62,7 +62,7 @@ export const StateClient = (
           return subjects.state.next(storedState)
         } else {
           logger?.debug(`initializeStateFromDefault`)
-          return subjects.state.next(rdtStateDefault)
+          resetState()
         }
       })
 

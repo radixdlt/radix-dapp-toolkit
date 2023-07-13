@@ -8,6 +8,7 @@ import { useRdt } from '../../rdt/hooks/useRdt'
 import { useLogger } from '../../components/Logger'
 import { TransactionStatus } from '@radixdlt/babylon-gateway-api-sdk'
 import { GumballMachineInfoBox } from './GumballMachineInfoBox'
+import { gatewayApi } from '../../rdt/rdt'
 export const GumballMachineCard = (
   gumballMachine: GumballMachineComponentState
 ) => {
@@ -28,7 +29,7 @@ export const GumballMachineCard = (
         version: 1,
       })
       .andThen(({ transactionIntentHash }) =>
-        rdt.gatewayApi.getTransactionDetails(transactionIntentHash)
+        gatewayApi.getTransactionDetails(transactionIntentHash)
       )
       .map((response) =>
         addLog(`transaction status: ${response.transaction.transaction_status}`)
@@ -44,7 +45,7 @@ export const GumballMachineCard = (
         version: 1,
       })
       .andThen(({ transactionIntentHash }) =>
-        rdt.gatewayApi.getTransactionDetails(transactionIntentHash)
+        gatewayApi.getTransactionDetails(transactionIntentHash)
       )
       .map((response) => {
         if (

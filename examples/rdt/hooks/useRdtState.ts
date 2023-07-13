@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRdt } from './useRdt'
-import { RdtState } from '../../../src/io/schemas'
+import { RdtState } from '../../../src'
 
 export const useRdtState = () => {
   const rdt = useRdt()

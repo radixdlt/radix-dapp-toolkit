@@ -1,73 +1,93 @@
 import * as React from 'react'
 import Box from '@mui/joy/Box'
 import Checkbox from '@mui/joy/Checkbox'
-import { personaDataState, usePersonaDataState } from './state'
+import { useDataRequestState } from './state'
 import { Card } from '../components/Card'
-import { personaDataField } from '@radixdlt/wallet-sdk'
+import { rdt } from '../rdt/rdt'
+import { personaData } from '../../src/data-request/builders/persona-data'
 
 export const PersonaDataCard = () => {
-  const { enabled, fields, reset, oneTime } = usePersonaDataState()
+  const dataRequestState = useDataRequestState()
+  const enabled = !!dataRequestState.personaData
   return (
     <Card
-      title="Persona Data"
+      title="Persona data"
       side={
         <Checkbox
           checked={enabled}
           onChange={(ev) => {
-            personaDataState.next({
-              ...personaDataState.value,
-              enabled: ev.target.checked,
-            })
+            if (!ev.target.checked)
+              rdt.walletData.removeRequestData('personaData')
+            else rdt.walletData.patchRequestData(personaData())
           }}
         />
       }
     >
       <Box sx={{ p: 2 }}>
-        {Object.values(personaDataField).map((field) => (
-          <Box key={field}>
-            <Checkbox
-              label={field}
-              size="sm"
-              disabled={!enabled}
-              checked={fields.includes(field)}
-              onChange={(ev) => {
-                personaDataState.next({
-                  ...personaDataState.value,
-                  fields: ev.target.checked
-                    ? [...personaDataState.value.fields, field]
-                    : personaDataState.value.fields.filter((f) => f !== field),
-                })
-              }}
-            />
-          </Box>
-        ))}
+        {Object.values(['fullName', 'emailAddresses', 'phoneNumbers']).map(
+          (field) => {
+            let isChecked = false
 
-        <Box sx={{ mt: 4 }}>
-          <Checkbox
-            disabled={!enabled}
-            label="One time request"
-            size="sm"
-            checked={oneTime}
-            onChange={(ev) => {
-              personaDataState.next({
-                ...personaDataState.value,
-                oneTime: ev.target.checked,
-              })
-            }}
-          />
-        </Box>
+            if (field === 'fullName') {
+              isChecked = !!dataRequestState?.personaData?.fullName
+            }
 
-        <Box>
+            if (field === 'emailAddresses') {
+              isChecked =
+                (dataRequestState?.personaData?.emailAddresses?.quantity || 0) >
+                0
+            }
+
+            if (field === 'phoneNumbers') {
+              isChecked =
+                (dataRequestState?.personaData?.phoneNumbers?.quantity || 0) > 0
+            }
+
+            return (
+              <Box key={field}>
+                <Checkbox
+                  label={field}
+                  size="sm"
+                  disabled={!enabled}
+                  checked={isChecked}
+                  onChange={(ev) => {
+                    const updated = personaData({
+                      ...dataRequestState.personaData!,
+                    })
+
+                    if (field === 'fullName') {
+                      updated.fullName(ev.target.checked)
+                    }
+
+                    if (field === 'emailAddresses') {
+                      updated.emailAddresses(ev.target.checked)
+                    }
+
+                    if (field === 'phoneNumbers') {
+                      updated.phoneNumbers(ev.target.checked)
+                    }
+
+                    rdt.walletData.patchRequestData(updated)
+                  }}
+                />
+              </Box>
+            )
+          }
+        )}
+
+        <Box mt={2}>
           <Checkbox
             disabled={!enabled}
             label="Reset"
             size="sm"
-            checked={reset}
+            checked={!!dataRequestState.personaData?.reset}
             onChange={(ev) => {
-              personaDataState.next({
-                ...personaDataState.value,
-                reset: ev.target.checked,
-              })
+              rdt.walletData.patchRequestData(
+                personaData({
+                  ...dataRequestState.personaData!,
+                  reset: ev.target.checked,
+                })
+              )
             }}
           />
         </Box>
