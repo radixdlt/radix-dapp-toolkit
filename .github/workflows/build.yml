@@ -96,9 +96,7 @@ jobs:
 
       - name: Setup tags for docker image
         id: setup_tags
-        run: |
-          GIT_COMMIT=$(git log -1 --format=%h )
-          echo "tag=$GIT_COMMIT" >> $GITHUB_OUTPUT
+        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
