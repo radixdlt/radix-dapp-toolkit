@@ -6,7 +6,7 @@ image:
   tag: ""
 
 imagePullSecrets:
-  - name: docker-eu-gcr-dev
+  - name: docker-hub-dev
 
 nameOverride: "radix-dapp-toolkit"
 fullnameOverride: "radix-dapp-toolkit"
