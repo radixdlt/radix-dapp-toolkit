@@ -97,17 +97,8 @@ jobs:
       - name: Setup tags for docker image
         id: setup_tags
         run: |
-          if [[ ${{ github.event_name }} != 'release' ]]; then
-            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's/\//-/g')
-            GIT_COMMIT=$(git log -1 --format=%h )
-          
-            DOCKER_TAG=${GIT_BRANCH}-${GIT_COMMIT}
-          else
-            DOCKER_TAG=${{ github.event.release.tag_name }}
-          fi
-          echo "DOCKER_TAG $DOCKER_TAG"
-          echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
-          echo "tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
+          GIT_COMMIT=$(git log -1 --format=%h )
+          echo "tag=$GIT_COMMIT" >> $GITHUB_OUTPUT
 
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
@@ -136,6 +127,7 @@ jobs:
       image_registry: "docker.io"
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
+      tag: ${{ needs.build.outputs.tag }}
       tags: |
         type=sha,event=branch
         type=sha,event=pr
