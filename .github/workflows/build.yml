@@ -125,7 +125,7 @@ jobs:
       image_registry: "docker.io"
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
-      tag: ${{ needs.build.outputs.tag }}
+      tag: test1
       tags: |
         type=sha,event=branch
         type=sha,event=pr
