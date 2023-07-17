@@ -163,9 +163,9 @@ jobs:
 
   snyk-monitor:
     runs-on: ubuntu-latest
-    #if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    #needs:
-    #  - push-docker-image
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - push-docker-image
     permissions:
       id-token: write
       pull-requests: read
