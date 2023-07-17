@@ -184,7 +184,7 @@ jobs:
           snyk_secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
           parse_json: true
           snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
-          image: docker.io/radixdlt/radix-dapp-toolkit:${{ needs.build.outputs.tag }}
+          image: docker.io/radixdlt/radix-dapp-toolkit:sha-${{ needs.build.outputs.tag }}
           target_ref: ${{ github.ref_name }}
 
   deploy-pr:
