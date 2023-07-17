@@ -139,7 +139,9 @@ jobs:
 
   push-docker-image:
     runs-on: ubuntu-latest
-    needs: setup-tags
+    needs:
+     - setup-tags
+     - build
     permissions:
       id-token: write
       contents: read
