@@ -121,7 +121,7 @@ jobs:
 
   push-docker-image:
     name: (PRIVATE) Docker AMD
-    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@remove-gcr
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
     with:
       runs_on: ubuntu-latest
       image_registry: "docker.io"
@@ -134,9 +134,6 @@ jobs:
       context: "./"
       dockerfile: "./Dockerfile"
       platforms: "linux/amd64"
-    secrets:
-      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
-      service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -328,4 +325,3 @@ jobs:
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
 
-          
