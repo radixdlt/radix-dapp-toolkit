@@ -119,49 +119,21 @@ jobs:
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@v2
 
-  setup-tags:
-    runs-on: ubuntu-latest
-    outputs:
-      tags: ${{ steps.toolkit-tags.outputs.tags }}
-      labels: ${{ steps.toolkit-tags.outputs.labels }}
-      json: ${{ steps.toolkit-tags.outputs.json }}
-    steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - name: Setup tags
-        id: toolkit-tags
-        uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea
-        with:
-          images: eu.gcr.io/dev-container-repo/radix-dapp-toolkit
-          tags: |
-            type=sha,event=branch
-            type=sha,event=pr
-            type=semver,pattern={{version}}
-
   push-docker-image:
-    runs-on: ubuntu-latest
-    needs:
-     - setup-tags
-     - build
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: read  
-    steps:
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
-      - uses: google-github-actions/auth@a61909d048e0be579b6c15b27088d19668493851
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - name: configure-docker
-        run: gcloud auth configure-docker -q
-      - name: Docker build
-        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
-        with:
-          file: ./Dockerfile
-          tags: ${{ needs.setup-tags.outputs.tags }}
-          labels: ${{ needs.setup-tags.outputs.labels }}
-          push: true
-          context: ./
+    name: (PRIVATE) Docker AMD
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
+    with:
+      runs_on: ubuntu-latest
+      image_registry: "docker.io"
+      image_organization: "radixdlt"
+      image_name: "private-radix-dapp-toolkit"
+      tags: |
+        type=sha,event=branch
+        type=sha,event=pr
+        type=semver,pattern={{version}}
+      context: "./"
+      dockerfile: "./Dockerfile"
+      platforms: "linux/amd64"
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -193,7 +165,6 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     needs:
-      - setup-tags
       - push-docker-image
     permissions:
       id-token: write
@@ -242,7 +213,7 @@ jobs:
                    --state-values-set "ci.ingressDomain=${{ env.INGRESS_DOMAIN }}" \
                    apply
         env:
-          CI_TAG: ${{ fromJSON(needs.setup-tags.outputs.json).labels['org.opencontainers.image.version'] }}
+          CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
           INGRESS_DOMAIN: radix-dapp-toolkit-pr-${{ github.event.number}}.${{ secrets.INGRESS_DOMAIN }}
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
@@ -251,7 +222,6 @@ jobs:
     if:  github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     needs:
-      - setup-tags
       - push-docker-image
     permissions:
       id-token: write
@@ -290,7 +260,7 @@ jobs:
                    --state-values-set "ci.ingressDomain=${{ env.INGRESS_DOMAIN }}" \
                    apply
         env:
-          CI_TAG: ${{ fromJSON(needs.setup-tags.outputs.json).labels['org.opencontainers.image.version'] }}
+          CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
           INGRESS_DOMAIN: radix-dapp-toolkit-dev.${{ secrets.INGRESS_DOMAIN }}
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
@@ -299,7 +269,6 @@ jobs:
     if: startsWith(github.ref_name,'release/')
     runs-on: ubuntu-latest
     needs:
-      - setup-tags
       - push-docker-image
     permissions:
       id-token: write
@@ -351,7 +320,8 @@ jobs:
                    --state-values-set "ci.ingressDomain=radix-dapp-toolkit-${NORMALIZED_BRANCH_NAME}.${{ env.INGRESS_DOMAIN }}" \
                    apply
         env:
-          CI_TAG: ${{ fromJSON(needs.setup-tags.outputs.json).labels['org.opencontainers.image.version'] }}
+          CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
           INGRESS_DOMAIN: ${{ secrets.INGRESS_DOMAIN }}
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
+
