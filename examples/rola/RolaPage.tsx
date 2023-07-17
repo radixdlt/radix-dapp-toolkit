@@ -10,7 +10,7 @@ import { useDAppDefinitionAddress } from '../rdt/rdt'
 import { RolaError, RolaFactory } from './rola'
 import { useNetworkId } from '../network/state'
 import { GatewayService } from './gateway'
-import { RequestBuilder } from '../../src'
+import { DataRequestBuilder } from '../../src'
 
 export const RolaPage = () => {
   const dAppDefinitionAddress = useDAppDefinitionAddress()
@@ -42,7 +42,7 @@ export const RolaPage = () => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending login request with challenge...')
               rdt.walletData
-                .oneTimeRequest(RequestBuilder.accounts().withProof())
+                .oneTimeRequest(DataRequestBuilder.accounts().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
 
@@ -83,7 +83,7 @@ export const RolaPage = () => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending account request with challenge...')
               rdt.walletData
-                .oneTimeRequest(RequestBuilder.accounts().withProof())
+                .oneTimeRequest(DataRequestBuilder.accounts().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
                   const signedChallenge = response.proofs![0]

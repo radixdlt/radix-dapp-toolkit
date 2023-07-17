@@ -7,6 +7,7 @@ import { GatewayClient } from './gateway/gateway'
 import { StateClient } from './state/state'
 import { RequestItemClient } from './request-items/request-item-client'
 import { DataRequestClient } from './data-request/data-request'
+import { DataRequestStateClient } from './data-request/data-request-state'
 
 export type StorageProvider = {
   getData: <T = any>(key: string) => ResultAsync<T | undefined, Error>
@@ -38,4 +39,5 @@ export type Providers = {
   requestItemClient: RequestItemClient
   storageClient: StorageProvider
   dataRequestClient: DataRequestClient
+  dataRequestStateClient: DataRequestStateClient
 }

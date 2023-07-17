@@ -1,6 +1,5 @@
 import { ResultAsync, ok, okAsync } from 'neverthrow'
 import { DataRequestState, DataRequestRawItem } from './_types'
-import { BehaviorSubject } from 'rxjs'
 import { StateClient } from '../state/state'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { WalletClient } from '../wallet/wallet-client'
@@ -8,7 +7,7 @@ import { transformWalletResponseToRdtWalletData } from './transformations/wallet
 import { toWalletRequest } from './helpers/to-wallet-request'
 import { canDataRequestBeResolvedByRdtState } from './helpers/can-data-request-be-resolved-by-rdt-state'
 import { transformSharedDataToDataRequestState } from './transformations/shared-data'
-import { produce } from 'immer'
+import { DataRequestStateClient } from './data-request-state'
 
 export type DataRequestClient = ReturnType<typeof DataRequestClient>
 
@@ -17,25 +16,14 @@ export const DataRequestClient = ({
   requestItemClient,
   walletClient,
   useCache,
+  dataRequestStateClient,
 }: {
   stateClient: StateClient
   requestItemClient: RequestItemClient
   walletClient: WalletClient
+  dataRequestStateClient: DataRequestStateClient
   useCache: boolean
 }) => {
-  const initialState: DataRequestState = {
-    accounts: {
-      numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
-      reset: false,
-      withProof: false,
-    },
-  }
-  const state = new BehaviorSubject<DataRequestState>(initialState)
-
-  const update = (input: DataRequestState) => state.next(input)
-  const reset = () => state.next(initialState)
-  const getState = () => state.getValue()
-
   let challengeGenerator: (() => ResultAsync<string, Error>) | undefined
 
   const isChallengeNeeded = (dataRequestState: DataRequestState) =>
@@ -58,7 +46,7 @@ export const DataRequestClient = ({
 
   const sendOneTimeRequest = (...items: DataRequestRawItem[]) =>
     sendRequest({
-      dataRequestState: toDataRequestState(...items),
+      dataRequestState: dataRequestStateClient.toDataRequestState(...items),
       isConnect: false,
       oneTime: true,
     })
@@ -105,53 +93,12 @@ export const DataRequestClient = ({
           .andThen(transformWalletResponseToRdtWalletData)
       })
 
-  const toDataRequestState = (
-    ...items: DataRequestRawItem[]
-  ): DataRequestState =>
-    items.reduce((acc, item) => ({ ...acc, ...item._toObject() }), {})
-
   const setState = (...items: DataRequestRawItem[]) => {
-    if (items.length === 0) reset()
-    else {
-      update(toDataRequestState(...items))
-    }
+    dataRequestStateClient.setState(...items)
     return {
       sendRequest: () =>
         sendRequest({
-          dataRequestState: getState(),
-          isConnect: false,
-          oneTime: false,
-        }),
-    }
-  }
-
-  const patchState = (...items: DataRequestRawItem[]) => {
-    if (items.length === 0) return
-    update({ ...getState(), ...toDataRequestState(...items) })
-
-    return {
-      sendRequest: () =>
-        sendRequest({
-          dataRequestState: getState(),
-          isConnect: false,
-          oneTime: false,
-        }),
-    }
-  }
-
-  const removeState = (...keys: (keyof DataRequestState)[]) => {
-    update(
-      produce(getState(), (draft: DataRequestState) => {
-        keys.forEach((key) => {
-          delete draft[key]
-        })
-      })
-    )
-
-    return {
-      sendRequest: () =>
-        sendRequest({
-          dataRequestState: getState(),
+          dataRequestState: dataRequestStateClient.getState(),
           isConnect: false,
           oneTime: false,
         }),
@@ -170,18 +117,19 @@ export const DataRequestClient = ({
   return {
     provideChallengeGenerator,
     sendOneTimeRequest,
-    getState,
     setState,
-    patchState,
-    removeState,
     sendRequest: ({
       isConnect,
       oneTime,
     }: {
       isConnect: boolean
       oneTime: boolean
-    }) => sendRequest({ isConnect, oneTime, dataRequestState: getState() }),
+    }) =>
+      sendRequest({
+        isConnect,
+        oneTime,
+        dataRequestState: dataRequestStateClient.getState(),
+      }),
     updateSharedData,
-    state$: state.asObservable(),
   }
 }

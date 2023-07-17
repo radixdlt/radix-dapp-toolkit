@@ -8,8 +8,8 @@ import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
 import { useDataRequestState } from './state'
 import { Card } from '../components/Card'
-import { rdt } from '../rdt/rdt'
-import { RequestBuilder } from '../../src'
+import { rdt, dataRequestStateClient } from '../rdt/rdt'
+import { DataRequestBuilder } from '../../src'
 
 export const AccountsCard = () => {
   const dataRequestState = useDataRequestState()
@@ -21,8 +21,10 @@ export const AccountsCard = () => {
         <Checkbox
           checked={!!dataRequestState.accounts}
           onChange={(ev) => {
-            if (!ev.target.checked) rdt.walletData.removeRequestData('accounts')
-            else rdt.walletData.patchRequestData(RequestBuilder.accounts())
+            if (!ev.target.checked)
+              dataRequestStateClient.removeState('accounts')
+            else
+              dataRequestStateClient.patchState(DataRequestBuilder.accounts())
           }}
         />
       }
@@ -36,8 +38,8 @@ export const AccountsCard = () => {
               size="sm"
               value={dataRequestState.accounts?.numberOfAccounts.quantity || 0}
               onChange={(ev) => {
-                rdt.walletData.patchRequestData(
-                  RequestBuilder.accounts({
+                dataRequestStateClient.patchState(
+                  DataRequestBuilder.accounts({
                     ...dataRequestState.accounts!,
                     numberOfAccounts: {
                       ...dataRequestState.accounts!.numberOfAccounts,
@@ -57,8 +59,8 @@ export const AccountsCard = () => {
               dataRequestState.accounts?.numberOfAccounts.quantifier ?? null
             }
             onChange={(ev) => {
-              rdt.walletData.patchRequestData(
-                RequestBuilder.accounts({
+              dataRequestStateClient.patchState(
+                DataRequestBuilder.accounts({
                   ...dataRequestState.accounts!,
                   numberOfAccounts: {
                     ...dataRequestState.accounts!.numberOfAccounts,
@@ -90,8 +92,8 @@ export const AccountsCard = () => {
             size="sm"
             checked={!!dataRequestState.accounts?.withProof}
             onChange={(ev) => {
-              rdt.walletData.patchRequestData(
-                RequestBuilder.accounts({
+              dataRequestStateClient.patchState(
+                DataRequestBuilder.accounts({
                   ...dataRequestState.accounts!,
                   withProof: ev.target.checked,
                 })
@@ -107,8 +109,8 @@ export const AccountsCard = () => {
             size="sm"
             checked={!!dataRequestState.accounts?.reset}
             onChange={(ev) => {
-              rdt.walletData.patchRequestData(
-                RequestBuilder.accounts({
+              dataRequestStateClient.patchState(
+                DataRequestBuilder.accounts({
                   ...dataRequestState.accounts!,
                   reset: ev.target.checked,
                 })

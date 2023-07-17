@@ -1,13 +1,19 @@
 import { accounts } from './builders/accounts'
-import { DataRequestClient } from './data-request'
 import { persona } from './builders/persona'
 import { personaData } from './builders/persona-data'
+import { DataRequestStateClient } from './data-request-state'
 
 describe('dataRequest', () => {
-  let dataRequest: DataRequestClient
+  let dataRequest: DataRequestStateClient
 
   beforeEach(() => {
-    dataRequest = DataRequestClient({} as any)
+    dataRequest = DataRequestStateClient({
+      accounts: {
+        numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
+        reset: false,
+        withProof: false,
+      },
+    })
   })
 
   it('should be instantiated with default values', () => {

@@ -12,6 +12,7 @@ import { RequestItemClient } from './request-items/request-item-client'
 import { LocalStorageClient } from './storage/local-storage-client'
 import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
+import { DataRequestStateClient } from './data-request/data-request-state'
 
 export type RadixDappToolkitOptions = {
   networkId: number
@@ -92,6 +93,16 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
       logger,
     })
 
+  const dataRequestStateClient =
+    providers?.dataRequestStateClient ??
+    DataRequestStateClient({
+      accounts: {
+        numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
+        reset: false,
+        withProof: false,
+      },
+    })
+
   const dataRequestClient =
     providers?.dataRequestClient ??
     DataRequestClient({
@@ -99,6 +110,7 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
       requestItemClient,
       walletClient,
       useCache,
+      dataRequestStateClient,
     })
 
   subscriptions.add(
@@ -193,8 +205,6 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
   }
   const walletDataApi = {
     setRequestData: dataRequestClient.setState,
-    patchRequestData: dataRequestClient.patchState,
-    removeRequestData: dataRequestClient.removeState,
     sendRequest: () =>
       dataRequestClient.sendRequest({
         isConnect: false,
@@ -208,7 +218,6 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     },
     updateSharedData: () => dataRequestClient.updateSharedData(),
     oneTimeRequest: dataRequestClient.sendOneTimeRequest,
-    requestDataState$: dataRequestClient.state$,
   }
 
   return {

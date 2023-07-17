@@ -1,5 +1,9 @@
 import { BehaviorSubject } from 'rxjs'
-import { RadixDappToolkit } from '../../src/radix-dapp-toolkit'
+import {
+  DataRequestBuilder,
+  DataRequestStateClient,
+  RadixDappToolkit,
+} from '../../src'
 import { appLogger } from '../logger/state'
 import {
   bootstrapNetwork,
@@ -60,6 +64,14 @@ bootstrapNetwork(networkId)
 
 export const gatewayApi = GatewayApiClient(networkIdMap.get(networkId) || '')
 
+export const dataRequestStateClient = DataRequestStateClient({
+  accounts: {
+    numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
+    reset: false,
+    withProof: false,
+  },
+})
+
 const options = {
   dAppDefinitionAddress: dAppDefinitionAddress.value,
   networkId,
@@ -69,7 +81,10 @@ const options = {
     transactionPath: '/transaction/',
     accountsPath: '/account/',
   },
-  providers: { gatewayClient: GatewayClient({ gatewayApi }) },
+  providers: {
+    gatewayClient: GatewayClient({ gatewayApi }),
+    dataRequestStateClient,
+  },
   useCache: false,
 }
 
