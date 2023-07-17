@@ -10,7 +10,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions: write-all
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -31,25 +30,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
         run: npx semantic-release
-
-      # Snyk SBOM
-      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
-        with:
-          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
-          app_name: 'wallet-sdk'
-          step_name: 'snyk-sbom'
-          secret_prefix: 'SNYK'
-          secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
-          parse_json: true
-      - name: Generate SBOM # check SBOM can be generated but nothing is done with it
-        uses: snyk/actions/node@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
-        with:
-          args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json --json-file-output sbom.json
-          command: sbom
-      - name: Upload SBOM
-        uses: svenstaro/upload-release-action@2b9d2847a97b04d02ad5c3df2d3a27baa97ce689 # v2.6.1
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sbom.json
-          tag: ${{ github.ref }}
-          overwrite: true
