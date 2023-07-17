@@ -1,9 +1,7 @@
 // @ts-nocheck
 import { RadixDappToolkit } from './radix-dapp-toolkit'
-import { rdtStateDefault } from './io'
 import { createLogger } from '@radixdlt/wallet-sdk'
 import { Context, MockContext, createMockContext } from './test-helpers/context'
-import { subscribeSpyTo } from '@hirez_io/observer-spy'
 import { delayAsync } from './test-helpers/delay-async'
 
 let onInitSpy = jest.fn()
@@ -16,24 +14,15 @@ describe('RadixDappToolkit', () => {
   const createRdt = (
     ...params: Partial<Parameters<typeof RadixDappToolkit>>
   ) => {
-    const metadata = {
+    const options = {
       dAppDefinitionAddress:
         'account_tdx_c_1p9c4zhvusrae49fguwm2cuxvltqquzxqex8ddr32e30qjlesen',
       networkId: 12,
-      ...params[0],
+      providers: params[0]?.providers ?? mockProviders,
+      logger,
     } satisfies Parameters<typeof RadixDappToolkit>[0]
 
-    const onConnect =
-      params[1] ?? ((() => {}) satisfies Parameters<typeof RadixDappToolkit>[1])
-
-    const options = {
-      providers: params[2]?.providers ?? mockProviders,
-      logger,
-      onInit: onInitSpy,
-      onStateChange: onStateChangeSpy,
-    } satisfies Parameters<typeof RadixDappToolkit>[2]
-
-    return RadixDappToolkit(metadata, onConnect, options)
+    return RadixDappToolkit(options)
   }
 
   beforeEach(() => {
@@ -45,9 +34,6 @@ describe('RadixDappToolkit', () => {
 
   it('should bootstrap RDT', async () => {
     const rdt = createRdt()
-
-    expect(onInitSpy).toHaveBeenCalledWith(rdtStateDefault)
-    expect(subscribeSpyTo(rdt.state$).getFirstValue()).toEqual(rdtStateDefault)
 
     await delayAsync(0)
 

@@ -11,6 +11,7 @@ import { BehaviorSubject, Subscription, merge, switchMap, tap } from 'rxjs'
 import { RequestItemClient } from './request-items/request-item-client'
 import { LocalStorageClient } from './storage/local-storage-client'
 import { DataRequestClient } from './data-request/data-request'
+import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 
 export type RadixDappToolkitOptions = {
   networkId: number
@@ -149,12 +150,12 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     stateClient.state$
       .pipe(
         tap((state) => {
-          connectButtonClient.setAccounts(state.walletData.accounts ?? [])
-          // connectButtonClient.setPersonaData(state.walletData.personaData ?? [])
-          connectButtonClient.setPersonaLabel(
-            state.walletData?.persona?.label ?? ''
-          )
-          connectButtonClient.setConnected(!!state.walletData?.persona)
+          const { personaData, accounts, personaLabel, connected } =
+            transformWalletDataToConnectButton(state.walletData)
+          connectButtonClient.setAccounts(accounts)
+          connectButtonClient.setPersonaData(personaData)
+          connectButtonClient.setPersonaLabel(personaLabel)
+          connectButtonClient.setConnected(connected)
         })
       )
       .subscribe()

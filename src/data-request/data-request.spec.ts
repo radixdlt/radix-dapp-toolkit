@@ -17,8 +17,6 @@ describe('dataRequest', () => {
         withProof: false,
         reset: false,
       },
-      persona: { withProof: false },
-      personaData: {},
     })
   })
 
@@ -62,21 +60,21 @@ describe('dataRequest', () => {
       dataRequest.setState(personaData().fullName())
 
       expect(dataRequest.getState()).toEqual({
-        fullName: true,
+        personaData: { fullName: true },
       })
     })
 
     it('should set persona data values', () => {
       dataRequest.setState(
         personaData()
-          .fullName()
-          .emailAddresses.atLeast(2)
-          .phoneNumbers.exactly(1)
+          .fullName(true)
+          .emailAddresses(true)
+          .phoneNumbers(true)
           .reset()
       )
       expect(dataRequest.getState().personaData).toEqual({
         fullName: true,
-        emailAddresses: { quantifier: 'atLeast', quantity: 2 },
+        emailAddresses: { quantifier: 'exactly', quantity: 1 },
         phoneNumbers: { quantifier: 'exactly', quantity: 1 },
         reset: true,
       })

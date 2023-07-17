@@ -15,7 +15,7 @@ export const persona = (
 ) => {
   let data: PersonaRequest = produce(initialData, () => {})
 
-  const withProof = (value: boolean) => {
+  const withProof = (value = true) => {
     data = produce(data, (draft) => {
       draft.withProof = value
     })

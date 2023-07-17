@@ -15,7 +15,7 @@ export const PersonaDataRequestSchema = object({
 export const personaData = (initialData: PersonaDataRequest = {}) => {
   let data: PersonaDataRequest = produce(initialData, () => {})
 
-  const fullName = (value: boolean) => {
+  const fullName = (value = true) => {
     data = produce(data, (draft) => {
       draft.fullName = value
     })
@@ -41,21 +41,21 @@ export const personaData = (initialData: PersonaDataRequest = {}) => {
     },
   })
 
-  const emailAddresses = (value: boolean) => {
+  const emailAddresses = (value = true) => {
     const options = createNumberOfValuesOptions('emailAddresses')
 
     options.exactly(value ? 1 : 0)
     return methods
   }
-  const phoneNumbers = (value: boolean) => {
+  const phoneNumbers = (value = true) => {
     const options = createNumberOfValuesOptions('phoneNumbers')
     options.exactly(value ? 1 : 0)
     return methods
   }
 
-  const reset = () => {
+  const reset = (value = true) => {
     data = produce(data, (draft) => {
-      draft.reset = true
+      draft.reset = value
     })
     return methods
   }

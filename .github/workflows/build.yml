@@ -124,16 +124,16 @@ jobs:
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
     with:
       runs_on: ubuntu-latest
-      image_registry: "docker.io"
-      image_organization: "radixdlt"
-      image_name: "private-radix-dapp-toolkit"
+      image_registry: 'docker.io'
+      image_organization: 'radixdlt'
+      image_name: 'private-radix-dapp-toolkit'
       tags: |
         type=sha,event=branch
         type=sha,event=pr
         type=semver,pattern={{version}}
-      context: "./"
-      dockerfile: "./Dockerfile"
-      platforms: "linux/amd64"
+      context: './'
+      dockerfile: './Dockerfile'
+      platforms: 'linux/amd64'
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -160,32 +160,6 @@ jobs:
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
           command: monitor
-
-    snyk-monitor:
-      runs-on: ubuntu-latest
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-      needs:
-        - push-docker-image
-      permissions:
-        id-token: write
-        pull-requests: read
-        contents: read
-        deployments: write
-      steps:
-        - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
-        - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
-          with:
-            role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
-            app_name: 'radix-dapp-toolkit'
-            step_name: 'snyk-monitor'
-            secret_prefix: 'SNYK'
-            secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
-            parse_json: true
-        - name: Enable Snyk online monitoring to check for vulnerabilities
-          uses: snyk/actions/node@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
-          with:
-            args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
-            command: monitor
 
   deploy-pr:
     if: ${{ github.event_name == 'pull_request' }}
@@ -350,4 +324,3 @@ jobs:
           INGRESS_DOMAIN: ${{ secrets.INGRESS_DOMAIN }}
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
-

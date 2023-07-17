@@ -36,16 +36,16 @@ export const accounts = (
     return methods
   }
 
-  const reset = () => {
+  const reset = (value = true) => {
     data = produce(data, (draft) => {
-      draft.reset = true
+      draft.reset = value
     })
     return methods
   }
 
-  const withProof = () => {
+  const withProof = (value = true) => {
     data = produce(data, (draft) => {
-      draft.withProof = true
+      draft.withProof = value
     })
     return methods
   }

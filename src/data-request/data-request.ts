@@ -1,4 +1,4 @@
-import { ResultAsync, errAsync, ok, okAsync } from 'neverthrow'
+import { ResultAsync, ok, okAsync } from 'neverthrow'
 import { DataRequestState, DataRequestRawItem } from './_types'
 import { BehaviorSubject } from 'rxjs'
 import { StateClient } from '../state/state'

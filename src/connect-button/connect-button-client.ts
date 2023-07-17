@@ -8,12 +8,7 @@ import {
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
-import {
-  Account,
-  ConnectButton,
-  PersonaData,
-  RequestItem,
-} from '@radixdlt/connect-button'
+import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
 
@@ -125,6 +120,7 @@ export const ConnectButtonClient = (input: {
 
           const personaData$ = subjects.personaData.pipe(
             tap((items) => {
+              // @ts-ignore: TODO: update interface in connect-button
               connectButtonElement.personaData = items
             })
           )
@@ -192,7 +188,7 @@ export const ConnectButtonClient = (input: {
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
-    setPersonaData: (personaData: PersonaData[]) =>
+    setPersonaData: (personaData: { value: string; field: string }[]) =>
       subjects.personaData.next(personaData),
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
