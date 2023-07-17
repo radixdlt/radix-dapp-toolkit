@@ -10,11 +10,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      pull-requests: read
-      contents: read
-      deployments: write
+    permissions: write-all
     steps:
       - name: Checkout
         uses: actions/checkout@v2
