@@ -121,7 +121,7 @@ jobs:
 
   push-docker-image:
     name: (PRIVATE) Docker AMD
-    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@remove-gcr
     with:
       runs_on: ubuntu-latest
       image_registry: "docker.io"
