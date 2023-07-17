@@ -85,14 +85,6 @@ jobs:
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json --json-file-output sbom.json
           command: sbom
-      - name: Upload SBOM
-        if: github.event_name == 'release'
-        uses: svenstaro/upload-release-action@2b9d2847a97b04d02ad5c3df2d3a27baa97ce689 # v2.6.1
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sbom.json
-          tag: ${{ github.ref }}
-          overwrite: true
 
   build:
     runs-on: ubuntu-latest
@@ -101,6 +93,21 @@ jobs:
       - snyk-scan-code
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+
+      - name: Setup tags for docker image
+        id: setup_tags
+        run: |
+          if [[ ${{ github.event_name }} != 'release' ]]; then
+            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's/\//-/g')
+            GIT_COMMIT=$(git log -1 --format=%h )
+          
+            DOCKER_TAG=${GIT_BRANCH}-${GIT_COMMIT}
+          else
+            DOCKER_TAG=${{ github.event.release.tag_name }}
+          fi
+          echo "DOCKER_TAG $DOCKER_TAG"
+          echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+          echo "tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
 
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
@@ -134,6 +141,7 @@ jobs:
       context: "./"
       dockerfile: "./Dockerfile"
       platforms: "linux/amd64"
+      scan_image: true
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -160,6 +168,30 @@ jobs:
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
           command: monitor
+
+  snyk-container-monitor:
+    runs-on: ubuntu-latest
+    #if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build
+      - push-docker-image
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
+        with:
+          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
+          app_name: 'radix-dapp-toolkit'
+          step_name: 'snyk-container-monitor'
+          dockerhub_secret_name: ${{ secrets.AWS_SECRET_NAME_DOCKERHUB }}
+          snyk_secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
+          parse_json: true
+          snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
+          image: docker.io/radixdlt/radix-dapp-toolkit:${{ needs.build.outputs.tag }}
+          target_ref: ${{ github.ref_name }}
 
   deploy-pr:
     if: ${{ github.event_name == 'pull_request' }}
