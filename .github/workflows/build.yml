@@ -85,22 +85,20 @@ jobs:
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json --json-file-output sbom.json
           command: sbom
-      - name: Upload SBOM
-        if: github.event_name == 'release'
-        uses: svenstaro/upload-release-action@2b9d2847a97b04d02ad5c3df2d3a27baa97ce689 # v2.6.1
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: sbom.json
-          tag: ${{ github.ref }}
-          overwrite: true
 
   build:
     runs-on: ubuntu-latest
     needs:
       - snyk-scan-deps-licences
       - snyk-scan-code
+    outputs:
+      tag: ${{ steps.setup_tags.outputs.tag }}
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+
+      - name: Setup tags for docker image
+        id: setup_tags
+        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
@@ -121,12 +119,15 @@ jobs:
 
   push-docker-image:
     name: (PRIVATE) Docker AMD
+    needs:
+      - build
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
     with:
       runs_on: ubuntu-latest
       image_registry: "docker.io"
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
+      tag: ${{ needs.build.outputs.tag }}
       tags: |
         type=sha,event=branch
         type=sha,event=pr
@@ -134,6 +135,7 @@ jobs:
       context: "./"
       dockerfile: "./Dockerfile"
       platforms: "linux/amd64"
+      scan_image: true
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -160,6 +162,30 @@ jobs:
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
           command: monitor
+
+  snyk-container-monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build
+      - push-docker-image
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
+        with:
+          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
+          app_name: 'radix-dapp-toolkit'
+          step_name: 'snyk-container-monitor'
+          dockerhub_secret_name: ${{ secrets.AWS_SECRET_NAME_DOCKERHUB }}
+          snyk_secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
+          parse_json: true
+          snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
+          image: docker.io/radixdlt/private-radix-dapp-toolkit:sha-${{ needs.build.outputs.tag }}
+          target_ref: ${{ github.ref_name }}
 
   deploy-pr:
     if: ${{ github.event_name == 'pull_request' }}
