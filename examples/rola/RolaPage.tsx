@@ -42,7 +42,7 @@ export const RolaPage = () => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending login request with challenge...')
               rdt.walletData
-                .oneTimeRequest(DataRequestBuilder.accounts().withProof())
+                .oneTimeRequest(DataRequestBuilder.persona().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
 
