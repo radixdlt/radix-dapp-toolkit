@@ -36,7 +36,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-rc.2.2",
+    "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-rc.2.3",
     "@radixdlt/connect-button": "0.13.0-alpha.1",
     "@radixdlt/radix-engine-toolkit": "^0.2.1",
     "@radixdlt/wallet-sdk": "0.9.0-alpha.11",

@@ -63,9 +63,10 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     providers?.gatewayClient ??
     GatewayClient({
       logger,
-      gatewayApi: GatewayApiClient(
-        gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId)
-      ),
+      gatewayApi: GatewayApiClient({
+        basePath: gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId),
+        dAppDefinitionAddress,
+      }),
     })
 
   const walletSdk =

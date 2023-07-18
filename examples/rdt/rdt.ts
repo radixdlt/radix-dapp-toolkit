@@ -63,7 +63,9 @@ export const useDAppDefinitionAddress = createObservableHook(
 
 bootstrapNetwork(networkId)
 
-export const gatewayApi = GatewayApiClient(networkIdMap.get(networkId) || '')
+export const gatewayApi = GatewayApiClient({
+  basePath: networkIdMap.get(networkId) || '',
+})
 
 export const dataRequestStateClient = DataRequestStateClient({
   accounts: {
