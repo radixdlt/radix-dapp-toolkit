@@ -1,6 +1,7 @@
 import { GatewayApiClient } from './gateway-api'
 import { Result, ResultAsync } from 'neverthrow'
 import {
+  EntityMetadataItem,
   TransactionStatus,
   TransactionStatusResponse,
 } from '@radixdlt/babylon-gateway-api-sdk'
@@ -10,6 +11,14 @@ import {
   ExponentialBackoffInput,
 } from './helpers/exponential-backoff'
 import { AppLogger, createSdkError, SdkError } from '@radixdlt/wallet-sdk'
+
+export const MetadataValue = (value?: EntityMetadataItem) => {
+  const typed: any = value?.value?.typed
+
+  return {
+    stringified: typed?.value ? typed?.value || '' : typed?.values.join(', '),
+  }
+}
 
 export type GatewayClient = ReturnType<typeof GatewayClient>
 
