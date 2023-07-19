@@ -1,20 +1,24 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-- [What is RDT?](#what-is-rdt)
+- [What is Radix dApp Toolkit?](#what-is-radix-dapp-toolkit)
   - [Resources](#resources)
     - [Building a dApp frontend](#building-a-dapp-frontend)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Getting started](#getting-started)
     - [Instantiation](#instantiation)
-    - [Configuration](#configuration)
+  - [Wallet data](#wallet-data)
+    - [Send request](#send-request)
+      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
+    - [Change requested data](#change-requested-data)
+  - [State changes](#state-changes)
 - [Setting up your dApp Definition](#setting-up-your-dapp-definition)
   - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
 
-# What is RDT?
+# What is Radix dApp Toolkit?
 
-Radix dApp Toolkit (RDT) facilitates communication with the Radix Wallet and provides easy-to-use interface over lower level APIs.
+Radix dApp Toolkit (RDT) is a TypeScript library that helps facilitate communication with the Radix Wallet and provides an easy-to-use interface over lower level APIs.
 
 The current version only supports desktop browser webapps with requests made via the Radix Wallet Connector browser extension. It is intended to later add support for mobile browser webapps using deep linking with the same essential interface.
 
@@ -24,7 +28,7 @@ The current version only supports desktop browser webapps with requests made via
 
 - **Tools** – Abstractions over lower level APIs for developers to build their radix dApp at lightning speed.
 
-- **State management** – Handles wallet responses, caching and pushes properties to the √ Connect button.
+- **State management** – Handles wallet responses, caching and provides data to √ Connect button.
 
 ## Resources
 
@@ -50,110 +54,70 @@ yarn add @radixdlt/radix-dapp-toolkit
 
 Add the `<radix-connect-button />` element in your HTML code and instantiate `RadixDappToolkit`.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/bundle.js"></script>
-  </head>
-  <body>
-    <radix-connect-button />
-  </body>
-</html>
-```
-
 ### Instantiation
 
 ```typescript
 import { RadixDappToolkit } from '@radixdlt/radix-dapp-toolkit'
 
-const rdt = RadixDappToolkit(
-  {
-    dAppDefinitionAddress:
-      'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
-    dAppName: 'Name of your dApp',
-  },
-  (requestData) => {
-    requestData({
-      accounts: { quantifier: 'atLeast', quantity: 1 },
-    }).map(({ data: { accounts } }) => {
-      // set your application state
-    })
-  },
-  {
-    networkId: 34,
-    onDisconnect: () => {
-      // clear your application state
-    },
-    onInit: ({ accounts }) => {
-      // set your initial application state
-    },
-  }
-)
-```
-
-```typescript
-type RadixDappToolkit = (
-  dAppMetadata: DappMetadata,
-  onConnect?: (requestData: RequestData) => void,
-  configuration?: RadixDappToolkitConfiguration
-) => {
-  requestData: RequestData
-  sendTransaction: SendTransaction
-  state$: State$
-  destroy: () => void
-}
+const rdt = RadixDappToolkit({
+  dAppDefinitionAddress:
+    'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
+  networkId: 1,
+})
 ```
 
 **Input**
 
-- **requires** dAppMetadata - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
-- **optional** onConnect - Callback function that is triggered when user clicks connect wallet in √ Connect Button.
-- **optional** configuration - Additional available configuration for RDT
+- **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
+- **requires** networkId - Target radix network ID.
 
-**Output**
+## Wallet data
 
-- requestData - used to request data from the wallet
-- sendTransaction - used for sending transactions
-- state$ - a state observable. Subscribe to get a stream of the latest state.
-- destroy - used in order to destroy the instance of RDT.
+### Send request
 
-### Configuration
+A data requests needs to be sent to the wallet in order to read wallet data.
+
+There are two ways a data request can be sent:
+
+1. Triggered by user action in the √ Connect button
+2. Programmatically through the `walletData.sendRequest` method
+
+#### Trigger wallet data request programmatically
 
 ```typescript
-type RadixDappToolkitConfiguration = {
-  initialState?: State
-  logger?: Logger<unknown>
-  networkId?: number
-  onInit?: OnInitCallback
-  onDisconnect?: OnDisconnectCallback
-  providers?: {
-    storage?: StorageProvider
-    connectButton?: ConnectButtonProvider
-    walletClient?: WalletClient
-  }
-  useDoneCallback?: boolean
-  explorer?: {
-    baseUrl: string
-    transactionPath: string
-    accountsPath: string
-  }
-}
+const result = await rdt.walletData.sendRequest()
+
+if (result.isError()) return handleException()
+
+const walletData = result.value
 ```
 
-- **optional** initialState - instantiate RDT with a provided state. Useful in automated tests.
-- **optional** logger - provide a logger function to debug RDT.
-- **optional** networkId - specify which Radix network to use, defaults to Mainnet (0x01).
-- **optional** onInit - lifecycle function that is triggered when RDT has finished bootstrapping internal state.
-- **optional** onDisconnect - triggered when user clicks disconnect wallet in √ Connect Button.
-- **optional** providers - allows you to provide your own modules for the internal components of RDT.
-- **optional** useDoneCallback - if enabled, `done()` needs to be called to in order to complete the connect flow
-- **optional** explorer - used to change the outgoing links for accounts and transactions in the √ Connect Button. Defaults to radix dashboard
+### Change requested data
 
-## Examples
-- [React](https://github.com/radixdlt/react-connect-button)
+By default, a data request will ask the wallet to provide at least 1 account. Use `walletData.setRequestData` together with `DataRequestBuilder` to change the wallet data request.
+
+```typescript
+rdt.walletData.setRequestData(
+  DataRequestBuilder.accounts().exactly(1),
+  DataRequestBuilder.personaData().fullName().emailAddresses()
+)
+```
+
+## State changes
+
+Listen to wallet data changes by subscribing to state changes.
+
+```typescript
+const stateSubscription = rdt.state$.subscribe((state) => {
+  doSomethingWithAccounts(state.walletData.accounts)
+})
+```
+
+When your dApp is done listening to state changes remember to unsubscribe in order to prevent memory leaks.
+
+```typescript
+stateSubscription.unsubscribe()
+```
 
 # Setting up your dApp Definition
 
@@ -185,7 +149,7 @@ Provide account address as the the dApp Definition address that you just created
 
 # Data storage
 
-In order to provide a consistent user experience RDT will store and read data from the browser’s local storage. This will enable state rehydration and keep state between page reloads.
+To provide a consistent user experience RDT stores data to the browser’s local storage. This will enable state rehydration and keep state between page reloads.
 
 To understand which wallet responses that get stored we need to understand the difference between one-time and regular data requests.
 
