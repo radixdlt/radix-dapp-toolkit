@@ -91,6 +91,12 @@ export const DataRequestClient = ({
         return walletClient
           .request(walletDataRequest, id)
           .andThen(transformWalletResponseToRdtWalletData)
+          .map((walletData) => {
+            stateClient.setState({
+              walletData,
+            })
+            return walletData
+          })
       })
 
   const setState = (...items: DataRequestRawItem[]) => {
