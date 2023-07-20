@@ -1,21 +1,20 @@
 import { BehaviorSubject } from 'rxjs'
-import {
-  DataRequestBuilder,
-  DataRequestStateClient,
-  RadixDappToolkit,
-} from '../../src'
+import { DataRequestStateClient, RadixDappToolkit } from '../../src'
 import { appLogger } from '../logger/state'
 import {
   bootstrapNetwork,
   networkId as networkIdSubject,
 } from '../network/state'
 import { createObservableHook } from '../helpers/create-observable-hook'
-import { networkIdMap } from '../../src/gateway/_types'
 import { setAccounts } from '../account/state'
 import { addEntities } from '../entity/state'
 import { createChallenge } from '../helpers/create-challenge'
 import { GatewayApiClient } from '../../src/gateway/gateway-api'
 import { GatewayClient } from '../../src/gateway/gateway'
+import {
+  RadixNetwork,
+  RadixNetworkConfigById,
+} from '@radixdlt/babylon-gateway-api-sdk'
 
 const networkId = networkIdSubject.value
 
@@ -27,9 +26,12 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
         'No dAppDefinitionAddress found in localStorage, defaulting'
       )
       return {
-        '12': 'account_tdx_c_1pysl6ft839lj0murylf2vsmn57e67v20px435v37tejqv0famt',
-        '13': 'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
-        '34': 'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
+        [RadixNetwork.Kisharnet]:
+          'account_tdx_c_1pysl6ft839lj0murylf2vsmn57e67v20px435v37tejqv0famt',
+        [RadixNetwork.Ansharnet]:
+          'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
+        [RadixNetwork.Hammunet]:
+          'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
       }
     }
 
@@ -64,7 +66,7 @@ export const useDAppDefinitionAddress = createObservableHook(
 bootstrapNetwork(networkId)
 
 export const gatewayApi = GatewayApiClient({
-  basePath: networkIdMap.get(networkId) || '',
+  basePath: RadixNetworkConfigById[networkId].gatewayUrl,
 })
 
 export const dataRequestStateClient = DataRequestStateClient({
