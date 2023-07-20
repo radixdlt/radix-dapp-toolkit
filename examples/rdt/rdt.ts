@@ -79,11 +79,6 @@ const options = {
   dAppDefinitionAddress: dAppDefinitionAddress.value,
   networkId,
   logger: appLogger as any,
-  explorer: {
-    baseUrl: networkIdMap.get(networkId) || '',
-    transactionPath: '/transaction/',
-    accountsPath: '/account/',
-  },
   providers: {
     gatewayClient: GatewayClient({ gatewayApi }),
     dataRequestStateClient,
