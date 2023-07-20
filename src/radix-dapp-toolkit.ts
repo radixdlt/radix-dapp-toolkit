@@ -20,6 +20,7 @@ import { LocalStorageClient } from './storage/local-storage-client'
 import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 import { DataRequestStateClient } from './data-request/data-request-state'
+import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
 
 export type RadixDappToolkitOptions = {
   networkId: number
@@ -57,7 +58,15 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
   const subscriptions = new Subscription()
 
   const connectButtonClient =
-    providers?.connectButton ?? ConnectButtonClient({ logger, explorer })
+    providers?.connectButton ??
+    ConnectButtonClient({
+      logger,
+      explorer: explorer ?? {
+        baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+        transactionPath: '/transaction/',
+        accountsPath: '/account/',
+      },
+    })
 
   const gatewayClient =
     providers?.gatewayClient ??
