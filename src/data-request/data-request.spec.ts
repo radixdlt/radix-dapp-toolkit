@@ -32,8 +32,6 @@ describe('dataRequest', () => {
       expect(dataRequest.getState()).toEqual({
         accounts: {
           numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
-          withProof: false,
-          reset: false,
         },
       })
     })
