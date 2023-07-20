@@ -12,19 +12,52 @@ export const createToken = (address: string) => ({
     symbol: string
     initialSupply: number
   }>) => `CREATE_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
-    18u8
-    Map<String, Enum>(
-        "name" => Enum<Metadata::String>("${name}"),                 
-        "symbol" => Enum<Metadata::String>("${symbol}"),             
-        "description" => Enum<Metadata::String>("${description}"),    
-        "icon_url" => Enum<Metadata::String>("${iconUrl}")    
-    ) 
-    Map<Enum, Tuple>(
-      
-        Enum<ResourceMethodAuthKey::Withdraw>() => Tuple(Enum<AccessRule::AllowAll>(), Enum<AccessRule::DenyAll>()),
-        Enum<ResourceMethodAuthKey::Deposit>() => Tuple(Enum<AccessRule::AllowAll>(), Enum<AccessRule::DenyAll>())
+    # Owner role - This gets metadata permissions, and is the default for other permissions
+    # Can set as Enum<OwnerRole::Fixed>(access_rule)  or Enum<OwnerRole::Updatable>(access_rule)
+    Enum<OwnerRole::None>()
+    true             # Whether the engine should track supply (avoid for massively parallelizable tokens)
+    18u8             # Divisibility (between 0u8 and 18u8)
+    Decimal("${initialSupply}") # Initial supply
+    Tuple(
+        Some(         # Mint Roles (if None: defaults to DenyAll, DenyAll)
+            Tuple(
+                Some(Enum<AccessRule::AllowAll>()),  # Minter (if None: defaults to Owner)
+                Some(Enum<AccessRule::DenyAll>())    # Minter Updater (if None: defaults to Owner)
+            )
+        ),
+        None,        # Burn Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Freeze Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Recall Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Withdraw Roles (if None: defaults to AllowAll, DenyAll)
+        None         # Deposit Roles (if None: defaults to AllowAll, DenyAll)
     )
-    Decimal("${initialSupply}");
+    Tuple(                                                                   # Metadata initialization
+        Map<String, Tuple>(                                                  # Initial metadata values
+            "name" => Tuple(
+                Some(Enum<Metadata::String>("${name}")),    # Resource Name
+                true                                                         # Locked
+            ),
+            "symbol" => Tuple(
+                Some(Enum<Metadata::String>("${symbol}")),   
+                true                                                        
+            ),
+            "description" => Tuple(
+                Some(Enum<Metadata::String>("${description}")),   
+                true                                                        
+            ),
+            "icon_url" => Tuple(
+              Some(Enum<Metadata::String>("${iconUrl}")),
+              true
+            )
+        ),
+        Map<String, Enum>(                                                   # Metadata roles
+            "metadata_setter" => Some(Enum<AccessRule::AllowAll>()),         # Metadata setter role
+            "metadata_setter_updater" => None,                               # Metadata setter updater role as None defaults to OWNER
+            "metadata_locker" => Some(Enum<AccessRule::DenyAll>()),          # Metadata locker role
+            "metadata_locker_updater" => None                                # Metadata locker updater role as None defaults to OWNER
+        )
+    )
+    None;             # No Address Reservation
 
 # Depositing the entirety of the initial supply of the newly created resource into our account 
 # component.
@@ -42,31 +75,70 @@ CALL_METHOD
     name: string
     description: string
     items: string[]
-  }) => `CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
-    Enum<NonFungibleIdType::Integer>()
-    Tuple(Tuple(Array<Enum>(), Array<Tuple>(), Array<Enum>()), Enum<0u8>(64u8), Array<String>())
-    Map<String, Enum>(
-        "name" => Enum<Metadata::String>("${name}"),                                        
-        "description" => Enum<Metadata::String>("${description}"),                           
-        "icon_url" => Enum<Metadata::String>("${iconUrl}")                           
-    )
-    Map<Enum, Tuple>(
-        Enum<ResourceMethodAuthKey::Withdraw>() => Tuple(Enum<AccessRule::AllowAll>(), Enum<AccessRule::DenyAll>()),
-        Enum<ResourceMethodAuthKey::Deposit>() => Tuple(Enum<AccessRule::AllowAll>(), Enum<AccessRule::DenyAll>())
-    )
-
-    Map<NonFungibleLocalId, Tuple>(
+  }) => `
+  # Creating a new resource 
+CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
+    # Owner role - This gets metadata permissions, and is the default for other permissions
+    # Can set as Enum<OwnerRole::Fixed>(access_rule)  or Enum<OwnerRole::Updatable>(access_rule)
+    Enum<OwnerRole::None>()
+    Enum<NonFungibleIdType::Integer>()                                                                  # The type of NonFungible Id
+    true                                                                                                # Whether the engine should track supply (avoid for massively parallelizable tokens)
+    Tuple(Tuple(Array<Enum>(), Array<Tuple>(), Array<Enum>()), Enum<0u8>(64u8), Array<String>())        # Non Fungible Data Schema
+    Map<NonFungibleLocalId, Tuple>(   
         ${items
           .map(
             (item, index) =>
-              `NonFungibleLocalId("#${index + 1}#") => Tuple(Tuple("${item}", Decimal("${index}")))`
+              `NonFungibleLocalId("#${
+                index + 1
+              }#") => Tuple(Tuple("${item}", Decimal("${index}")))`
           )
-          .join(', ')}
-        
-    );
+          .join(
+            ', '
+          )}                                                                 
+    )
+    Tuple(
+        Some(         # Mint Roles (if None: defaults to DenyAll, DenyAll)
+            Tuple(
+                Some(Enum<AccessRule::AllowAll>()),  # Minter (if None: defaults to Owner)
+                Some(Enum<AccessRule::DenyAll>())    # Minter Updater (if None: defaults to Owner)
+            )
+        ),
+        None,        # Burn Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Freeze Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Recall Roles (if None: defaults to DenyAll, DenyAll)
+        None,        # Withdraw Roles (if None: defaults to AllowAll, DenyAll)
+        None,        # Deposit Roles (if None: defaults to AllowAll, DenyAll)
+        None         # Non Fungible Data Update Roles (if None: defaults to DenyAll, DenyAll)
+    )
+    Tuple(                                                                   # Metadata initialization
+        Map<String, Tuple>(                                                  # Initial metadata values
+            "name" => Tuple(
+                Some(Enum<Metadata::String>("${name}")),    
+                true                                                         
+            ),
+            "description" => Tuple(
+                Some(Enum<Metadata::String>("${description}")),    
+                true   
+            ),
+            "icon_url" => Tuple(
+                Some(Enum<Metadata::String>("${iconUrl}")),    
+                true   
+            ) 
+        ),
+        Map<String, Enum>(                                                   # Metadata roles
+            "metadata_setter" => Some(Enum<AccessRule::AllowAll>()),         # Metadata setter role
+            "metadata_setter_updater" => None,                               # Metadata setter updater role as None defaults to OWNER
+            "metadata_locker" => Some(Enum<AccessRule::DenyAll>()),          # Metadata locker role
+            "metadata_locker_updater" => None                                # Metadata locker updater role as None defaults to OWNER
+        )
+    )
+    None;             # No Address Reservation
 
+# Depositing the entirety of the initial supply of the newly created resource into our account 
+# component.
 CALL_METHOD
-  Address("${address}") 
-  "deposit_batch"
-  Expression("ENTIRE_WORKTOP");`,
+    Address("${address}") 
+    "deposit_batch"
+    Expression("ENTIRE_WORKTOP");
+  `,
 })

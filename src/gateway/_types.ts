@@ -1,4 +1,8 @@
-export const networkIdMap = new Map<number, string>()
-  .set(12, 'https://rcnet.radixdlt.com')
-  .set(33, 'https://enkinet-gateway.radixdlt.com')
-  .set(34, 'https://hammunet-gateway.radixdlt.com')
+import { RadixNetworkConfig } from '@radixdlt/babylon-gateway-api-sdk'
+
+export const networkIdMap = new Map<number, string>(
+  Object.values(RadixNetworkConfig).map(({ networkId, gatewayUrl }) => [
+    networkId,
+    gatewayUrl,
+  ])
+)

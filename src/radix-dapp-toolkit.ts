@@ -5,8 +5,15 @@ import { WalletClient } from './wallet/wallet-client'
 import { AppLogger, WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
 import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
-import { GatewayClient } from './gateway/gateway'
-import { BehaviorSubject, Subscription, merge, switchMap, tap } from 'rxjs'
+import { GatewayClient, MetadataValue } from './gateway/gateway'
+import {
+  BehaviorSubject,
+  Subscription,
+  filter,
+  merge,
+  switchMap,
+  tap,
+} from 'rxjs'
 
 import { RequestItemClient } from './request-items/request-item-client'
 import { LocalStorageClient } from './storage/local-storage-client'
@@ -56,9 +63,10 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     providers?.gatewayClient ??
     GatewayClient({
       logger,
-      gatewayApi: GatewayApiClient(
-        gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId)
-      ),
+      gatewayApi: GatewayApiClient({
+        basePath: gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId),
+        dAppDefinitionAddress,
+      }),
     })
 
   const walletSdk =
@@ -116,13 +124,15 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
   subscriptions.add(
     dAppDefinitionAddressSubject
       .pipe(
+        filter((address) => !!address),
         switchMap((address) =>
           gatewayClient.gatewayApi
             .getEntityDetails(address)
             .map(
               (details) =>
-                details?.metadata.items.find((item) => item.key === 'name')
-                  ?.value?.as_string
+                MetadataValue(
+                  details?.metadata.items.find((item) => item.key === 'name')
+                ).stringified
             )
             .map((dAppName) => {
               connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')

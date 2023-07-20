@@ -1,7 +1,7 @@
 // @ts-ignore
 import gumballWasmUrl from '../../assets/gumball_machine.wasm?url'
 // @ts-ignore
-import gumballSchemaUrl from '../../assets/gumball_machine.schema?url'
+import gumballSchemaUrl from '../../assets/gumball_machine.rpd?url'
 import * as React from 'react'
 import Button from '@mui/joy/Button'
 import { useRdt } from '../../rdt/hooks/useRdt'
@@ -43,11 +43,11 @@ export const DeployGumballMachineCard = () => {
   const exec = () => {
     setState((prev) => ({ ...prev, loading: true }))
     return loadGumballMachineBinaries()
-      .andThen(([wasm, schema]) => {
+      .andThen(([wasm, rpd]) => {
         const transactionManifest = getDeployPackageManifest({
           nftAddress: state.nftAddress!,
           wasm,
-          schema,
+          rpd,
         })
         addLog('deploying gumball machine package...')
         return rdt.sendTransaction({

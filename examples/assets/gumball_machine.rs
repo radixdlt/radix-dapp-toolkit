@@ -1,19 +1,25 @@
 use scrypto::prelude::*;
 
-#[derive(NonFungibleData, ScryptoSbor)]
-struct StaffBadge {
-    employee_name: String,
-}
-
 #[blueprint]
 mod gumball_machine {
+    enable_method_auth! {
+        roles {
+            admin => updatable_by: [SELF, OWNER];
+        },
+        methods {
+            get_price => PUBLIC;
+            buy_gumball => PUBLIC;
+            set_price => restrict_to: [admin, OWNER];
+            withdraw_earnings => restrict_to: [admin, OWNER];
+            refill_gumball_machine => restrict_to: [admin, OWNER];
+        }
+    }
+
     struct GumballMachine {
         gumballs: Vault,
         gumballs_resource_manager: ResourceManager,
         collected_xrd: Vault,
         price: Decimal,
-        staff_badge_address: ResourceAddress,
-        staff_badge_resource_manager: ResourceManager,
     }
 
     impl GumballMachine {
@@ -23,90 +29,61 @@ mod gumball_machine {
             flavor: String,
             dapp: String,
         ) -> (ComponentAddress, Bucket) {
-            let admin_badge: Bucket = ResourceBuilder::new_fungible()
+            let admin_badge: Bucket = ResourceBuilder::new_fungible(OwnerRole::None)
                 .divisibility(DIVISIBILITY_NONE)
-                .metadata("name", "admin badge")
-                .metadata("dapp_definition", &dapp)
+                .metadata(metadata! {
+                    init {
+                        "name" => "admin badge".to_owned(), locked;
+                        "dapp_definition" => dapp.to_owned(), locked;
+                    }
+                })
                 .mint_initial_supply(1);
 
-            let staff_badge: ResourceManager =
-                ResourceBuilder::new_uuid_non_fungible::<StaffBadge>()
-                    .metadata("name", "staff_badge")
-                    .metadata("dapp_definition", &dapp)
-                    .mintable(rule!(require(admin_badge.resource_address())), LOCKED)
-                    .recallable(rule!(require(admin_badge.resource_address())), LOCKED)
-                    .burnable(rule!(require(admin_badge.resource_address())), LOCKED)
+            // create a new Gumball resource, with a fixed quantity of 100
+            let gumballs_resource_manager: ResourceManager =
+                ResourceBuilder::new_fungible(OwnerRole::None)
+                    .metadata(metadata! {
+                        init {
+                            "name" => "Gumball".to_owned(), locked;
+                            "symbol" => flavor.to_owned(), locked;
+                            "description" => "A delicious gumball".to_owned(), locked;
+                            "dapp_definition" => dapp.to_owned(), locked;
+                        }
+                    })
+                    .mint_roles(mint_roles! {
+                        minter => rule!(require(admin_badge.resource_address()));
+                        minter_updater => rule!(require(admin_badge.resource_address()));
+                    })
+                    // .updateable_metadata( rule!(require(admin_badge.resource_address())), LOCKED)
                     .create_with_no_initial_supply();
 
-            // create a new Gumball resource, with a fixed quantity of 100
-            let gumballs_resource_manager: ResourceManager = ResourceBuilder::new_fungible()
-                .metadata("name", "Gumball")
-                .metadata("symbol", flavor)
-                .metadata("description", "A delicious gumball")
-                .metadata("dapp_definition", &dapp)
-                .updateable_metadata(
-                    rule!(
-                        require(admin_badge.resource_address())
-                            || require(staff_badge.resource_address())
-                    ),
-                    LOCKED,
-                )
-                .mintable(
-                    rule!(
-                        require(admin_badge.resource_address())
-                            || require(staff_badge.resource_address())
-                    ),
-                    LOCKED,
-                )
-                .create_with_no_initial_supply();
-
-            let bucket_of_gumballs = admin_badge.authorize(|| gumballs_resource_manager.mint(100));
-
+            let bucket_of_gumballs = admin_badge.authorize_with_all(|| gumballs_resource_manager.mint(100));
+            
             // populate a GumballMachine struct and instantiate a new component
             let component = Self {
                 gumballs_resource_manager: gumballs_resource_manager,
                 gumballs: Vault::with_bucket(bucket_of_gumballs),
                 collected_xrd: Vault::new(RADIX_TOKEN),
                 price: price,
-                staff_badge_address: staff_badge.resource_address(),
-                staff_badge_resource_manager: staff_badge,
             }
             .instantiate()
-            .metadata("dapp_definition", dapp.to_owned())
-            .metadata("name", "Gumball Machine".to_owned())
-            .metadata("description", "Sandbox Gumball Machine just for you to play around!".to_owned())
-            .metadata("icon_url", "https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned())
-            .authority_rule("get_price", rule!(allow_all), LOCKED)
-            .authority_rule("buy_gumball", rule!(allow_all), LOCKED)
-            .authority_rule(
-                "set_price",
-                rule!(
-                    require(admin_badge.resource_address())
-                        || require(staff_badge.resource_address())
-                ),
-                LOCKED,
-            )
-            .authority_rule(
-                "withdraw_earnings",
-                rule!(require(admin_badge.resource_address())),
-                LOCKED,
-            )
-            .authority_rule(
-                "mint_staff_badge",
-                rule!(require(admin_badge.resource_address())),
-                LOCKED,
-            )
-            .authority_rule(
-                "refill_gumball_machine",
-                rule!(
-                    require(admin_badge.resource_address())
-                        || require(staff_badge.resource_address())
-                ),
-                LOCKED,
-            )
+            .prepare_to_globalize(OwnerRole::Fixed(rule!(require(
+                admin_badge.resource_address()
+            ))))
+            .roles(roles! {
+                admin => rule!(require(admin_badge.resource_address()));
+            })
+            .metadata(metadata! {
+                init {
+                    "name" => "Gumball Machine".to_owned(), locked;
+                    "description" => "Sandbox Gumball Machine just for you to play around!".to_owned(), locked;
+                    "icon_url" => "https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned(), locked;
+                    "dapp_definition" => dapp.to_owned(), locked;
+                }
+            })
             .globalize();
 
-            (component.component_address(), admin_badge)
+            (component.address(), admin_badge)
         }
 
         pub fn get_price(&self) -> Decimal {
@@ -117,21 +94,8 @@ mod gumball_machine {
             self.price = price
         }
 
-        pub fn mint_staff_badge(&mut self, employee_name: String) -> Bucket {
-            let staff_badge_bucket: Bucket = self
-                .staff_badge_resource_manager
-                .mint_uuid_non_fungible(StaffBadge {
-                    employee_name: employee_name,
-                });
-            staff_badge_bucket
-        }
-
-        pub fn recall_staff_badge() {
-            // recall a staff nft badge and burn it.
-        }
-
         pub fn refill_gumball_machine(&mut self) {
-            // mint some more gumball tokens requires an admin or staff badge
+            // mint some more gumball tokens requires an admin badge
             self.gumballs.put(self.gumballs_resource_manager.mint(100));
         }
 

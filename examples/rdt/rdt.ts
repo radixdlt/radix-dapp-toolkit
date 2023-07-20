@@ -28,6 +28,7 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
       )
       return {
         '12': 'account_tdx_c_1pysl6ft839lj0murylf2vsmn57e67v20px435v37tejqv0famt',
+        '13': 'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
         '34': 'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
       }
     }
@@ -62,7 +63,9 @@ export const useDAppDefinitionAddress = createObservableHook(
 
 bootstrapNetwork(networkId)
 
-export const gatewayApi = GatewayApiClient(networkIdMap.get(networkId) || '')
+export const gatewayApi = GatewayApiClient({
+  basePath: networkIdMap.get(networkId) || '',
+})
 
 export const dataRequestStateClient = DataRequestStateClient({
   accounts: {

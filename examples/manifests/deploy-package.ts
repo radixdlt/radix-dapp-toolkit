@@ -2,21 +2,19 @@ import { hash } from '../helpers/hash'
 
 export const getDeployPackageManifest = ({
   wasm,
-  schema,
+  rpd,
   nftAddress,
 }: {
   wasm: string
-  schema: string
+  rpd: string
   nftAddress: string
 }) => {
   const wasmHash = hash(wasm).toString('hex')
   return `
     PUBLISH_PACKAGE_ADVANCED
-    None
-    Blob("${wasmHash}") 
-    ${schema}
-    Map<String, Tuple>()      
-    Map<String, Enum>()  
-    Map<Enum, Tuple>();    
-    `
+    Enum<AccessRule::AllowAll>() # Owner AccessRule
+    ${rpd}
+    Blob("${wasmHash}")    # Package Code
+    Map<String, Tuple>()         # Metadata
+    None;                        # Address Reservation`
 }
