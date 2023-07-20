@@ -11,7 +11,7 @@ const toArrayBuffer = (buffer: Buffer): ArrayBuffer => {
   return arrayBuffer
 }
 
-const bufferToUnit8Array = (buffer: Buffer): Uint8Array =>
+export const bufferToUnit8Array = (buffer: Buffer): Uint8Array =>
   new Uint8Array(toArrayBuffer(buffer))
 
 export const blake2b = (input: Buffer): Result<Buffer, Error> => {
