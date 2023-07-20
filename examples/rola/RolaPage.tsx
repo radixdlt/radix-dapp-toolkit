@@ -46,7 +46,6 @@ export const RolaPage = () => {
                 .andThen((response) => {
                   addLog('Got challenge response')
                   const signedChallenge = response.proofs![0]
-
                   setState((prev) => ({
                     ...prev,
                     challenge,
@@ -88,7 +87,6 @@ export const RolaPage = () => {
                 .andThen((response) => {
                   addLog('Got challenge response')
                   const signedChallenge = response.proofs![0]
-
                   setState((prev) => ({
                     ...prev,
                     challenge,

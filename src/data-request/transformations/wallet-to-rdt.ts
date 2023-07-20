@@ -95,6 +95,23 @@ const withProofs =
           draft.proofs.push(...accountProofs)
         }
       }
+      if (input.discriminator === 'unauthorizedRequest') {
+        if (
+          input.oneTimeAccounts?.challenge &&
+          input.oneTimeAccounts.proofs?.length
+        ) {
+          const challenge = input.oneTimeAccounts.challenge!
+          const accountProofs = input.oneTimeAccounts.proofs.map(
+            ({ accountAddress, proof }): SignedChallengeAccount => ({
+              proof,
+              address: accountAddress,
+              challenge,
+              type: proofType.account,
+            })
+          )
+          draft.proofs.push(...accountProofs)
+        }
+      }
     })
   }
 
