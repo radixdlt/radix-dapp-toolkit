@@ -4,7 +4,6 @@ import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { AppLogger, WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
-import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
 import { GatewayClient, MetadataValue } from './gateway/gateway'
 import {
   BehaviorSubject,
@@ -73,7 +72,8 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     GatewayClient({
       logger,
       gatewayApi: GatewayApiClient({
-        basePath: gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId),
+        basePath:
+          gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
         dAppDefinitionAddress,
       }),
     })

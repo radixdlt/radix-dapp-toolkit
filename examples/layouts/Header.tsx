@@ -8,8 +8,8 @@ import Layout from '../components/Layout'
 import MenuIcon from '@mui/icons-material/Menu'
 import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
-import { networkIdMap } from '../../src/gateway/_types'
 import { setNetworkId, useNetworkId } from '../network/state'
+import { RadixNetworkConfig } from '@radixdlt/babylon-gateway-api-sdk'
 
 declare global {
   namespace JSX {
@@ -64,11 +64,13 @@ export const Header = ({
             setNetworkId(value as number)
           }}
         >
-          {[...networkIdMap.entries()].map(([networkId]) => (
-            <Option key={networkId} value={networkId}>
-              {networkId}
-            </Option>
-          ))}
+          {Object.values(RadixNetworkConfig).map(
+            ({ networkId, networkName }) => (
+              <Option key={networkName} value={networkId}>
+                {networkName} ({networkId})
+              </Option>
+            )
+          )}
         </Select>
 
         <radix-connect-button></radix-connect-button>
