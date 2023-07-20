@@ -10,6 +10,7 @@ import { useDAppDefinitionAddress } from '../rdt/rdt'
 import { RolaError, RolaFactory } from './rola'
 import { useNetworkId } from '../network/state'
 import { GatewayService } from './gateway'
+import { DataRequestBuilder } from '../../src'
 
 export const RolaPage = () => {
   const dAppDefinitionAddress = useDAppDefinitionAddress()
@@ -34,32 +35,17 @@ export const RolaPage = () => {
   return (
     <Box>
       <Card title="ROLA (Radix Off-Ledger Authentication)">
-        <Box sx={{ mb: 2 }}>
-          <Input value={challenge} sx={{ mb: 1 }} readOnly disabled />
-          <Button
-            onClick={() => {
-              setState(() => ({
-                ...defaults,
-                challenge: createChallenge(),
-              }))
-            }}
-            disabled={loading}
-          >
-            Generate challenge
-          </Button>
-        </Box>
         <Box>
           <Button
             disabled={loading}
             onClick={() => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending login request with challenge...')
-              rdt
-                .requestData({ challenge })
+              rdt.walletData
+                .oneTimeRequest(DataRequestBuilder.persona().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
-                  const signedChallenge = response.signedChallenges[0]
-
+                  const signedChallenge = response.proofs![0]
                   setState((prev) => ({
                     ...prev,
                     challenge,
@@ -67,7 +53,7 @@ export const RolaPage = () => {
                     loading: false,
                   }))
 
-                  return rola(signedChallenge)
+                  return rola(response.proofs![0])
                 })
                 .map(() => {
                   setState((prev) => ({
@@ -96,18 +82,11 @@ export const RolaPage = () => {
             onClick={() => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending account request with challenge...')
-              rdt
-                .requestData({
-                  accounts: {
-                    quantifier: 'atLeast',
-                    quantity: 1,
-                    challenge,
-                  },
-                })
+              rdt.walletData
+                .oneTimeRequest(DataRequestBuilder.accounts().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
-                  const signedChallenge = response.signedChallenges[0]
-
+                  const signedChallenge = response.proofs![0]
                   setState((prev) => ({
                     ...prev,
                     challenge,

@@ -5,14 +5,14 @@ WORKDIR /app
 
 # Copy the package.json and install dependencies
 COPY package.json ./
-COPY yarn.lock ./
-RUN yarn
+COPY package-lock.json ./
+RUN npm ci
 
 # Copy rest of the files
 COPY . .
 
 # Build the project
-RUN yarn build examples
+RUN npm run build examples
 
 FROM nginx:alpine as production-build
 

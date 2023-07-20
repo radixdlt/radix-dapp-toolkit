@@ -5,14 +5,17 @@ export const logSubject = new Subject<string>()
 export const clearLogsSubject = new Subject<void>()
 
 export const appLogger = {
-  debug: (...rest: any) =>
-    logSubject.next(
-      rest
-        .map((item) =>
-          typeof item === 'object' ? JSON.stringify(item, null, 2) : item
-        )
-        .join(' ')
-    ),
+  debug: (...rest: any) => {
+    try {
+      return logSubject.next(
+        rest
+          .map((item) =>
+            typeof item === 'object' ? JSON.stringify(item, null, 2) : item
+          )
+          .join(' ')
+      )
+    } catch (error) {}
+  },
   error: (...rest: any) =>
     logSubject.next(
       rest

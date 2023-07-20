@@ -18,12 +18,12 @@ import { Box } from '@mui/joy'
 import { SelectNftCollection } from '../../account/SelectNftCollection'
 import { SelectNft } from '../../account/SelectNft'
 import { sborDecode } from '../../ret/decode-sbor'
+import { gatewayApi } from '../../rdt/rdt'
 
 const loadGumballMachineBinaries = () =>
   ResultAsync.combine([
     loadBinaryFromUrl(gumballWasmUrl),
-    loadBinaryFromUrl(gumballSchemaUrl)
-      .andThen((schema) => sborDecode(schema))
+    loadBinaryFromUrl(gumballSchemaUrl).andThen((schema) => sborDecode(schema)),
   ])
 
 export const DeployGumballMachineCard = () => {
@@ -57,9 +57,13 @@ export const DeployGumballMachineCard = () => {
         })
       })
       .andThen(({ transactionIntentHash }) =>
-        rdt.gatewayApi
+        gatewayApi
           .getTransactionDetails(transactionIntentHash)
-          .map((response) => (response.transaction.receipt?.state_updates as any)?.new_global_entities?.[0]?.entity_address)
+          .map(
+            (response): string =>
+              (response.transaction.receipt?.state_updates as any)
+                ?.new_global_entities?.[0]?.entity_address as string
+          )
       )
       .map((packageAddress) => {
         addLog(`gumball machine packageAddress ${packageAddress}`)

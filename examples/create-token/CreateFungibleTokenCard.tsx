@@ -10,6 +10,7 @@ import Sheet from '@mui/joy/Sheet'
 import { createToken } from '../manifests/tokens'
 import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
+import { accounts } from '../../src/data-request/builders/accounts'
 
 type CreateTokenBase = {
   name: string
@@ -101,13 +102,11 @@ export const CreateFungibleTokenCard = () => {
         disabled={Object.values(state.fungible).some((v) => !v)}
         onClick={async () => {
           const values = state.fungible
-          await rdt
-            .requestData({
-              accounts: { oneTime: true, quantifier: 'exactly', quantity: 1, reset: false },
-            })
+          await rdt.walletData
+            .oneTimeRequest(accounts().exactly(1))
             .andThen(({ accounts }) => {
               const transactionManifest = createToken(
-                accounts[0].address
+                accounts![0].address
               ).fungible({
                 name: values.name,
                 description: values.description,

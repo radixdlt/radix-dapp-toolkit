@@ -6,17 +6,13 @@ import Button from '@mui/joy/Button'
 import Typography from '@mui/joy/Typography'
 import { AccountsCard } from './AccountsCard'
 import { PersonaDataCard } from './PersonaDataCard'
-import { getRequestDataPayload, useDataRequestPayload } from './state'
-import { useRequestData } from '../rdt/hooks/useRequestData'
-import { logSubject } from '../logger/state'
+import { useDataRequestState } from './state'
 import { Code } from '../components/Code'
-import { getNetworkId } from '../helpers/get-network-id'
-import { Buffer } from 'buffer'
-import { LoginCard } from './LoginCard'
+import { PersonaCard } from './PersonaCard'
+import { rdt } from '../rdt/rdt'
 
 export const DataRequestsPage = () => {
-  const dataRequestPayload = useDataRequestPayload()
-  const sendDataRequest = useRequestData()
+  const dataRequestState = useDataRequestState()
 
   return (
     <Box
@@ -32,7 +28,7 @@ export const DataRequestsPage = () => {
           gap: 1,
         }}
       >
-        <LoginCard />
+        <PersonaCard />
         <AccountsCard />
         <PersonaDataCard />
       </Box>
@@ -52,15 +48,8 @@ export const DataRequestsPage = () => {
                 Data Request Payload
               </Typography>
               <Button
-                onClick={async () => {
-                  logSubject.next(
-                    `send data request ${JSON.stringify(
-                      dataRequestPayload,
-                      null,
-                      2
-                    )}`
-                  )
-                  sendDataRequest(dataRequestPayload)
+                onClick={() => {
+                  rdt.walletData.sendRequest()
                 }}
                 sx={{ alignSelf: 'center', width: '150px' }}
               >
@@ -70,7 +59,7 @@ export const DataRequestsPage = () => {
 
             <Divider sx={{ mb: 2, mt: 2 }} />
 
-            <Code>{JSON.stringify(dataRequestPayload, null, 2)}</Code>
+            <Code>{JSON.stringify(dataRequestState, null, 2)}</Code>
           </Box>
         </Sheet>
       </Box>

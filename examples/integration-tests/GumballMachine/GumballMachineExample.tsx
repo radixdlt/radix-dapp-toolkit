@@ -8,6 +8,7 @@ import { Code } from '../../components/Code'
 import { Box, FormControl, FormLabel } from '@mui/joy'
 import { SelectGumballComponent } from './SelectGumballComponent'
 import { SelectAccount } from '../../account/SelectAccount'
+import { gatewayApi } from '../../rdt/rdt'
 
 export type GumballMachineExampleConfig = {
   componentAlpha?: GumballMachineComponentState
@@ -43,7 +44,7 @@ export const GumballMachineExample = ({
         version: 1,
       })
       .andThen(({ transactionIntentHash }) =>
-        rdt.gatewayApi.getTransactionDetails(transactionIntentHash)
+        gatewayApi.getTransactionDetails(transactionIntentHash)
       )
       .map((response) =>
         addLog(`transaction status: ${response.transaction.transaction_status}`)

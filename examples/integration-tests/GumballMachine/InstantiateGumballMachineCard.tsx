@@ -7,30 +7,22 @@ import {
   addGumballMachineComponent,
   useGumballMachineState,
 } from '../state'
-import { ManifestValue, ManifestBuilder } from '@radixdlt/wallet-sdk'
 import { useLogger } from '../../components/Logger'
 import { Box, Input, FormControl, FormLabel } from '@mui/joy'
 import { useAccounts } from '../../account/state'
 import { SelectAccount } from '../../account/SelectAccount'
+import { accounts as accountsBuilder } from '../../../src/data-request/builders/accounts'
+import { gatewayApi } from '../../rdt/rdt'
 
 const getInstantiateGumballMachineManifest = (
   ownerAddress: string,
   gumballPrice: number,
   gumballFlavour: string,
   gumballMachinePackageAddress: string
-) =>
-  new ManifestBuilder()
-    .callFunction(
-      gumballMachinePackageAddress,
-      'GumballMachine',
-      'instantiate_gumball_machine',
-      [ManifestValue.Decimal(gumballPrice), `"${gumballFlavour}"`, `"${ownerAddress}"`]
-    )
-    .callMethod(ownerAddress, 'deposit_batch', [
-      ManifestValue.Expression('ENTIRE_WORKTOP'),
-    ])
-    .build()
-    .toString()
+) => `
+  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate_gumball_machine" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
+  CALL_METHOD Address("${ownerAddress}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+`
 
 export const InstantiateGumballMachineCard = () => {
   const rdt = useRdt()
@@ -45,14 +37,7 @@ export const InstantiateGumballMachineCard = () => {
 
   const getAccounts = () => {
     addLog('getting account from wallet...')
-    return rdt.requestData({
-      accounts: {
-        quantifier: 'atLeast',
-        quantity: 1,
-        reset: false,
-        oneTime: true,
-      },
-    })
+    return rdt.walletData.oneTimeRequest(accountsBuilder().exactly(1))
   }
 
   const instantiateComponent = (address: string) => {
@@ -67,7 +52,7 @@ export const InstantiateGumballMachineCard = () => {
         version: 1,
       })
       .andThen(({ transactionIntentHash }) =>
-        rdt.gatewayApi.getTransactionDetails(transactionIntentHash)
+        gatewayApi.getTransactionDetails(transactionIntentHash)
       )
   }
 
@@ -75,7 +60,9 @@ export const InstantiateGumballMachineCard = () => {
     addLog(`instantiating gumball machine component`)
     return instantiateComponent(state.ownerAccount)
       .map((values) => {
-        const createdEntities = (values.transaction.receipt?.state_updates as any)?.new_global_entities.map((entity) => entity.entity_address)
+        const createdEntities = (
+          values.transaction.receipt?.state_updates as any
+        )?.new_global_entities.map((entity) => entity.entity_address)
         const entities = {
           adminBadge: createdEntities[1],
           staffBadge: createdEntities[2],
