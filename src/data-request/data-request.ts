@@ -1,12 +1,15 @@
 import { ResultAsync, ok, okAsync } from 'neverthrow'
-import { DataRequestState, DataRequestRawItem } from './_types'
+import { DataRequestState, DataRequestRawItem } from './builders'
 import { StateClient } from '../state/state'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { WalletClient } from '../wallet/wallet-client'
 import { transformWalletResponseToRdtWalletData } from './transformations/wallet-to-rdt'
 import { toWalletRequest } from './helpers/to-wallet-request'
 import { canDataRequestBeResolvedByRdtState } from './helpers/can-data-request-be-resolved-by-rdt-state'
-import { transformSharedDataToDataRequestState } from './transformations/shared-data'
+import {
+  transformSharedDataToDataRequestState,
+  transformWalletRequestToSharedData,
+} from './transformations/shared-data'
 import { DataRequestStateClient } from './data-request-state'
 
 export type DataRequestClient = ReturnType<typeof DataRequestClient>
@@ -91,6 +94,18 @@ export const DataRequestClient = ({
         return walletClient
           .request(walletDataRequest, id)
           .andThen(transformWalletResponseToRdtWalletData)
+          .map((walletData) => {
+            if (!oneTime)
+              stateClient.setState({
+                walletData,
+                sharedData: transformWalletRequestToSharedData(
+                  walletDataRequest,
+                  stateClient.getState().sharedData
+                ),
+              })
+
+            return walletData
+          })
       })
 
   const setState = (...items: DataRequestRawItem[]) => {

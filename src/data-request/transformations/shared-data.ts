@@ -1,7 +1,7 @@
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { produce } from 'immer'
 import { SharedData } from '../../state/types'
-import { DataRequestState } from '../_types'
+import { DataRequestState } from '../builders'
 
 export const transformWalletRequestToSharedData = (
   walletDataRequest: Parameters<WalletSdk['request']>[0],

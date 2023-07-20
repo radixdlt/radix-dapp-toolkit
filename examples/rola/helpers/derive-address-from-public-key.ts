@@ -1,12 +1,12 @@
 import { ManifestAstValue, PublicKey } from '@radixdlt/radix-engine-toolkit'
-import { ResultAsync, err, errAsync } from 'neverthrow'
-import { SignedChallenge } from '../../../src/io/schemas'
+import { ResultAsync, errAsync } from 'neverthrow'
+import { SignedChallenge } from '../../../src'
 
 const deriveVirtualIdentityAddress = (publicKey: string, networkId: number) =>
   ResultAsync.fromPromise(
     ManifestAstValue.Address.virtualIdentityAddress(
       new PublicKey.EddsaEd25519(publicKey),
-      networkId /* The ID of the network to derive the address for. */
+      networkId
     ),
     (error: any): Error => error
   )
@@ -18,7 +18,7 @@ const deriveVirtualEddsaEd25519AccountAddress = (
   ResultAsync.fromPromise(
     ManifestAstValue.Address.virtualAccountAddress(
       new PublicKey.EddsaEd25519(publicKey),
-      networkId /* The ID of the network to derive the address for. */
+      networkId
     ),
     (error: any): Error => error
   )
@@ -30,7 +30,7 @@ const deriveVirtualEcdsaSecp256k1AccountAddress = (
   ResultAsync.fromPromise(
     ManifestAstValue.Address.virtualAccountAddress(
       new PublicKey.EcdsaSecp256k1(publicKey),
-      networkId /* The ID of the network to derive the address for. */
+      networkId
     ),
     (error: any): Error => error
   )

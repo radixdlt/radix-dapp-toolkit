@@ -39,11 +39,15 @@ export const AccountsCard = () => {
               value={dataRequestState.accounts?.numberOfAccounts.quantity || 0}
               onChange={(ev) => {
                 dataRequestStateClient.patchState(
-                  DataRequestBuilder.accounts({
-                    ...dataRequestState.accounts!,
-                    numberOfAccounts: {
-                      ...dataRequestState.accounts!.numberOfAccounts,
-                      quantity: parseInt(ev.target.value, 10),
+                  DataRequestBuilder.config({
+                    accounts: {
+                      ...(dataRequestState.accounts || {}),
+                      numberOfAccounts: {
+                        quantifier:
+                          dataRequestState.accounts!.numberOfAccounts
+                            .quantifier,
+                        quantity: parseInt(ev.target.value, 10),
+                      },
                     },
                   })
                 )
@@ -60,11 +64,13 @@ export const AccountsCard = () => {
             }
             onChange={(ev) => {
               dataRequestStateClient.patchState(
-                DataRequestBuilder.accounts({
-                  ...dataRequestState.accounts!,
-                  numberOfAccounts: {
-                    ...dataRequestState.accounts!.numberOfAccounts,
-                    quantifier: ev.target.value as any,
+                DataRequestBuilder.config({
+                  accounts: {
+                    ...dataRequestState.accounts!,
+                    numberOfAccounts: {
+                      ...dataRequestState.accounts!.numberOfAccounts,
+                      quantifier: ev.target.value as any,
+                    },
                   },
                 })
               )
@@ -93,9 +99,11 @@ export const AccountsCard = () => {
             checked={!!dataRequestState.accounts?.withProof}
             onChange={(ev) => {
               dataRequestStateClient.patchState(
-                DataRequestBuilder.accounts({
-                  ...dataRequestState.accounts!,
-                  withProof: ev.target.checked,
+                DataRequestBuilder.config({
+                  accounts: {
+                    ...dataRequestState.accounts!,
+                    withProof: ev.target.checked,
+                  },
                 })
               )
             }}
@@ -110,9 +118,11 @@ export const AccountsCard = () => {
             checked={!!dataRequestState.accounts?.reset}
             onChange={(ev) => {
               dataRequestStateClient.patchState(
-                DataRequestBuilder.accounts({
-                  ...dataRequestState.accounts!,
-                  reset: ev.target.checked,
+                DataRequestBuilder.config({
+                  accounts: {
+                    ...dataRequestState.accounts!,
+                    reset: ev.target.checked,
+                  },
                 })
               )
             }}

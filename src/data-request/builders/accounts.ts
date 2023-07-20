@@ -7,18 +7,15 @@ export type AccountsDataRequest = z.infer<typeof AccountsDataRequestSchema>
 
 export const AccountsDataRequestSchema = object({
   numberOfAccounts: NumberOfValues,
-  withProof: boolean(),
-  reset: boolean(),
+  withProof: boolean().optional(),
+  reset: boolean().optional(),
 })
 
-export const accounts = (
-  initialData: AccountsDataRequest = {
-    withProof: false,
-    reset: false,
-    numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
-  }
-) => {
-  let data: AccountsDataRequest = produce(initialData, () => {})
+export const accounts = () => {
+  let data: AccountsDataRequest = produce(
+    { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
+    () => {}
+  )
 
   const atLeast = (n: number) => {
     data = produce(data, (draft) => {

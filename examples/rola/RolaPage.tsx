@@ -45,15 +45,16 @@ export const RolaPage = () => {
                 .oneTimeRequest(DataRequestBuilder.persona().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
+                  const signedChallenge = response.proofs![0]
 
                   setState((prev) => ({
                     ...prev,
                     challenge,
-                    signedChallenge: response.proofs![0],
+                    signedChallenge,
                     loading: false,
                   }))
 
-                  return rola(signedChallenge)
+                  return rola(response.proofs![0])
                 })
                 .map(() => {
                   setState((prev) => ({
