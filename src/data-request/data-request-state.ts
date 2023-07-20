@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs'
-import { DataRequestRawItem, DataRequestState } from './_types'
+import { DataRequestRawItem, DataRequestState } from './builders'
 import { produce } from 'immer'
 
 export type DataRequestStateClient = ReturnType<typeof DataRequestStateClient>

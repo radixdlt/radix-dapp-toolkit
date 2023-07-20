@@ -3,7 +3,7 @@ import {
   TransformRdtDataRequestToWalletRequestInput,
   transformRdtDataRequestToWalletRequest,
 } from '../transformations/rdt-to-wallet'
-import { DataRequestState } from '../_types'
+import { DataRequestState } from '../builders'
 import { StateClient } from '../../state/state'
 
 export const toWalletRequest = ({
@@ -24,11 +24,15 @@ export const toWalletRequest = ({
     produce({}, (draft: TransformRdtDataRequestToWalletRequestInput) => {
       if (dataRequestState.accounts) {
         draft.accounts = {
-          ...dataRequestState.accounts,
+          numberOfAccounts: dataRequestState.accounts.numberOfAccounts || {
+            quantifier: 'atLeast',
+            quantity: 1,
+          },
+          oneTime,
+          reset: !!dataRequestState.accounts.reset,
           challenge: dataRequestState.accounts.withProof
             ? challenge
             : undefined,
-          oneTime,
         }
       }
 
