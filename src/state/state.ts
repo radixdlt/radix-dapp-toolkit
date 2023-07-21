@@ -4,7 +4,7 @@ import { StorageProvider } from '../_types'
 import { Subscription, filter, first, skip, switchMap, tap } from 'rxjs'
 import { removeUndefined } from '../helpers/remove-undefined'
 import { ResultAsync } from 'neverthrow'
-import { RdtState } from './types'
+import { RdtState, walletDataDefault } from './types'
 
 export type StateClient = ReturnType<typeof StateClient>
 
@@ -41,7 +41,7 @@ export const StateClient = (
   }
 
   const resetState = () => {
-    subjects.state.next({ walletData: {}, sharedData: {} })
+    subjects.state.next({ walletData: walletDataDefault, sharedData: {} })
   }
 
   const initializeState = () =>

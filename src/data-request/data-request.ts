@@ -1,5 +1,5 @@
 import { ResultAsync, ok, okAsync } from 'neverthrow'
-import { DataRequestState, DataRequestRawItem } from './builders'
+import { DataRequestState, DataRequestBuilderItem } from './builders'
 import { StateClient } from '../state/state'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { WalletClient } from '../wallet/wallet-client'
@@ -27,14 +27,16 @@ export const DataRequestClient = ({
   dataRequestStateClient: DataRequestStateClient
   useCache: boolean
 }) => {
-  let challengeGenerator: (() => ResultAsync<string, Error>) | undefined
+  let challengeGenerator:
+    | (() => ResultAsync<string, { error: string; message: string }>)
+    | undefined
 
   const isChallengeNeeded = (dataRequestState: DataRequestState) =>
     dataRequestState.accounts?.withProof || dataRequestState.persona?.withProof
 
   const getChallenge = (
     dataRequestState: DataRequestState
-  ): ResultAsync<string | undefined, Error> => {
+  ): ResultAsync<string | undefined, { error: string; message: string }> => {
     if (!isChallengeNeeded(dataRequestState)) return okAsync(undefined)
     if (!challengeGenerator)
       throw new Error('Expected proof but no challenge generator provided')
@@ -44,10 +46,13 @@ export const DataRequestClient = ({
 
   const provideChallengeGenerator = (fn: () => Promise<string>) => {
     challengeGenerator = () =>
-      ResultAsync.fromPromise(fn(), () => Error('Failed to generate challenge'))
+      ResultAsync.fromPromise(fn(), () => ({
+        error: 'GenerateChallengeError',
+        message: 'Failed to generate challenge',
+      }))
   }
 
-  const sendOneTimeRequest = (...items: DataRequestRawItem[]) =>
+  const sendOneTimeRequest = (...items: DataRequestBuilderItem[]) =>
     sendRequest({
       dataRequestState: dataRequestStateClient.toDataRequestState(...items),
       isConnect: false,
@@ -93,6 +98,12 @@ export const DataRequestClient = ({
 
         return walletClient
           .request(walletDataRequest, id)
+          .mapErr(
+            ({ error, message }): { error: string; message?: string } => ({
+              error: error,
+              message: message,
+            })
+          )
           .andThen(transformWalletResponseToRdtWalletData)
           .map((walletData) => {
             if (!oneTime)
@@ -108,7 +119,7 @@ export const DataRequestClient = ({
           })
       })
 
-  const setState = (...items: DataRequestRawItem[]) => {
+  const setState = (...items: DataRequestBuilderItem[]) => {
     dataRequestStateClient.setState(...items)
     return {
       sendRequest: () =>
