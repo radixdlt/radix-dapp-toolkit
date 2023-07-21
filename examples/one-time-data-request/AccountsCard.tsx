@@ -7,8 +7,6 @@ import Checkbox from '@mui/joy/Checkbox'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
 import { Card } from '../components/Card'
-import { dataRequestStateClient } from '../rdt/rdt'
-import { DataRequestBuilder } from '../../src'
 
 type Props = {
   state: {
@@ -42,10 +40,7 @@ export const AccountsCard = ({ state, updateState }: Props) => {
         <Checkbox
           checked={state.enabled}
           onChange={(ev) => {
-            if (!ev.target.checked)
-              dataRequestStateClient.removeState('accounts')
-            else
-              dataRequestStateClient.patchState(DataRequestBuilder.accounts())
+            updateState({ ...state, enabled: ev.target.checked })
           }}
         />
       }
