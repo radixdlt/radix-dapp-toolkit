@@ -6,14 +6,12 @@ export type GatewayApiClient = ReturnType<typeof GatewayApiClient>
 
 export const GatewayApiClient = ({
   basePath,
-  dAppDefinitionAddress,
 }: {
   basePath: string
   dAppDefinitionAddress?: string
 }) => {
   const { transaction, state, status } = BabylonGatewayApiClient.initialize({
     basePath,
-    dAppDefinitionAddress,
   })
 
   const getTransactionStatus = (transactionIntentHashHex: string) =>
