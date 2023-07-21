@@ -220,7 +220,7 @@ export const RadixDappToolkit = (
       input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
     ) => dataRequestClient.provideChallengeGenerator(input),
     updateSharedData: () => dataRequestClient.updateSharedData(),
-    oneTimeRequest: dataRequestClient.sendOneTimeRequest,
+    sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,
     walletData$: stateClient.state$.pipe(map((state) => state.walletData)),
     getWalletData: () => stateClient.getState().walletData,
