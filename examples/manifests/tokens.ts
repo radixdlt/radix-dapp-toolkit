@@ -83,14 +83,12 @@ CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
     Enum<OwnerRole::None>()
     Enum<NonFungibleIdType::Integer>()                                                                  # The type of NonFungible Id
     true                                                                                                # Whether the engine should track supply (avoid for massively parallelizable tokens)
-    Tuple(Tuple(Array<Enum>(), Array<Tuple>(), Array<Enum>()), Enum<0u8>(64u8), Array<String>())        # Non Fungible Data Schema
+    Tuple(Tuple(Array<Enum>(), Array<Tuple>(), Array<Enum>()), Enum<0u8>(66u8), Array<String>())        # Non Fungible Data Schema
     Map<NonFungibleLocalId, Tuple>(   
         ${items
           .map(
             (item, index) =>
-              `NonFungibleLocalId("#${
-                index + 1
-              }#") => Tuple(Tuple("${item}", Decimal("${index}")))`
+              `NonFungibleLocalId("#${index + 1}#") => Tuple(Tuple())`
           )
           .join(
             ', '
