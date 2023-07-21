@@ -1,10 +1,12 @@
 import {
   AccountsDataRequest,
   AccountsRequestBuilder,
+  OneTimeAccountsRequestBuilder,
   accounts,
 } from './accounts'
 import { PersonaRequest, PersonaRequestBuilder, persona } from './persona'
 import {
+  OneTimePersonaDataRequestBuilder,
   PersonaDataRequest,
   PersonaDataRequestBuilder,
   personaData,
@@ -17,8 +19,8 @@ export type DataRequestBuilderItem =
   | ConfigRequestBuilder
 
 export type OneTimeDataRequestBuilderItem =
-  | AccountsRequestBuilder
-  | PersonaDataRequestBuilder
+  | OneTimeAccountsRequestBuilder
+  | OneTimePersonaDataRequestBuilder
 
 export type DataRequestState = Partial<
   { accounts: AccountsDataRequest } & { personaData: PersonaDataRequest } & {
@@ -53,8 +55,8 @@ export const DataRequestBuilder: DataRequestBuilder = {
 }
 
 export type OneTimeDataRequestBuilder = {
-  accounts: () => AccountsRequestBuilder
-  personaData: () => PersonaDataRequestBuilder
+  accounts: () => OneTimeAccountsRequestBuilder
+  personaData: () => OneTimePersonaDataRequestBuilder
 }
 
 export const OneTimeDataRequestBuilder: OneTimeDataRequestBuilder = {

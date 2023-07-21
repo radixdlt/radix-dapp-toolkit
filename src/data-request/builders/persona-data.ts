@@ -8,6 +8,11 @@ export type PersonaDataRequestBuilder = {
   phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
   reset: (value?: boolean) => PersonaDataRequestBuilder
 }
+export type OneTimePersonaDataRequestBuilder = {
+  fullName: (value?: boolean) => PersonaDataRequestBuilder
+  emailAddresses: (value?: boolean) => PersonaDataRequestBuilder
+  phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
+}
 export type PersonaDataRequest = z.infer<typeof PersonaDataRequestSchema>
 
 export const PersonaDataRequestSchema = object({
