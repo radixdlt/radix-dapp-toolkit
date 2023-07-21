@@ -1,9 +1,5 @@
 import { BehaviorSubject } from 'rxjs'
-import {
-  DataRequestBuilder,
-  DataRequestStateClient,
-  RadixDappToolkit,
-} from '../../src'
+import { DataRequestStateClient, RadixDappToolkit } from '../../src'
 import { appLogger } from '../logger/state'
 import {
   bootstrapNetwork,
@@ -64,13 +60,7 @@ bootstrapNetwork(networkId)
 
 export const gatewayApi = GatewayApiClient(networkIdMap.get(networkId) || '')
 
-export const dataRequestStateClient = DataRequestStateClient({
-  accounts: {
-    numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
-    reset: false,
-    withProof: false,
-  },
-})
+export const dataRequestStateClient = DataRequestStateClient({})
 
 const options = {
   dAppDefinitionAddress: dAppDefinitionAddress.value,
@@ -94,15 +84,15 @@ setTimeout(() => {
 
 export const rdt = RadixDappToolkit(options)
 
-rdt.state$.subscribe((state) => {
-  setAccounts(state.walletData.accounts || [])
-  if (state.walletData.persona)
+rdt.walletApi.walletData$.subscribe((state) => {
+  setAccounts(state.accounts)
+  if (state.persona)
     addEntities([
       {
-        address: state.walletData.persona?.identityAddress,
+        address: state.persona?.identityAddress,
         type: 'identity',
       },
     ])
 })
 
-rdt.walletData.provideChallengeGenerator(async () => createChallenge())
+rdt.walletApi.provideChallengeGenerator(async () => createChallenge())
