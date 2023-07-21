@@ -7,6 +7,7 @@ import { IntegrationTestsPage } from './integration-tests/IntegrationTestsPage'
 import { SettingsPage } from './settings/SettingsPage'
 import { SendTransactionPage } from './send-transaction/SendTransactionPage'
 import { RolaPage } from './rola/RolaPage'
+import { OneTimeDataRequestsPage } from './one-time-data-request/OneTimeDataRequestsPage'
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
       {
         path: 'data-request',
         element: <DataRequestsPage />,
+      },
+      {
+        path: 'one-time-data-request',
+        element: <OneTimeDataRequestsPage />,
       },
       {
         path: 'create-token',

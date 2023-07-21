@@ -45,7 +45,7 @@ export const DataRequestsPage = () => {
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography sx={{ alignSelf: 'center' }} level="h6">
-                Data Request Payload
+                Data Request
               </Typography>
               <Button
                 onClick={() => {
