@@ -1,7 +1,9 @@
 import { produce } from 'immer'
 import { boolean, object, z } from 'zod'
 
-export type PersonaRequestRaw = ReturnType<typeof persona>
+export type PersonaRequestBuilder = {
+  withProof: (value?: boolean) => PersonaRequestBuilder
+}
 export type PersonaRequest = z.infer<typeof schema>
 
 const schema = object({

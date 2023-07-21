@@ -1,4 +1,6 @@
 import {
+  Account,
+  PersonaDataRequestResponseItem,
   WalletAuthorizedRequestResponseItems,
   WalletUnauthorizedRequestResponseItems,
 } from '@radixdlt/wallet-sdk'
@@ -15,31 +17,64 @@ export type WalletDataRequestResponse =
   | WalletUnauthorizedRequestResponseItems
 
 const withAccounts =
-  (input: WalletDataRequestResponse) => (walletData: WalletData) =>
-    produce(walletData, (draft) => {
-      if (input.discriminator === 'authorizedRequest') {
-        const oneTimeAccounts = input.oneTimeAccounts?.accounts ?? []
-        const ongoingAccounts = input.ongoingAccounts?.accounts ?? []
-        const accounts = [...oneTimeAccounts, ...ongoingAccounts]
+  (input: WalletDataRequestResponse) =>
+  (walletData: WalletData): WalletData => {
+    let accounts: Account[] = []
+    if (input.discriminator === 'authorizedRequest') {
+      const oneTimeAccounts = input.oneTimeAccounts?.accounts ?? []
+      const ongoingAccounts = input.ongoingAccounts?.accounts ?? []
+      accounts = [...oneTimeAccounts, ...ongoingAccounts]
+    } else if (input.discriminator === 'unauthorizedRequest') {
+      const oneTimeAccounts = input.oneTimeAccounts?.accounts ?? []
 
-        draft.accounts = accounts
-      } else if (input.discriminator === 'unauthorizedRequest') {
-        const oneTimeAccounts = input.oneTimeAccounts?.accounts ?? []
+      accounts = oneTimeAccounts
+    }
 
-        draft.accounts = oneTimeAccounts
-      }
+    return produce(walletData, (draft) => {
+      draft.accounts = accounts
     })
+  }
+
+const withPersonaDataEntries = (
+  input: PersonaDataRequestResponseItem
+): WalletData['personaData'] => {
+  const entries: WalletData['personaData'] = []
+
+  if (input.name) {
+    entries.push({
+      entry: 'fullName',
+      fields: input.name,
+    })
+  }
+
+  if (input.emailAddresses)
+    entries.push({
+      entry: 'emailAddresses',
+      fields: input.emailAddresses,
+    })
+
+  if (input.phoneNumbers)
+    entries.push({
+      entry: 'phoneNumbers',
+      fields: input.phoneNumbers,
+    })
+
+  return entries
+}
 
 const withPersonaData =
   (input: WalletDataRequestResponse) => (walletData: WalletData) =>
     produce(walletData, (draft) => {
       if (input.discriminator === 'authorizedRequest') {
         if (input.oneTimePersonaData)
-          draft.personaData = input.oneTimePersonaData
+          draft.personaData = withPersonaDataEntries(input.oneTimePersonaData)
         if (input.ongoingPersonaData)
-          draft.personaData = input.ongoingPersonaData
-      } else if (input.discriminator === 'unauthorizedRequest')
-        draft.personaData = input.oneTimePersonaData
+          draft.personaData = withPersonaDataEntries(input.ongoingPersonaData)
+      } else if (
+        input.discriminator === 'unauthorizedRequest' &&
+        input.oneTimePersonaData
+      )
+        draft.personaData = withPersonaDataEntries(input.oneTimePersonaData)
     })
 
 const withPersona =
@@ -118,7 +153,12 @@ const withProofs =
 export const transformWalletResponseToRdtWalletData = (
   response: WalletDataRequestResponse
 ): Result<WalletData, never> =>
-  ok({})
+  ok({
+    accounts: [],
+    personaData: [],
+    proofs: [],
+    persona: undefined,
+  })
     .map(withAccounts(response))
     .map(withPersonaData(response))
     .map(withPersona(response))

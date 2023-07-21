@@ -8,7 +8,6 @@
   - [Getting started](#getting-started)
     - [Instantiation](#instantiation)
   - [Wallet data](#wallet-data)
-    - [Send request](#send-request)
       - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
     - [Change requested data](#change-requested-data)
   - [State changes](#state-changes)
@@ -73,19 +72,17 @@ const rdt = RadixDappToolkit({
 
 ## Wallet data
 
-### Send request
-
 A data requests needs to be sent to the wallet in order to read wallet data.
 
-There are two ways a data request can be sent:
+There are two ways to trigger a data request:
 
-1. Triggered by user action in the √ Connect button
-2. Programmatically through the `walletData.sendRequest` method
+1. By user action in the √ Connect button
+2. Programmatically through `walletApi.sendRequest` method
 
 #### Trigger wallet data request programmatically
 
 ```typescript
-const result = await rdt.walletData.sendRequest()
+const result = await rdt.walletApi.sendRequest()
 
 if (result.isError()) return handleException()
 
@@ -94,10 +91,12 @@ const walletData = result.value
 
 ### Change requested data
 
-By default, a data request will ask the wallet to provide at least 1 account. Use `walletData.setRequestData` together with `DataRequestBuilder` to change the wallet data request.
+By default, a data request will ask the wallet for a persona login.
+
+Use `walletApi.setRequestData` together with `DataRequestBuilder` to change the wallet data request.
 
 ```typescript
-rdt.walletData.setRequestData(
+rdt.walletApi.setRequestData(
   DataRequestBuilder.accounts().exactly(1),
   DataRequestBuilder.personaData().fullName().emailAddresses()
 )
@@ -105,18 +104,24 @@ rdt.walletData.setRequestData(
 
 ## State changes
 
-Listen to wallet data changes by subscribing to state changes.
+Listen to wallet data changes by subscribing to `walletApi.walletData$`.
 
 ```typescript
-const stateSubscription = rdt.state$.subscribe((state) => {
-  doSomethingWithAccounts(state.walletData.accounts)
+const subscription = rdt.walletApi.walletData$.subscribe((walletData) => {
+  doSomethingWithAccounts(walletData.accounts)
 })
 ```
 
 When your dApp is done listening to state changes remember to unsubscribe in order to prevent memory leaks.
 
 ```typescript
-stateSubscription.unsubscribe()
+subscription.unsubscribe()
+```
+
+Get the latest wallet data by calling `walletApi.getWalletData()`.
+
+```typescript
+const walletData = rdt.walletApi.getWalletData()
 ```
 
 # Setting up your dApp Definition

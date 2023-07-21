@@ -1,20 +1,24 @@
-import { boolean, object, z } from 'zod'
 import {
   AccountsDataRequest,
-  AccountsDataRequestRaw,
+  AccountsRequestBuilder,
   accounts,
 } from './accounts'
-import { PersonaRequest, PersonaRequestRaw, persona } from './persona'
+import { PersonaRequest, PersonaRequestBuilder, persona } from './persona'
 import {
   PersonaDataRequest,
-  PersonaDataRequestRaw,
+  PersonaDataRequestBuilder,
   personaData,
 } from './persona-data'
 
-export type DataRequestRawItem =
-  | AccountsDataRequestRaw
-  | PersonaDataRequestRaw
-  | PersonaRequestRaw
+export type DataRequestBuilderItem =
+  | AccountsRequestBuilder
+  | PersonaDataRequestBuilder
+  | PersonaRequestBuilder
+  | ConfigRequestBuilder
+
+export type OneTimeDataRequestBuilderItem =
+  | AccountsRequestBuilder
+  | PersonaDataRequestBuilder
 
 export type DataRequestState = Partial<
   { accounts: AccountsDataRequest } & { personaData: PersonaDataRequest } & {
@@ -22,12 +26,7 @@ export type DataRequestState = Partial<
   }
 >
 
-export type ConfigRequestRaw = ReturnType<typeof config>
-export type ConfigRequest = z.infer<typeof schema>
-
-const schema = object({
-  withProof: boolean().optional(),
-})
+export type ConfigRequestBuilder = {}
 
 export const config = (data: DataRequestState) => {
   const _toObject = () => ({ ...data })
@@ -39,9 +38,26 @@ export const config = (data: DataRequestState) => {
   return methods
 }
 
-export const DataRequestBuilder = {
+export type DataRequestBuilder = {
+  accounts: () => AccountsRequestBuilder
+  personaData: () => PersonaDataRequestBuilder
+  persona: () => PersonaRequestBuilder
+  config: (input: DataRequestState) => ConfigRequestBuilder
+}
+
+export const DataRequestBuilder: DataRequestBuilder = {
   accounts,
-  persona,
   personaData,
+  persona,
   config,
-} as const
+}
+
+export type OneTimeDataRequestBuilder = {
+  accounts: () => AccountsRequestBuilder
+  personaData: () => PersonaDataRequestBuilder
+}
+
+export const OneTimeDataRequestBuilder: OneTimeDataRequestBuilder = {
+  accounts,
+  personaData,
+}

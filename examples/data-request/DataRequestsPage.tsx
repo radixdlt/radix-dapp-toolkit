@@ -49,7 +49,7 @@ export const DataRequestsPage = () => {
               </Typography>
               <Button
                 onClick={() => {
-                  rdt.walletData.sendRequest()
+                  rdt.walletApi.sendRequest()
                 }}
                 sx={{ alignSelf: 'center', width: '150px' }}
               >

@@ -2,8 +2,8 @@ import {
   Account,
   NumberOfValues,
   Persona,
+  PersonaDataName,
   PersonaDataRequestItem,
-  PersonaDataRequestResponseItem,
   Proof,
 } from '@radixdlt/wallet-sdk'
 import { array, discriminatedUnion, literal, object, string, z } from 'zod'
@@ -35,13 +35,35 @@ export const SignedChallenge = discriminatedUnion('type', [
   SignedChallengeAccount,
 ])
 
+export const WalletDataPersonaDataFullName = object({
+  entry: literal('fullName'),
+  fields: PersonaDataName,
+})
+
+export const WalletDataPersonaDataEmailAddresses = object({
+  entry: literal('emailAddresses'),
+  fields: array(string()),
+})
+
+export const WalletDataPersonaDataPhoneNumbersAddresses = object({
+  entry: literal('phoneNumbers'),
+  fields: array(string()),
+})
+
+export type WalletDataPersonaData = z.infer<typeof WalletDataPersonaData>
+export const WalletDataPersonaData = discriminatedUnion('entry', [
+  WalletDataPersonaDataFullName,
+  WalletDataPersonaDataEmailAddresses,
+  WalletDataPersonaDataPhoneNumbersAddresses,
+])
+
 export type WalletData = z.infer<typeof WalletData>
 export const WalletData = object({
   accounts: array(Account),
-  personaData: PersonaDataRequestResponseItem,
-  persona: Persona,
+  personaData: array(WalletDataPersonaData),
+  persona: Persona.optional(),
   proofs: array(SignedChallenge),
-}).partial()
+})
 
 export type SharedData = z.infer<typeof SharedData>
 export const SharedData = object({
@@ -54,3 +76,10 @@ export const RdtState = object({
   walletData: WalletData,
   sharedData: SharedData,
 })
+
+export const walletDataDefault: WalletData = {
+  accounts: [],
+  personaData: [],
+  proofs: [],
+  persona: undefined,
+}
