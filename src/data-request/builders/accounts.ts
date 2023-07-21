@@ -8,6 +8,11 @@ export type AccountsRequestBuilder = {
   withProof: (value?: boolean) => AccountsRequestBuilder
   reset: (value?: boolean) => AccountsRequestBuilder
 }
+export type OneTimeAccountsRequestBuilder = {
+  atLeast: (n: number) => OneTimeAccountsRequestBuilder
+  exactly: (n: number) => OneTimeAccountsRequestBuilder
+  withProof: (value?: boolean) => OneTimeAccountsRequestBuilder
+}
 export type AccountsDataRequest = z.infer<typeof AccountsDataRequestSchema>
 
 export const AccountsDataRequestSchema = object({
