@@ -1,14 +1,14 @@
-import { Providers } from './_types'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
-import { AppLogger, WalletSdk } from '@radixdlt/wallet-sdk'
+import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
 import { GatewayClient, MetadataValue } from './gateway/gateway'
 import {
   BehaviorSubject,
   Subscription,
   filter,
+  map,
   merge,
   switchMap,
   tap,
@@ -20,25 +20,18 @@ import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 import { DataRequestStateClient } from './data-request/data-request-state'
 import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
+import { GatewayApi, RadixDappToolkitOptions, WalletApi } from './_types'
 
-export type RadixDappToolkitOptions = {
-  networkId: number
-  dAppDefinitionAddress: string
-  logger?: AppLogger
-  onDisconnect?: () => void
-  explorer?: {
-    baseUrl: string
-    transactionPath: string
-    accountsPath: string
-  }
-  gatewayBaseUrl?: string
-  useCache?: boolean
-  providers?: Partial<Providers>
+export type RadixDappToolkit = {
+  walletApi: WalletApi
+  gatewayApi: GatewayApi
+  disconnect: () => void
+  destroy: () => void
 }
 
-export type RadixDappToolkit = ReturnType<typeof RadixDappToolkit>
-
-export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
+export const RadixDappToolkit = (
+  options: RadixDappToolkitOptions
+): RadixDappToolkit => {
   const {
     dAppDefinitionAddress,
     networkId,
@@ -81,9 +74,9 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
   const walletSdk =
     providers?.walletSdk ??
     WalletSdk({
+      logger,
       networkId,
       dAppDefinitionAddress,
-      logger,
     })
 
   const requestItemClient =
@@ -111,14 +104,7 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     })
 
   const dataRequestStateClient =
-    providers?.dataRequestStateClient ??
-    DataRequestStateClient({
-      accounts: {
-        numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
-        reset: false,
-        withProof: false,
-      },
-    })
+    providers?.dataRequestStateClient ?? DataRequestStateClient({})
 
   const dataRequestClient =
     providers?.dataRequestClient ??
@@ -222,7 +208,8 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
     status: gatewayClient.gatewayApi.statusApi,
     transaction: gatewayClient.gatewayApi.transactionApi,
   }
-  const walletDataApi = {
+
+  const walletApi = {
     setRequestData: dataRequestClient.setState,
     sendRequest: () =>
       dataRequestClient.sendRequest({
@@ -231,29 +218,30 @@ export const RadixDappToolkit = (options: RadixDappToolkitOptions) => {
       }),
     provideChallengeGenerator: (
       input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
-    ) => {
-      dataRequestClient.provideChallengeGenerator(input)
-      return { setRequestData: dataRequestClient.setState }
-    },
+    ) => dataRequestClient.provideChallengeGenerator(input),
     updateSharedData: () => dataRequestClient.updateSharedData(),
     oneTimeRequest: dataRequestClient.sendOneTimeRequest,
+    sendTransaction: walletClient.sendTransaction,
+    walletData$: stateClient.state$.pipe(map((state) => state.walletData)),
+    getWalletData: () => stateClient.getState().walletData,
+  }
+
+  const disconnect = () => {
+    walletClient.resetRequestItems()
+    stateClient.reset()
+  }
+
+  const destroy = () => {
+    stateClient.destroy()
+    walletClient.destroy()
+    subscriptions.unsubscribe()
+    connectButtonClient.destroy()
   }
 
   return {
-    walletData: walletDataApi,
-    sendTransaction: walletClient.sendTransaction,
+    walletApi,
     gatewayApi,
-    state$: stateClient.state$,
-    getState: stateClient.getState,
-    disconnect: () => {
-      walletClient.resetRequestItems()
-      stateClient.reset()
-    },
-    destroy: () => {
-      stateClient.destroy()
-      walletClient.destroy()
-      subscriptions.unsubscribe()
-      connectButtonClient.destroy()
-    },
+    disconnect,
+    destroy,
   }
 }

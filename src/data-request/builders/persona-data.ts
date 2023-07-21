@@ -2,7 +2,12 @@ import { NumberOfValues } from '@radixdlt/wallet-sdk'
 import { produce } from 'immer'
 import { boolean, object, z } from 'zod'
 
-export type PersonaDataRequestRaw = ReturnType<typeof personaData>
+export type PersonaDataRequestBuilder = {
+  fullName: (value?: boolean) => PersonaDataRequestBuilder
+  emailAddresses: (value?: boolean) => PersonaDataRequestBuilder
+  phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
+  reset: (value?: boolean) => PersonaDataRequestBuilder
+}
 export type PersonaDataRequest = z.infer<typeof PersonaDataRequestSchema>
 
 export const PersonaDataRequestSchema = object({

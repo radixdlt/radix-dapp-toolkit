@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useRdt } from './useRdt'
-import { RdtState } from '../../../src'
+import { RdtState, WalletData } from '../../../src'
 
 export const useRdtState = () => {
   const rdt = useRdt()
-  const [state, setState] = useState<RdtState>()
+  const [state, setState] = useState<WalletData>()
 
   useEffect(() => {
-    const subscription = rdt.state$.subscribe((state) => {
+    const subscription = rdt.walletApi.walletData$.subscribe((state) => {
       setState(state)
     })
 

@@ -2,7 +2,12 @@ import { NumberOfValues } from '@radixdlt/wallet-sdk'
 import { produce } from 'immer'
 import { boolean, object, z } from 'zod'
 
-export type AccountsDataRequestRaw = ReturnType<typeof accounts>
+export type AccountsRequestBuilder = {
+  atLeast: (n: number) => AccountsRequestBuilder
+  exactly: (n: number) => AccountsRequestBuilder
+  withProof: (value?: boolean) => AccountsRequestBuilder
+  reset: (value?: boolean) => AccountsRequestBuilder
+}
 export type AccountsDataRequest = z.infer<typeof AccountsDataRequestSchema>
 
 export const AccountsDataRequestSchema = object({
@@ -11,11 +16,12 @@ export const AccountsDataRequestSchema = object({
   reset: boolean().optional(),
 })
 
-export const accounts = () => {
-  let data: AccountsDataRequest = produce(
-    { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
-    () => {}
-  )
+export const accounts: () => AccountsRequestBuilder = () => {
+  const defaultValue: AccountsDataRequest = {
+    numberOfAccounts: { quantifier: 'atLeast', quantity: 1 },
+  }
+
+  let data: AccountsDataRequest = produce(defaultValue, () => {})
 
   const atLeast = (n: number) => {
     data = produce(data, (draft) => {

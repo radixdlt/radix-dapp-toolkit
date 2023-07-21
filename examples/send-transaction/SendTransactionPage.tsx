@@ -60,7 +60,7 @@ export const SendTransactionPage = () => {
             onClick={() => {
               addItemToTransactionHistory({ transactionManifest, message })
               setState((prev) => ({ ...prev, loading: true }))
-              rdt
+              rdt.walletApi
                 .sendTransaction({ transactionManifest, version: 1, message })
                 .map(() => {
                   setState(() => ({

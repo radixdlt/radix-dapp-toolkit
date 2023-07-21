@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs'
-import { DataRequestRawItem, DataRequestState } from './builders'
+import { DataRequestBuilderItem, DataRequestState } from './builders'
 import { produce } from 'immer'
 
 export type DataRequestStateClient = ReturnType<typeof DataRequestStateClient>
@@ -10,19 +10,25 @@ export const DataRequestStateClient = (initialState: DataRequestState) => {
   const update = (input: DataRequestState) => state.next(input)
   const getState = () => state.getValue()
 
-  const toDataRequestState = (
-    ...items: DataRequestRawItem[]
-  ): DataRequestState =>
-    items.reduce((acc, item) => ({ ...acc, ...item._toObject() }), {})
+  const toDataRequestState = (...items: unknown[]): DataRequestState =>
+    items
+      .filter((item: any): item is any => typeof item._toObject == 'function')
+      .reduce(
+        (acc, item) => ({
+          ...acc,
+          ...item._toObject(),
+        }),
+        {}
+      )
 
-  const setState = (...items: DataRequestRawItem[]) => {
+  const setState = (...items: DataRequestBuilderItem[]) => {
     if (items.length === 0) reset()
     else {
       update(toDataRequestState(...items))
     }
   }
 
-  const patchState = (...items: DataRequestRawItem[]) => {
+  const patchState = (...items: DataRequestBuilderItem[]) => {
     if (items.length === 0) return
     update({ ...getState(), ...toDataRequestState(...items) })
   }
