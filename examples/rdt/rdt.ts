@@ -93,6 +93,8 @@ setTimeout(() => {
 
 export const rdt = RadixDappToolkit(options)
 
+rdt.walletApi.setRequestData(DataRequestBuilder.accounts().atLeast(1))
+
 rdt.walletApi.walletData$.subscribe((state) => {
   setAccounts(state.accounts)
   if (state.persona)
