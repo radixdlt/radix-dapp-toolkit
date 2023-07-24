@@ -102,8 +102,8 @@ export const CreateFungibleTokenCard = () => {
         disabled={Object.values(state.fungible).some((v) => !v)}
         onClick={async () => {
           const values = state.fungible
-          await rdt.walletData
-            .oneTimeRequest(accounts().exactly(1))
+          await rdt.walletApi
+            .sendOneTimeRequest(accounts().exactly(1))
             .andThen(({ accounts }) => {
               const transactionManifest = createToken(
                 accounts![0].address
@@ -115,7 +115,7 @@ export const CreateFungibleTokenCard = () => {
                 initialSupply: values.initialSupply,
               })
               addLog(transactionManifest)
-              return rdt.sendTransaction({
+              return rdt.walletApi.sendTransaction({
                 transactionManifest,
                 version: 1,
               })
