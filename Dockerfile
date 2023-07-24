@@ -1,5 +1,8 @@
+ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 
 FROM node:16-alpine as builder
+
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
 
 WORKDIR /app
 
@@ -15,6 +18,8 @@ COPY . .
 RUN npm run build examples
 
 FROM nginx:alpine as production-build
+
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
 
 COPY ./.nginx/nginx.conf /etc/nginx/nginx.conf
 
