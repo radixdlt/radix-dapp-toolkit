@@ -49,5 +49,8 @@ export const toWalletRequest = ({
           reset: !!dataRequestState.personaData.reset,
           oneTime,
         }
+
+      if ((Object.values(dataRequestState).length === 0, !oneTime))
+        draft.persona = { challenge: undefined }
     })
   )
