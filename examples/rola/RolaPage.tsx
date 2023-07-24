@@ -16,11 +16,10 @@ export const RolaPage = () => {
   const dAppDefinitionAddress = useDAppDefinitionAddress()
   const origin = window.location.origin
   const defaults = {
-    challenge: createChallenge(),
     loading: false,
     verified: false,
   }
-  const [{ challenge, loading, verified, signedChallenge }, setState] =
+  const [{ loading, verified, signedChallenge }, setState] =
     React.useState<any>(defaults)
   const rdt = useRdt()
   const networkId = useNetworkId()
@@ -41,14 +40,16 @@ export const RolaPage = () => {
             onClick={() => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending login request with challenge...')
-              rdt.walletData
-                .oneTimeRequest(DataRequestBuilder.persona().withProof())
+              rdt.walletApi.setRequestData(
+                DataRequestBuilder.persona().withProof()
+              )
+              rdt.walletApi
+                .sendRequest()
                 .andThen((response) => {
                   addLog('Got challenge response')
                   const signedChallenge = response.proofs![0]
                   setState((prev) => ({
                     ...prev,
-                    challenge,
                     signedChallenge,
                     loading: false,
                   }))
@@ -82,14 +83,13 @@ export const RolaPage = () => {
             onClick={() => {
               setState(() => ({ ...defaults, loading: true }))
               addLog('Sending account request with challenge...')
-              rdt.walletData
-                .oneTimeRequest(DataRequestBuilder.accounts().withProof())
+              rdt.walletApi
+                .sendOneTimeRequest(DataRequestBuilder.accounts().withProof())
                 .andThen((response) => {
                   addLog('Got challenge response')
                   const signedChallenge = response.proofs![0]
                   setState((prev) => ({
                     ...prev,
-                    challenge,
                     signedChallenge,
                     loading: false,
                   }))
@@ -121,7 +121,6 @@ export const RolaPage = () => {
           <Code>
             {JSON.stringify(
               {
-                challenge,
                 signedChallenge,
                 dAppDefinitionAddress,
                 origin,
