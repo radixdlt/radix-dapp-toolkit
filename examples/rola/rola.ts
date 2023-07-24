@@ -47,8 +47,9 @@ export const RolaFactory =
         .getEntityOwnerKeys(signedChallenge.address)
         .mapErr(() => ({ reason: 'couldNotVerifyPublicKeyOnLedger' }))
         .map((ownerKeys) => ({
-          ownerKeysMatchesProvidedPublicKey:
-            ownerKeys.includes(hashedPublicKey),
+          ownerKeysMatchesProvidedPublicKey: ownerKeys.includes(
+            hashedPublicKey.toUpperCase()
+          ),
           ownerKeysSet: !!ownerKeys,
         }))
 
