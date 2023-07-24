@@ -139,6 +139,7 @@ jobs:
       dockerfile: "./Dockerfile"
       platforms: "linux/amd64"
       scan_image: true
+      snyk_target_ref: ${{ github.ref_name }}
 
   snyk-monitor:
     runs-on: ubuntu-latest
