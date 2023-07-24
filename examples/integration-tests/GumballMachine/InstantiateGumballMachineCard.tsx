@@ -20,7 +20,7 @@ const getInstantiateGumballMachineManifest = (
   gumballFlavour: string,
   gumballMachinePackageAddress: string
 ) => `
-  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate_gumball_machine" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
+  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
   CALL_METHOD Address("${ownerAddress}") "deposit_batch" Expression("ENTIRE_WORKTOP");
 `
 
