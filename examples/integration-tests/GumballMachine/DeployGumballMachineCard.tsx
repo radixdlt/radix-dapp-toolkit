@@ -50,7 +50,7 @@ export const DeployGumballMachineCard = () => {
           rpd,
         })
         addLog('deploying gumball machine package...')
-        return rdt.sendTransaction({
+        return rdt.walletApi.sendTransaction({
           transactionManifest,
           blobs: [wasm],
           version: 1,

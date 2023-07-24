@@ -37,11 +37,11 @@ export const InstantiateGumballMachineCard = () => {
 
   const getAccounts = () => {
     addLog('getting account from wallet...')
-    return rdt.walletData.oneTimeRequest(accountsBuilder().exactly(1))
+    return rdt.walletApi.sendOneTimeRequest(accountsBuilder().exactly(1))
   }
 
   const instantiateComponent = (address: string) => {
-    return rdt
+    return rdt.walletApi
       .sendTransaction({
         transactionManifest: getInstantiateGumballMachineManifest(
           address,
