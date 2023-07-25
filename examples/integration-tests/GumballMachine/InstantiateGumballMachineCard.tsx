@@ -56,8 +56,7 @@ export const InstantiateGumballMachineCard = () => {
         )?.new_global_entities.map((entity) => entity.entity_address)
         const entities = {
           adminBadge: createdEntities[1],
-          staffBadge: createdEntities[2],
-          gumballToken: createdEntities[3],
+          gumballToken: createdEntities[2],
         }
 
         addGumballMachineComponent({

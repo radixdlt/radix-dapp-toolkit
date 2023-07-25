@@ -14,7 +14,6 @@ export const GumballMachineTransactionManifests = (
     gumballPrice: 0,
     entities: {
       adminBadge: '',
-      staffBadge: '',
       gumballToken: '',
     },
   }
@@ -26,7 +25,6 @@ export const GumballMachineTransactionManifests = (
     Enum<Metadata::AddressArray>(
         Array<Address>(
             Address("${entities.adminBadge}"),
-            Address("${entities.staffBadge}"),
             Address("${entities.gumballToken}"),
             Address("${gumballMachineComponentAddress}")
         )
