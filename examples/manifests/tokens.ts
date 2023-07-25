@@ -76,67 +76,141 @@ CALL_METHOD
     description: string
     items: string[]
   }) => `
-  # Creating a new resource 
-CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
-    # Owner role - This gets metadata permissions, and is the default for other permissions
-    # Can set as Enum<OwnerRole::Fixed>(access_rule)  or Enum<OwnerRole::Updatable>(access_rule)
-    Enum<OwnerRole::None>()
-    Enum<NonFungibleIdType::Integer>()                                                                  # The type of NonFungible Id
-    true                                                                                                # Whether the engine should track supply (avoid for massively parallelizable tokens)
-    Tuple(Tuple(Array<Enum>(), Array<Tuple>(), Array<Enum>()), Enum<0u8>(66u8), Array<String>())        # Non Fungible Data Schema
-    Map<NonFungibleLocalId, Tuple>(   
-        ${items
-          .map(
-            (item, index) =>
-              `NonFungibleLocalId("#${index + 1}#") => Tuple(Tuple())`
-          )
-          .join(
-            ', '
-          )}                                                                 
-    )
+  CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
+    Enum<0u8>()
+    Enum<1u8>()
+    true
     Tuple(
-        Some(         # Mint Roles (if None: defaults to DenyAll, DenyAll)
-            Tuple(
-                Some(Enum<AccessRule::AllowAll>()),  # Minter (if None: defaults to Owner)
-                Some(Enum<AccessRule::DenyAll>())    # Minter Updater (if None: defaults to Owner)
+        Tuple(
+            Array<Enum>(
+                Enum<14u8>(
+                    Array<Enum>(
+                        Enum<0u8>(
+                            12u8
+                        ),
+                        Enum<0u8>(
+                            12u8
+                        ),
+                        Enum<1u8>(
+                            1u64
+                        ),
+                        Enum<0u8>(
+                            10u8
+                        )
+                    )
+                ),
+                Enum<12u8>()
+            ),
+            Array<Tuple>(
+                Tuple(
+                    Enum<1u8>(
+                        "MetadataStandardNonFungibleData"
+                    ),
+                    Enum<1u8>(
+                        Enum<0u8>(
+                            Array<String>(
+                                "name",
+                                "description",
+                                "key_image_url",
+                                "arbitrary_coolness_rating"
+                            )
+                        )
+                    )
+                ),
+                Tuple(
+                    Enum<1u8>(
+                        "Url"
+                    ),
+                    Enum<0u8>()
+                )
+            ),
+            Array<Enum>(
+                Enum<0u8>(),
+                Enum<0u8>()
             )
         ),
-        None,        # Burn Roles (if None: defaults to DenyAll, DenyAll)
-        None,        # Freeze Roles (if None: defaults to DenyAll, DenyAll)
-        None,        # Recall Roles (if None: defaults to DenyAll, DenyAll)
-        None,        # Withdraw Roles (if None: defaults to AllowAll, DenyAll)
-        None,        # Deposit Roles (if None: defaults to AllowAll, DenyAll)
-        None         # Non Fungible Data Update Roles (if None: defaults to DenyAll, DenyAll)
+        Enum<1u8>(
+            0u64
+        ),
+        Array<String>()
     )
-    Tuple(                                                                   # Metadata initialization
-        Map<String, Tuple>(                                                  # Initial metadata values
-            "name" => Tuple(
-                Some(Enum<Metadata::String>("${name}")),    
-                true                                                         
-            ),
+    Map<NonFungibleLocalId, Tuple>(
+        ${items
+          .map((item, index) => {
+            return `NonFungibleLocalId("#${index}#") => Tuple(
+            Tuple(
+                "NFT Item Name",
+                "NFT Item description",
+                "${item}",
+                45u64
+            )
+        )`
+          })
+          .join(',')}
+    )
+    Tuple(
+        Enum<0u8>(),
+        Enum<0u8>(),
+        Enum<0u8>(),
+        Enum<0u8>(),
+        Enum<0u8>(),
+        Enum<0u8>(),
+        Enum<0u8>()
+    )
+    Tuple(
+        Map<String, Tuple>(
             "description" => Tuple(
-                Some(Enum<Metadata::String>("${description}")),    
-                true   
+                Enum<1u8>(
+                    Enum<0u8>(
+                        "${description}"
+                    )
+                ),
+                true
             ),
             "icon_url" => Tuple(
-                Some(Enum<Metadata::String>("${iconUrl}")),    
-                true   
-            ) 
+                Enum<1u8>(
+                    Enum<13u8>(
+                        "${iconUrl}"
+                    )
+                ),
+                true
+            ),
+            "info_url" => Tuple(
+                Enum<1u8>(
+                    Enum<13u8>(
+                        "https://developers.radixdlt.com/ecosystem"
+                    )
+                ),
+                true
+            ),
+            "name" => Tuple(
+                Enum<1u8>(
+                    Enum<0u8>(
+                        "${name}"
+                    )
+                ),
+                true
+            ),
+            "tags" => Tuple(
+                Enum<1u8>(
+                    Enum<128u8>(
+                        Array<String>(
+                            "collection",
+                            "sandbox",
+                            "example-tag"
+                        )
+                    )
+                ),
+                true
+            )
         ),
-        Map<String, Enum>(                                                   # Metadata roles
-            "metadata_setter" => Some(Enum<AccessRule::AllowAll>()),         # Metadata setter role
-            "metadata_setter_updater" => None,                               # Metadata setter updater role as None defaults to OWNER
-            "metadata_locker" => Some(Enum<AccessRule::DenyAll>()),          # Metadata locker role
-            "metadata_locker_updater" => None                                # Metadata locker updater role as None defaults to OWNER
-        )
+        Map<String, Enum>()
     )
-    None;             # No Address Reservation
-
-# Depositing the entirety of the initial supply of the newly created resource into our account 
-# component.
+    Enum<0u8>()
+;
 CALL_METHOD
-    Address("${address}") 
-    "deposit_batch"
-    Expression("ENTIRE_WORKTOP");
-  `,
+    Address("${address}")
+    "try_deposit_batch_or_abort"
+    Expression("ENTIRE_WORKTOP")
+;`,
 })
