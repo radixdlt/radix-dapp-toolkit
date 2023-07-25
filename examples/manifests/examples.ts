@@ -42,8 +42,8 @@ export const getExample4 = (
   _: string,
   { accountAlpha, componentAlpha }: GumballMachineExampleConfig
 ) => `
-  CALL_METHOD Address("${componentAlpha?.address!}") "create_proof" Address("${componentAlpha
-  ?.entities?.adminBadge!}");
+  CALL_METHOD Address("${accountAlpha!}") "create_proof_of_amount" Address("${componentAlpha
+  ?.entities?.adminBadge!}") Decimal("1");
   CALL_METHOD Address("${componentAlpha?.address!}") "withdraw_earnings";
   CALL_METHOD Address("${accountAlpha!}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP");
 `
@@ -53,7 +53,7 @@ export const getExample5 = (
   { accountAlpha, accountBravo, componentAlpha }: GumballMachineExampleConfig
 ) =>
   `CALL_METHOD Address("${accountBravo}") "withdraw" Address("${xrdAddress}") Decimal("10");
-CALL_METHOD Address("${accountAlpha}") "create_proof" Address("${componentAlpha?.entities.adminBadge}");
+CALL_METHOD Address("${accountAlpha}") "create_proof_of_amount" Address("${componentAlpha?.entities.adminBadge}") Decimal("1");
 TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("5") Bucket("xrd");
 CALL_METHOD Address("${componentAlpha?.address}") "buy_gumball" Bucket("xrd");
 CALL_METHOD Address("${componentAlpha?.address}") "withdraw_earnings" ;
