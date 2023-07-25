@@ -6,7 +6,6 @@ export type GumballMachineComponentState = {
   ownerAccountAddress: string
   entities: {
     adminBadge: string
-    staffBadge: string
     gumballToken: string
   }
   gumballPrice: number

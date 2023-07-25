@@ -80,10 +80,6 @@ export const GumballMachineCard = (
         </Layout.Row>
         <Layout.Row>
           <GumballMachineInfoBox
-            label="Staff Badge"
-            address={gumballMachine.entities.staffBadge}
-          ></GumballMachineInfoBox>
-          <GumballMachineInfoBox
             label="Gumball Token"
             address={gumballMachine.entities.gumballToken}
           ></GumballMachineInfoBox>
