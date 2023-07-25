@@ -13,16 +13,7 @@ import { useAccounts } from '../../account/state'
 import { SelectAccount } from '../../account/SelectAccount'
 import { accounts as accountsBuilder } from '../../../src/data-request/builders/accounts'
 import { gatewayApi } from '../../rdt/rdt'
-
-const getInstantiateGumballMachineManifest = (
-  ownerAddress: string,
-  gumballPrice: number,
-  gumballFlavour: string,
-  gumballMachinePackageAddress: string
-) => `
-  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
-  CALL_METHOD Address("${ownerAddress}") "deposit_batch" Expression("ENTIRE_WORKTOP");
-`
+import { getInstantiateGumballMachineManifest } from '../../manifests/deploy-package'
 
 export const InstantiateGumballMachineCard = () => {
   const rdt = useRdt()

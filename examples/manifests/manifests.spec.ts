@@ -8,7 +8,10 @@ import { getCreateBadgeManifest } from './create-badge'
 import { createToken } from './tokens'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { getDeployPackageManifest } from './deploy-package'
+import {
+  getDeployPackageManifest,
+  getInstantiateGumballMachineManifest,
+} from './deploy-package'
 import {
   getExample1,
   getExample2,
@@ -86,6 +89,18 @@ describe('tx manifests', () => {
       })
 
       await testManifest(stringManifest, [gumballMachineWasm])
+    })
+  })
+
+  describe('instantiate package', () => {
+    it('should create valid instantiate package manifest', async () => {
+      const stringManifest = getInstantiateGumballMachineManifest(
+        'account_tdx_d_12x73uw57xyzxm46rdget90s6te524v9wmzpmjk3x9thtd05srsmlc9',
+        5,
+        'apple',
+        'package_tdx_d_1phnlvwut0t6n7gw6rhx53jykunczlc84s86wxttffa9qyh4fvtlp0p'
+      )
+      await testManifest(stringManifest)
     })
   })
 

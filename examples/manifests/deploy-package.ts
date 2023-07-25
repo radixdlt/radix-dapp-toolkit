@@ -18,3 +18,13 @@ export const getDeployPackageManifest = ({
     Map<String, Tuple>()         # Metadata
     None;                        # Address Reservation`
 }
+
+export const getInstantiateGumballMachineManifest = (
+  ownerAddress: string,
+  gumballPrice: number,
+  gumballFlavour: string,
+  gumballMachinePackageAddress: string
+) => `
+  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
+  CALL_METHOD Address("${ownerAddress}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+`
