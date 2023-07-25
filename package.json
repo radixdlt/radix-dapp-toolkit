@@ -57,7 +57,7 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/joy": "^5.0.0-alpha.76",
     "@mui/material": "^5.12.1",
-    "@radixdlt/radix-engine-toolkit": "^0.2.1",
+    "@radixdlt/radix-engine-toolkit": "^0.2.3",
     "@types/elliptic": "^6.4.14",
     "@types/jest": "^29.4.0",
     "@types/lodash.isequal": "^4.5.6",
