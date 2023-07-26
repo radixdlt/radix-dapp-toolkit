@@ -46,7 +46,7 @@ export const createToken = (address: string) => ({
                 true                                                        
             ),
             "icon_url" => Tuple(
-              Some(Enum<Metadata::String>("${iconUrl}")),
+              Some(Enum<Metadata::Url>("${iconUrl}")),
               true
             )
         ),
