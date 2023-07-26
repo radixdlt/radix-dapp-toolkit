@@ -36,18 +36,23 @@ export const toWalletRequest = ({
         }
       }
 
-      const persona = stateClient.getState().walletData.persona
-
-      if (stateClient.getState().walletData.persona) draft.persona = persona
-
-      if (dataRequestState.persona?.withProof)
-        draft.persona = { ...(draft.persona ?? {}), challenge }
-
       if (dataRequestState.personaData)
         draft.personaData = {
           ...dataRequestState.personaData,
           reset: !!dataRequestState.personaData.reset,
           oneTime,
         }
+
+      if (!oneTime) {
+        const persona = stateClient.getState().walletData.persona
+
+        if (stateClient.getState().walletData.persona) draft.persona = persona
+
+        if (dataRequestState.persona?.withProof)
+          draft.persona = { ...(draft.persona ?? {}), challenge }
+
+        if (Object.values(dataRequestState).length === 0)
+          draft.persona = { challenge: undefined }
+      }
     })
   )

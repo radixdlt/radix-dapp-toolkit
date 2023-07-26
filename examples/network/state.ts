@@ -1,17 +1,20 @@
 import { BehaviorSubject } from 'rxjs'
 import { createObservableHook } from '../helpers/create-observable-hook'
 import { appLogger } from '../logger/state'
-import { networkIdMap } from '../../src/gateway/_types'
-import { GatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk'
+import {
+  GatewayApiClient,
+  RadixNetwork,
+  RadixNetworkConfigById,
+} from '@radixdlt/babylon-gateway-api-sdk'
 
 export const bootstrapNetwork = (networkId: number) => {
   const gatewayApi = GatewayApiClient.initialize({
-    basePath: networkIdMap.get(networkId),
+    basePath: RadixNetworkConfigById[networkId].gatewayUrl,
   })
   gatewayApi.status.getNetworkConfiguration().then((response) => {
     appLogger.debug({
       ...response,
-      gateway: networkIdMap.get(response.network_id),
+      gateway: RadixNetworkConfigById[networkId].gatewayUrl,
     })
     return xrdAddress.next(response.well_known_addresses.xrd)
   })
@@ -24,7 +27,9 @@ export const useXrdAddress = createObservableHook(xrdAddress, '')
 const getNetworkIdDefault = () => {
   const urlParams = new URLSearchParams(window.location.search)
   const networkId = parseInt(
-    urlParams.get('networkId') || localStorage.getItem('networkId') || '33',
+    urlParams.get('networkId') ||
+      localStorage.getItem('networkId') ||
+      RadixNetwork.RCnetV2.toString(),
     10
   )
   return networkId

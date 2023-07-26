@@ -24,6 +24,7 @@ export const verifyProofFactory =
           // @ts-ignore: incorrect type definition in EC lib
           'hex'
         )
+
         isValid = publicKey.verify(signatureMessageHex, input.proof.signature)
       } else {
         const signature = Buffer.from(input.proof.signature, 'hex')

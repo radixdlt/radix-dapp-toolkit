@@ -8,7 +8,7 @@ module.exports = {
       prerelease: 'dev-birch',
     },
     {
-      name: 'release/([a-z]+)',
+      name: 'release/([a-z0-9-]+)',
       channel: '${name.replace(/^release\\//g, "")}',
       prerelease: '${name.replace(/^release\\//g, "")}',
     },

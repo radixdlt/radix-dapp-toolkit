@@ -6,14 +6,16 @@
 - [Installation](#installation)
 - [Usage](#usage)
   - [Getting started](#getting-started)
-    - [Instantiation](#instantiation)
   - [Wallet data](#wallet-data)
       - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
     - [Change requested data](#change-requested-data)
+    - [One Time Data Request](#one-time-data-request)
   - [State changes](#state-changes)
+- [ROLA (Radix Off-Ledger Authentication)](#rola-radix-off-ledger-authentication)
 - [Setting up your dApp Definition](#setting-up-your-dapp-definition)
   - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
+- [Examples](#examples)
 
 # What is Radix dApp Toolkit?
 
@@ -25,7 +27,7 @@ The current version only supports desktop browser webapps with requests made via
 
 - **√ Connect Button** – A framework agnostic web component that keeps a minimal internal state and have properties are pushed to it.
 
-- **Tools** – Abstractions over lower level APIs for developers to build their radix dApp at lightning speed.
+- **Tools** – Abstractions over lower level APIs for developers to build their radix dApps at lightning speed.
 
 - **State management** – Handles wallet responses, caching and provides data to √ Connect button.
 
@@ -52,8 +54,6 @@ yarn add @radixdlt/radix-dapp-toolkit
 ## Getting started
 
 Add the `<radix-connect-button />` element in your HTML code and instantiate `RadixDappToolkit`.
-
-### Instantiation
 
 ```typescript
 import { RadixDappToolkit } from '@radixdlt/radix-dapp-toolkit'
@@ -102,6 +102,21 @@ rdt.walletApi.setRequestData(
 )
 ```
 
+### One Time Data Request
+
+One Time data requests will always result in the Radix Wallet asking for the user's permission to share the data with the dApp. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
+
+```typescript
+const result = rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.accounts().exactly(1),
+  OneTimeDataRequestBuilder.personaData().fullName()
+)
+
+if (result.isError()) return handleException()
+
+const walletData = result.value
+```
+
 ## State changes
 
 Listen to wallet data changes by subscribing to `walletApi.walletData$`.
@@ -123,6 +138,10 @@ Get the latest wallet data by calling `walletApi.getWalletData()`.
 ```typescript
 const walletData = rdt.walletApi.getWalletData()
 ```
+
+# ROLA (Radix Off-Ledger Authentication)
+
+[End-to-end ROLA verification example](https://github.com/radixdlt/rola-examples) using RDT in a [full-stack dApp](https://docs-babylon.radixdlt.com/main/getting-started-developers/dapp-backend/building-a-full-stack-dapp.html).
 
 # Setting up your dApp Definition
 
@@ -162,4 +181,8 @@ One-time data requests do not register the dApp in the wallet and the connect bu
 
 A user connecting her wallet will be the first user flow in the majority of dApps. The connect flow is a bit different from subsequent data request flows. Its purpose is to provide the dApp with a minimal amount of user data in order for the user to be able to use the dApp, e.g. the minimal amount of data for a DEX dApp is an account.
 
-RDT handles writing and reading data to the browser’s local storage so that it will be persisted between page loads. The dApp frontend logic can at any time ask RDT to provide the stored data by subscribing to the `state$` observable or calling `requestData`. One time data requests or requests that can not be resolved by the state are sent to the wallet.
+RDT handles writing and reading data to the browser’s local storage so that it will be persisted between page loads. The dApp frontend logic can at any time ask RDT to provide the stored data by subscribing to the `walletApi.walletData$` observable or calling `walletApi.getWalletData`. One time data requests or requests that can not be resolved by the internal state are sent as data requests to the wallet.
+
+# Examples
+
+The `examples` directory contains a react dApp that consumes RDT. Its main purpose is to be used by us internally for debugging but can also serve as a source of inspiration.

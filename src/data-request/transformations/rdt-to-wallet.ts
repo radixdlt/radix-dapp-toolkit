@@ -39,16 +39,16 @@ const isAuthorized = (
 ): boolean => {
   const { persona, accounts, personaData } = input
 
-  const requiresChallengeSigning = !!persona?.challenge
+  const isPersonaLogin = !!persona
   const shouldResetData = accounts?.reset || personaData?.reset
   const isOngoingAccountsRequest = accounts && !accounts?.oneTime
   const isOngoingPersonaDataRequest = personaData && !personaData?.oneTime
 
   const isAuthorizedRequest = !!(
-    requiresChallengeSigning ||
     shouldResetData ||
     isOngoingAccountsRequest ||
-    isOngoingPersonaDataRequest
+    isOngoingPersonaDataRequest ||
+    isPersonaLogin
   )
 
   return isAuthorizedRequest

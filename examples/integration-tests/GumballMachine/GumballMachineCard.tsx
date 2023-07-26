@@ -23,7 +23,7 @@ export const GumballMachineCard = (
   const updateClaimedEntities = () => {
     const tx = setRelatedEntities()
     addLog(tx)
-    rdt
+    rdt.walletApi
       .sendTransaction({
         transactionManifest: tx,
         version: 1,
@@ -39,7 +39,7 @@ export const GumballMachineCard = (
 
   const exec = () => {
     addLog(transactionManifest)
-    rdt
+    rdt.walletApi
       .sendTransaction({
         transactionManifest,
         version: 1,
@@ -79,10 +79,6 @@ export const GumballMachineCard = (
           ></GumballMachineInfoBox>
         </Layout.Row>
         <Layout.Row>
-          <GumballMachineInfoBox
-            label="Staff Badge"
-            address={gumballMachine.entities.staffBadge}
-          ></GumballMachineInfoBox>
           <GumballMachineInfoBox
             label="Gumball Token"
             address={gumballMachine.entities.gumballToken}

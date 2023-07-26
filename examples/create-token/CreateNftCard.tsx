@@ -261,10 +261,10 @@ export const CreateNftCard = () => {
         fullWidth
         onClick={async () => {
           const values = state.nft
-          await rdt.walletData
-            .oneTimeRequest(accounts().exactly(1))
+          await rdt.walletApi
+            .sendOneTimeRequest(accounts().exactly(1))
             .andThen(({ accounts }) =>
-              rdt.sendTransaction({
+              rdt.walletApi.sendTransaction({
                 transactionManifest: createToken(accounts![0].address).nft({
                   name: values.name,
                   description: values.description,

@@ -6,18 +6,14 @@ import Button from '@mui/joy/Button'
 import Typography from '@mui/joy/Typography'
 import { AccountsCard } from './AccountsCard'
 import { PersonaDataCard } from './PersonaDataCard'
-import { useDataRequestState } from './state'
 import { Code } from '../components/Code'
 import { rdt } from '../rdt/rdt'
 import {
-  DataRequestBuilder,
   OneTimeDataRequestBuilder,
   OneTimeDataRequestBuilderItem,
 } from '../../src'
 
 export const OneTimeDataRequestsPage = () => {
-  const dataRequestState = useDataRequestState()
-
   const [state, setState] = React.useState<{
     accounts: {
       enabled: boolean

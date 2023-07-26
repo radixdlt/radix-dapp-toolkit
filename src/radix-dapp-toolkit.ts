@@ -3,15 +3,23 @@ import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
-import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
-import { GatewayClient } from './gateway/gateway'
-import { BehaviorSubject, Subscription, map, merge, switchMap, tap } from 'rxjs'
+import { GatewayClient, MetadataValue } from './gateway/gateway'
+import {
+  BehaviorSubject,
+  Subscription,
+  filter,
+  map,
+  merge,
+  switchMap,
+  tap,
+} from 'rxjs'
 
 import { RequestItemClient } from './request-items/request-item-client'
 import { LocalStorageClient } from './storage/local-storage-client'
 import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 import { DataRequestStateClient } from './data-request/data-request-state'
+import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
 import { GatewayApi, RadixDappToolkitOptions, WalletApi } from './_types'
 
 export type RadixDappToolkit = {
@@ -42,15 +50,25 @@ export const RadixDappToolkit = (
   const subscriptions = new Subscription()
 
   const connectButtonClient =
-    providers?.connectButton ?? ConnectButtonClient({ logger, explorer })
+    providers?.connectButton ??
+    ConnectButtonClient({
+      logger,
+      explorer: explorer ?? {
+        baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+        transactionPath: '/transaction/',
+        accountsPath: '/account/',
+      },
+    })
 
   const gatewayClient =
     providers?.gatewayClient ??
     GatewayClient({
       logger,
-      gatewayApi: GatewayApiClient(
-        gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId)
-      ),
+      gatewayApi: GatewayApiClient({
+        basePath:
+          gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
+        dAppDefinitionAddress,
+      }),
     })
 
   const walletSdk =
@@ -101,13 +119,15 @@ export const RadixDappToolkit = (
   subscriptions.add(
     dAppDefinitionAddressSubject
       .pipe(
+        filter((address) => !!address),
         switchMap((address) =>
           gatewayClient.gatewayApi
             .getEntityDetails(address)
             .map(
               (details) =>
-                details?.metadata.items.find((item) => item.key === 'name')
-                  ?.value?.as_string
+                MetadataValue(
+                  details?.metadata.items.find((item) => item.key === 'name')
+                ).stringified
             )
             .map((dAppName) => {
               connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')

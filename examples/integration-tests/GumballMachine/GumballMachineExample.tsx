@@ -38,7 +38,7 @@ export const GumballMachineExample = ({
 
   const exec = () => {
     addLog(transactionManifest)
-    rdt
+    rdt.walletApi
       .sendTransaction({
         transactionManifest,
         version: 1,

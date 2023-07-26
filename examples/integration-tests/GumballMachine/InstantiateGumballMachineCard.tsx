@@ -13,16 +13,7 @@ import { useAccounts } from '../../account/state'
 import { SelectAccount } from '../../account/SelectAccount'
 import { accounts as accountsBuilder } from '../../../src/data-request/builders/accounts'
 import { gatewayApi } from '../../rdt/rdt'
-
-const getInstantiateGumballMachineManifest = (
-  ownerAddress: string,
-  gumballPrice: number,
-  gumballFlavour: string,
-  gumballMachinePackageAddress: string
-) => `
-  CALL_FUNCTION Address("${gumballMachinePackageAddress}") "GumballMachine" "instantiate_gumball_machine" Decimal("${gumballPrice}") "${gumballFlavour}" "${ownerAddress}";
-  CALL_METHOD Address("${ownerAddress}") "deposit_batch" Expression("ENTIRE_WORKTOP");
-`
+import { getInstantiateGumballMachineManifest } from '../../manifests/deploy-package'
 
 export const InstantiateGumballMachineCard = () => {
   const rdt = useRdt()
@@ -37,11 +28,11 @@ export const InstantiateGumballMachineCard = () => {
 
   const getAccounts = () => {
     addLog('getting account from wallet...')
-    return rdt.walletData.oneTimeRequest(accountsBuilder().exactly(1))
+    return rdt.walletApi.sendOneTimeRequest(accountsBuilder().exactly(1))
   }
 
   const instantiateComponent = (address: string) => {
-    return rdt
+    return rdt.walletApi
       .sendTransaction({
         transactionManifest: getInstantiateGumballMachineManifest(
           address,
@@ -65,8 +56,7 @@ export const InstantiateGumballMachineCard = () => {
         )?.new_global_entities.map((entity) => entity.entity_address)
         const entities = {
           adminBadge: createdEntities[1],
-          staffBadge: createdEntities[2],
-          gumballToken: createdEntities[3],
+          gumballToken: createdEntities[2],
         }
 
         addGumballMachineComponent({

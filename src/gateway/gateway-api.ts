@@ -4,7 +4,12 @@ import { errorIdentity } from '../helpers/error-identity'
 
 export type GatewayApiClient = ReturnType<typeof GatewayApiClient>
 
-export const GatewayApiClient = (basePath: string) => {
+export const GatewayApiClient = ({
+  basePath,
+}: {
+  basePath: string
+  dAppDefinitionAddress?: string
+}) => {
   const { transaction, state, status } = BabylonGatewayApiClient.initialize({
     basePath,
   })
