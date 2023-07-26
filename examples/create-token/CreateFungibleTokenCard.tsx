@@ -24,7 +24,7 @@ const fungibleDefaultValues = {
   name: 'MyResource',
   description: 'A very innovative and important resource',
   symbol: 'VIP',
-  iconUrl: 'https://i.imgur.com/9YQ9Z0x.png',
+  iconUrl: 'https://i.imgur.com/A2itmif.jpeg',
   initialSupply: 100,
 }
 
