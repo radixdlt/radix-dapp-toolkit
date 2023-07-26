@@ -1,17 +1,30 @@
-import { Result, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 import {
   WalletSdk,
   Account,
-  NumberOfAccounts,
+  AppLogger,
+  PersonaDataName,
   Persona,
-  PersonaDataField,
-  PersonaData,
 } from '@radixdlt/wallet-sdk'
-import { SdkError } from '@radixdlt/wallet-sdk/dist/helpers/error'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
 import { RequestItem } from '@radixdlt/connect-button'
 import { GatewayClient } from './gateway/gateway'
+import { StateClient } from './state/state'
+import { RequestItemClient } from './request-items/request-item-client'
+import { DataRequestClient } from './data-request/data-request'
+import { DataRequestStateClient } from './data-request/data-request-state'
+import {
+  State,
+  Status,
+  Transaction,
+  TransactionStatus,
+} from '@radixdlt/babylon-gateway-api-sdk'
+import { SignedChallenge, WalletData } from './state/types'
+import {
+  DataRequestBuilderItem,
+  OneTimeDataRequestBuilderItem,
+} from './data-request/builders'
 
 export type StorageProvider = {
   getData: <T = any>(key: string) => ResultAsync<T | undefined, Error>
@@ -27,101 +40,101 @@ export type ConnectButtonProvider = {
   setConnected: (value: boolean) => void
   setRequestItems: (value: RequestItem[]) => void
   setAccounts: (value: Account[]) => void
-  setPersonaData: (value: PersonaData[]) => void
+  setPersonaData: (value: { value: string; field: string }[]) => void
   setPersonaLabel: (value: string) => void
+  setDappName: (value: string) => void
   setConnecting: (value: boolean) => void
   destroy: () => void
 }
 
-export type DataRequestValue = Parameters<WalletSdk['request']>[0]
-export type SendTransactionRequestValue = Parameters<
-  WalletSdk['sendTransaction']
->[0]
-
-export type State = {
-  connected: boolean
-  accounts?: Account[]
-  personaData?: PersonaData[]
-  persona?: Persona
-  sharedData: Partial<{
-    ongoingAccountsWithoutProofOfOwnership: DataRequestValue['ongoingAccountsWithoutProofOfOwnership']
-    ongoingPersonaData: DataRequestValue['ongoingPersonaData']
-  }>
-}
-
-type OneTimeRequest = { oneTime?: boolean; reset?: boolean }
-
-export type DataRequestInput<IsLoginRequest extends boolean = false> =
-  IsLoginRequest extends true
-    ? {
-        accounts?: NumberOfAccounts
-        personaData?: { fields: PersonaDataField[] }
-      }
-    : {
-        accounts?: NumberOfAccounts & OneTimeRequest
-        personaData?: { fields: PersonaDataField[] } & OneTimeRequest
-      }
-
-export type RequestDataResponse = Result<
-  {
-    accounts: Account[]
-    personaData: PersonaData[]
-    persona: Persona
-  },
-  SdkError
->
-
-export type Connect = {
-  onConnect: (done: (input?: { challenge: string }) => void) => void
-  onResponse: (result: RequestDataResponse, done: () => void) => void
-  requestData: DataRequestInput<true>
-}
-
-export type OnConnectCallback = (
-  result: RequestDataResponse,
-  done: () => void
-) => void
-
-export type OnInitCallback = (state: State) => void
-
-export type OnDisconnectCallback = () => void
-
-export type OnResetCallback = (
-  value: (value: DataRequestInput<true>) => RequestDataOutput
-) => any
-
 export type Providers = {
-  storage: StorageProvider
+  stateClient: StateClient
   connectButton: ConnectButtonProvider
   walletClient: WalletClient
   gatewayClient: GatewayClient
+  walletSdk: WalletSdk
+  requestItemClient: RequestItemClient
+  storageClient: StorageProvider
+  dataRequestClient: DataRequestClient
+  dataRequestStateClient: DataRequestStateClient
 }
 
-export type RequestDataOutput = ResultAsync<
-  {
-    done?: () => void
-    data: {
-      accounts: Account[]
-      personaData: PersonaData[]
-      persona?: Persona
-    }
-  },
-  SdkError
->
-
-export type RequestData = (value: DataRequestInput) => RequestDataOutput
-
-export type DappMetadata = {
-  dAppDefinitionAddress: string
-  dAppName: string
-}
-
-export type OnConnect = (
-  value: (value: DataRequestInput<true>) => RequestDataOutput
-) => any
-
-export type Explorer = {
+export type ExplorerConfig = {
   baseUrl: string
   transactionPath: string
   accountsPath: string
+}
+
+export type OptionalRadixDappToolkitOptions = {
+  logger: AppLogger
+  onDisconnect: () => void
+  explorer: ExplorerConfig
+  gatewayBaseUrl: string
+  useCache: boolean
+  providers: Partial<Providers>
+}
+
+export type RadixDappToolkitOptions = {
+  networkId: number
+  dAppDefinitionAddress: string
+} & Partial<OptionalRadixDappToolkitOptions>
+
+export type SendTransactionResult = ResultAsync<
+  {
+    transactionIntentHash: string
+    status: TransactionStatus
+  },
+  { error: string; message?: string }
+>
+
+export type SendTransactionInput = {
+  transactionManifest: string
+  version: number
+  blobs?: string[] | undefined
+  message?: string | undefined
+}
+
+export type GatewayApi = {
+  state: State
+  status: Status
+  transaction: Transaction
+}
+
+export type WalletDataRequestResult = ResultAsync<
+  WalletData,
+  { error: string; message?: string }
+>
+
+export type WalletApi = {
+  getWalletData: () => WalletDataState
+  walletData$: Observable<WalletDataState>
+  provideChallengeGenerator: (fn: () => Promise<string>) => void
+  updateSharedData: () => WalletDataRequestResult
+  sendTransaction: (input: SendTransactionInput) => SendTransactionResult
+  setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
+  sendRequest: () => WalletDataRequestResult
+  sendOneTimeRequest: (
+    ...oneTimeDataRequestBuilderItem: OneTimeDataRequestBuilderItem[]
+  ) => WalletDataRequestResult
+}
+
+export type WalletDataStateAccount = {
+  address: string
+  label: string
+  appearanceId: number
+}
+
+export type WalletDataStatePersonaData =
+  | {
+      entry: 'fullName'
+      fields: PersonaDataName
+    }
+  | { entry: 'emailAddresses'; fields: string[] }
+  | { entry: 'phoneNumbers'; fields: string[] }
+
+export type WalletDataState = {
+  accounts: WalletDataStateAccount[]
+  personaData: WalletDataStatePersonaData[]
+  proofs: SignedChallenge[]
+  persona?: Persona
 }

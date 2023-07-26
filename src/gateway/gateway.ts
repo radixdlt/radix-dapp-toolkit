@@ -1,7 +1,7 @@
 import { GatewayApiClient } from './gateway-api'
 import { Result, ResultAsync } from 'neverthrow'
-import { errorIdentity } from '../helpers/error-identity'
 import {
+  EntityMetadataItem,
   TransactionStatus,
   TransactionStatusResponse,
 } from '@radixdlt/babylon-gateway-api-sdk'
@@ -10,8 +10,15 @@ import {
   ExponentialBackoff,
   ExponentialBackoffInput,
 } from './helpers/exponential-backoff'
-import { Logger } from 'tslog'
-import { createSdkError, SdkError } from '@radixdlt/wallet-sdk'
+import { AppLogger, createSdkError, SdkError } from '@radixdlt/wallet-sdk'
+
+export const MetadataValue = (value?: EntityMetadataItem) => {
+  const typed: any = value?.value?.typed
+
+  return {
+    stringified: typed?.value ? typed?.value || '' : typed?.values.join(', '),
+  }
+}
 
 export type GatewayClient = ReturnType<typeof GatewayClient>
 
@@ -21,24 +28,9 @@ export const GatewayClient = ({
   retryConfig,
 }: {
   gatewayApi: GatewayApiClient
-  logger?: Logger<unknown>
+  logger?: AppLogger
   retryConfig?: ExponentialBackoffInput
 }) => {
-  const getTransactionStatusRequest = (transactionIntentHashHex: string) =>
-    ResultAsync.fromPromise(
-      gatewayApi.getTransactionStatus(transactionIntentHashHex),
-      errorIdentity
-    )
-
-  const getTransactionDetailsRequest = (
-    transactionIntentHashHex: string,
-    stateVersion?: number
-  ) =>
-    ResultAsync.fromPromise(
-      gatewayApi.getTransactionDetails(transactionIntentHashHex, stateVersion),
-      errorIdentity
-    )
-
   const pollTransactionStatus = (transactionIntentHashHex: string) => {
     const retry = ExponentialBackoff(retryConfig)
 
@@ -56,7 +48,8 @@ export const GatewayClient = ({
 
             logger?.debug(`pollingTxStatus retry #${result.value + 1}`)
 
-            return getTransactionStatusRequest(transactionIntentHashHex)
+            return gatewayApi
+              .getTransactionStatus(transactionIntentHashHex)
               .map((response) => {
                 if (completedTransactionStatus.has(response.status))
                   return response
@@ -80,5 +73,5 @@ export const GatewayClient = ({
     ).andThen((result) => result)
   }
 
-  return { pollTransactionStatus, getTransactionDetailsRequest, gatewayApi }
+  return { pollTransactionStatus, gatewayApi }
 }

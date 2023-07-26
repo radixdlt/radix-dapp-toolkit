@@ -2,6 +2,7 @@ import { RequestItem, RequestStatusTypes } from '@radixdlt/connect-button'
 import { map, Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
 import { RequestItemSubjects } from './subjects'
+import { errorType } from '@radixdlt/wallet-sdk'
 
 export type RequestItemClient = ReturnType<typeof RequestItemClient>
 export const RequestItemClient = (input: {
@@ -18,6 +19,7 @@ export const RequestItemClient = (input: {
     type,
     status: 'pending',
     id: crypto.randomUUID(),
+    showCancel: true,
   })
 
   const add = (type: RequestItem['type']) => {
@@ -25,7 +27,7 @@ export const RequestItemClient = (input: {
     requestsItemStore.set(item.id, item)
     requestItemIds.add(item.id)
     subjects.onChange.next()
-    logger?.debug(`addRequestItem`, {
+    logger?.trace(`addRequestItem`, {
       id: item.id,
       status: item.status,
     })
@@ -37,7 +39,27 @@ export const RequestItemClient = (input: {
       requestsItemStore.delete(id)
       requestItemIds.delete(id)
       subjects.onChange.next()
-      logger?.debug(`removeRequestItem`, id)
+      logger?.trace(`removeRequestItem`, id)
+    }
+  }
+
+  const patch = (id: string, partialValue: Partial<RequestItem>) => {
+    const item = requestsItemStore.get(id)
+    if (item) {
+      const updated = {
+        ...item,
+        ...partialValue,
+      } as RequestItem
+      requestsItemStore.set(id, updated)
+      subjects.onChange.next()
+      logger?.trace(`patchRequestItemStatus`, updated)
+    }
+  }
+
+  const cancel = (id: string) => {
+    if (requestsItemStore.has(id)) {
+      patch(id, { status: 'fail', error: errorType.canceledByUser })
+      logger?.trace(`cancelRequestItem`, id)
     }
   }
 
@@ -45,7 +67,7 @@ export const RequestItemClient = (input: {
     requestsItemStore.clear()
     requestItemIds.clear()
     subjects.onChange.next()
-    logger?.debug(`resetRequestItems`)
+    logger?.trace(`resetRequestItems`)
   }
 
   const updateStatus = ({
@@ -73,7 +95,7 @@ export const RequestItemClient = (input: {
       }
       requestsItemStore.set(id, updated)
       subjects.onChange.next()
-      logger?.debug(`updateRequestItemStatus`, updated)
+      logger?.trace(`updateRequestItemStatus`, updated)
     }
   }
 
@@ -96,7 +118,9 @@ export const RequestItemClient = (input: {
   return {
     add,
     remove,
+    cancel,
     updateStatus,
+    patch,
     reset,
     destroy: () => {
       subscriptions.unsubscribe()

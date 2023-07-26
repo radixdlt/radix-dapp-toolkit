@@ -1,37 +1,75 @@
-import {
-  TransactionApi,
-  Configuration,
-} from '@radixdlt/babylon-gateway-api-sdk'
+import { GatewayApiClient as BabylonGatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk'
+import { ResultAsync } from 'neverthrow'
+import { errorIdentity } from '../helpers/error-identity'
 
 export type GatewayApiClient = ReturnType<typeof GatewayApiClient>
 
-export const GatewayApiClient = (basePath: string) => {
-  const configuration = new Configuration({ basePath })
-  const transactionApi = new TransactionApi(configuration)
+export const GatewayApiClient = ({
+  basePath,
+}: {
+  basePath: string
+  dAppDefinitionAddress?: string
+}) => {
+  const { transaction, state, status } = BabylonGatewayApiClient.initialize({
+    basePath,
+  })
 
   const getTransactionStatus = (transactionIntentHashHex: string) =>
-    transactionApi.transactionStatus({
-      transactionStatusRequest: {
-        intent_hash_hex: transactionIntentHashHex,
-      },
-    })
+    ResultAsync.fromPromise(
+      transaction.getStatus(transactionIntentHashHex),
+      errorIdentity
+    )
 
-  const getTransactionDetails = (
-    transactionIntentHashHex: string,
-    stateVersion?: number
-  ) =>
-    transactionApi.transactionCommittedDetails({
-      transactionCommittedDetailsRequest: {
-        intent_hash_hex: transactionIntentHashHex,
-        ...(stateVersion
-          ? {
-              at_ledger_state: {
-                state_version: stateVersion,
-              },
-            }
-          : {}),
-      },
-    })
+  const getTransactionDetails = (transactionIntentHashHex: string) =>
+    ResultAsync.fromPromise(
+      transaction.getCommittedDetails(transactionIntentHashHex),
+      errorIdentity
+    )
 
-  return { getTransactionStatus, getTransactionDetails }
+  const getEntityDetails = (address: string) =>
+    ResultAsync.fromPromise(
+      state.getEntityDetailsVaultAggregated(address),
+      errorIdentity
+    )
+
+  const getEntitiesDetails = (addresses: string[]) =>
+    ResultAsync.fromPromise(
+      state.getEntityDetailsVaultAggregated(addresses),
+      errorIdentity
+    )
+
+  const getEntityNonFungibleIds = ({
+    accountAddress,
+    nftAddress,
+    vaultAddress,
+  }: {
+    accountAddress: string
+    nftAddress: string
+    vaultAddress: string
+  }) =>
+    ResultAsync.fromPromise(
+      state.innerClient.entityNonFungibleIdsPage({
+        stateEntityNonFungibleIdsPageRequest: {
+          address: accountAddress,
+          vault_address: vaultAddress,
+          resource_address: nftAddress,
+        },
+      }),
+      errorIdentity
+    )
+
+  const getNetworkConfiguration = () =>
+    ResultAsync.fromPromise(status.getNetworkConfiguration(), errorIdentity)
+
+  return {
+    getTransactionStatus,
+    getTransactionDetails,
+    getEntityDetails,
+    getEntitiesDetails,
+    getEntityNonFungibleIds,
+    getNetworkConfiguration,
+    transactionApi: transaction,
+    stateApi: state,
+    statusApi: status,
+  }
 }

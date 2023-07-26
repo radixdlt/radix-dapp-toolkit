@@ -1,4 +1,4 @@
-import { Account, PersonaData, RequestItem } from '@radixdlt/connect-button'
+import { Account, RequestItem } from '@radixdlt/connect-button'
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs'
 
 export type ConnectButtonSubjects = ReturnType<typeof ConnectButtonSubjects>
@@ -15,5 +15,6 @@ export const ConnectButtonSubjects = () => ({
   onShowPopover: new Subject<void>(),
   showNotification: new BehaviorSubject(false),
   personaLabel: new BehaviorSubject<string>(''),
-  personaData: new BehaviorSubject<PersonaData[]>([]),
+  personaData: new BehaviorSubject<{ value: string; field: string }[]>([]),
+  dAppName: new BehaviorSubject<string>(''),
 })

@@ -4,8 +4,13 @@ module.exports = {
     'next',
     {
       name: 'develop',
-      channel: 'alpha',
-      prerelease: 'alpha',
+      channel: 'dev-elm',
+      prerelease: 'dev-elm',
+    },
+    {
+      name: 'release/([a-z0-9-]+)',
+      channel: '${name.replace(/^release\\//g, "")}',
+      prerelease: '${name.replace(/^release\\//g, "")}',
     },
   ],
   plugins: [

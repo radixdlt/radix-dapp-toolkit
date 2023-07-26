@@ -1,12 +1,12 @@
 replicaCount: 1
 
 image:
-  repository: eu.gcr.io/dev-container-repo/radix-dapp-toolkit
+  repository: docker.io/radixdlt/private-radix-dapp-toolkit
   pullPolicy: IfNotPresent
   tag: ""
 
 imagePullSecrets:
-  - name: docker-eu-gcr-dev
+  - name: docker-hub-dev
 
 nameOverride: "radix-dapp-toolkit"
 fullnameOverride: "radix-dapp-toolkit"

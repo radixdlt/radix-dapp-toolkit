@@ -1,119 +1,247 @@
-import {
-  DappMetadata,
-  Explorer,
-  OnConnect,
-  OnDisconnectCallback,
-  OnInitCallback,
-  Providers,
-  State,
-} from './_types'
-import { Logger } from 'tslog'
 import { StateClient } from './state/state'
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
-import { LocalStorageClient } from './storage/local-storage-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
-import { getGatewayBaseUrlByNetworkId } from './gateway/helpers/get-gateway-url'
-import { GatewayClient } from './gateway/gateway'
-import { Subscription, tap } from 'rxjs'
-import { createGetState } from './state/helpers/get-state'
-import { StateSubjects } from './state/subjects'
+import { GatewayClient, MetadataValue } from './gateway/gateway'
+import {
+  BehaviorSubject,
+  Subscription,
+  filter,
+  map,
+  merge,
+  switchMap,
+  tap,
+} from 'rxjs'
 
-export type RadixDappToolkitConfiguration = {
-  initialState?: State
-  logger?: Logger<unknown>
-  networkId?: number
-  onInit?: OnInitCallback
-  onDisconnect?: OnDisconnectCallback
-  onReset?: OnConnect
-  providers?: Partial<Providers>
-  useDoneCallback?: boolean
-  explorer?: Explorer
-  gatewayBaseUrl?: string
-  onStateChange?: (state: State) => void
-  useCache?: boolean
+import { RequestItemClient } from './request-items/request-item-client'
+import { LocalStorageClient } from './storage/local-storage-client'
+import { DataRequestClient } from './data-request/data-request'
+import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
+import { DataRequestStateClient } from './data-request/data-request-state'
+import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
+import { GatewayApi, RadixDappToolkitOptions, WalletApi } from './_types'
+
+export type RadixDappToolkit = {
+  walletApi: WalletApi
+  gatewayApi: GatewayApi
+  disconnect: () => void
+  destroy: () => void
 }
+
 export const RadixDappToolkit = (
-  { dAppDefinitionAddress, dAppName }: DappMetadata,
-  onConnect?: OnConnect,
-  configuration?: RadixDappToolkitConfiguration
-) => {
+  options: RadixDappToolkitOptions
+): RadixDappToolkit => {
   const {
-    networkId = 0x01,
+    dAppDefinitionAddress,
+    networkId,
     providers,
     logger,
-    initialState,
-    onInit: onInitCallback = () => {},
-    onDisconnect: onDisconnectCallback = () => {},
+    onDisconnect,
     explorer,
     gatewayBaseUrl,
-    useCache,
-  } = configuration || {}
-  const storageClient = providers?.storage || LocalStorageClient()
+    useCache = true,
+  } = options || {}
 
+  const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
+  const dAppDefinitionAddressSubject = new BehaviorSubject<string>(
+    dAppDefinitionAddress
+  )
   const subscriptions = new Subscription()
 
   const connectButtonClient =
-    providers?.connectButton ||
-    ConnectButtonClient({ logger, dAppName, explorer })
+    providers?.connectButton ??
+    ConnectButtonClient({
+      logger,
+      explorer: explorer ?? {
+        baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+        transactionPath: '/transaction/',
+        accountsPath: '/account/',
+      },
+    })
 
   const gatewayClient =
-    providers?.gatewayClient ||
+    providers?.gatewayClient ??
     GatewayClient({
       logger,
-      gatewayApi: GatewayApiClient(
-        gatewayBaseUrl ?? getGatewayBaseUrlByNetworkId(networkId)
-      ),
+      gatewayApi: GatewayApiClient({
+        basePath:
+          gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
+        dAppDefinitionAddress,
+      }),
     })
 
-  const stateSubjects = StateSubjects()
+  const walletSdk =
+    providers?.walletSdk ??
+    WalletSdk({
+      logger,
+      networkId,
+      dAppDefinitionAddress,
+    })
 
-  const getState = createGetState(stateSubjects.state$)
+  const requestItemClient =
+    providers?.requestItemClient ??
+    RequestItemClient({
+      logger,
+    })
 
   const walletClient =
-    providers?.walletClient ||
+    providers?.walletClient ??
     WalletClient({
       logger,
-      walletSdk: WalletSdk({
-        networkId,
-        dAppDefinitionAddress,
-        logLevel: 'debug',
-      }),
+      onCancelRequestItem$: connectButtonClient.onCancelRequestItem$,
+      walletSdk,
       gatewayClient,
-      getState,
+      requestItemClient,
     })
 
-  const stateClient = StateClient({
-    connectButtonClient,
-    initialState,
-    key: `rdt:${dAppDefinitionAddress}:${networkId}`,
-    logger,
-    onInitCallback,
-    onDisconnectCallback,
-    storageClient,
-    walletClient,
-    connectRequest: onConnect,
-    useDoneCallback: configuration?.useDoneCallback,
-    subjects: stateSubjects,
-    getState,
-    useCache,
-  })
+  const storageClient = providers?.storageClient ?? LocalStorageClient()
 
-  if (configuration?.onStateChange)
-    subscriptions.add(
-      stateClient.state$.pipe(tap(configuration.onStateChange)).subscribe()
-    )
+  const stateClient =
+    providers?.stateClient ??
+    StateClient(storageKey, storageClient, {
+      logger,
+    })
+
+  const dataRequestStateClient =
+    providers?.dataRequestStateClient ?? DataRequestStateClient({})
+
+  const dataRequestClient =
+    providers?.dataRequestClient ??
+    DataRequestClient({
+      stateClient,
+      requestItemClient,
+      walletClient,
+      useCache,
+      dataRequestStateClient,
+    })
+
+  subscriptions.add(
+    dAppDefinitionAddressSubject
+      .pipe(
+        filter((address) => !!address),
+        switchMap((address) =>
+          gatewayClient.gatewayApi
+            .getEntityDetails(address)
+            .map(
+              (details) =>
+                MetadataValue(
+                  details?.metadata.items.find((item) => item.key === 'name')
+                ).stringified
+            )
+            .map((dAppName) => {
+              connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')
+            })
+        )
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onConnect$
+      .pipe(
+        switchMap(() => {
+          stateClient.reset()
+          return dataRequestClient.sendRequest({
+            isConnect: true,
+            oneTime: false,
+          })
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onDisconnect$
+      .pipe(
+        tap(() => {
+          stateClient.reset()
+          walletClient.resetRequestItems()
+          if (onDisconnect) onDisconnect()
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    stateClient.state$
+      .pipe(
+        tap((state) => {
+          const { personaData, accounts, personaLabel, connected } =
+            transformWalletDataToConnectButton(state.walletData)
+          connectButtonClient.setAccounts(accounts)
+          connectButtonClient.setPersonaData(personaData)
+          connectButtonClient.setPersonaLabel(personaLabel)
+          connectButtonClient.setConnected(connected)
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    walletClient.requestItems$
+      .pipe(
+        tap((items) => {
+          connectButtonClient.setRequestItems(items)
+          connectButtonClient.setConnecting(
+            items.some(
+              (item) =>
+                item.status === 'pending' && item.type === 'loginRequest'
+            )
+          )
+          connectButtonClient.setLoading(
+            items.some((item) => item.status === 'pending')
+          )
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    merge(connectButtonClient.onUpdateSharedData$)
+      .pipe(switchMap(() => dataRequestClient.updateSharedData()))
+      .subscribe()
+  )
+
+  const gatewayApi = {
+    state: gatewayClient.gatewayApi.stateApi,
+    status: gatewayClient.gatewayApi.statusApi,
+    transaction: gatewayClient.gatewayApi.transactionApi,
+  }
+
+  const walletApi = {
+    setRequestData: dataRequestClient.setState,
+    sendRequest: () =>
+      dataRequestClient.sendRequest({
+        isConnect: false,
+        oneTime: false,
+      }),
+    provideChallengeGenerator: (
+      input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
+    ) => dataRequestClient.provideChallengeGenerator(input),
+    updateSharedData: () => dataRequestClient.updateSharedData(),
+    sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
+    sendTransaction: walletClient.sendTransaction,
+    walletData$: stateClient.state$.pipe(map((state) => state.walletData)),
+    getWalletData: () => stateClient.getState().walletData,
+  }
+
+  const disconnect = () => {
+    walletClient.resetRequestItems()
+    stateClient.reset()
+  }
+
+  const destroy = () => {
+    stateClient.destroy()
+    walletClient.destroy()
+    subscriptions.unsubscribe()
+    connectButtonClient.destroy()
+  }
 
   return {
-    requestData: stateClient.requestData,
-    sendTransaction: walletClient.sendTransaction,
-    state$: stateClient.state$,
-    updateSharedData: () => stateClient.subjects.updateSharedData.next(),
-    disconnect: stateClient.reset,
-    destroy: () => {
-      stateClient.destroy()
-      subscriptions.unsubscribe()
-    },
+    walletApi,
+    gatewayApi,
+    disconnect,
+    destroy,
   }
 }

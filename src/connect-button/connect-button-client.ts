@@ -8,19 +8,13 @@ import {
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
-import {
-  Account,
-  ConnectButton,
-  PersonaData,
-  RequestItem,
-} from '@radixdlt/connect-button'
+import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
 
 export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
-  dAppName: string
   explorer?: ConnectButton['explorer']
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
@@ -46,8 +40,6 @@ export const ConnectButtonClient = (input: {
         filter((element): element is ConnectButton => !!element),
         switchMap((connectButtonElement) => {
           logger?.debug(`connectButtonDiscovered`)
-
-          connectButtonElement.dAppName = input.dAppName
 
           if (input.explorer) connectButtonElement.explorer = input.explorer
 
@@ -128,6 +120,7 @@ export const ConnectButtonClient = (input: {
 
           const personaData$ = subjects.personaData.pipe(
             tap((items) => {
+              // @ts-ignore: TODO: update interface in connect-button
               connectButtonElement.personaData = items
             })
           )
@@ -141,6 +134,12 @@ export const ConnectButtonClient = (input: {
           const connecting$ = subjects.connecting.pipe(
             tap((connecting) => {
               connectButtonElement.connecting = connecting
+            })
+          )
+
+          const dAppName$ = subjects.dAppName.pipe(
+            tap((value) => {
+              connectButtonElement.dAppName = value
             })
           )
 
@@ -170,7 +169,8 @@ export const ConnectButtonClient = (input: {
             onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
-            showNotification$
+            showNotification$,
+            dAppName$
           )
         })
       )
@@ -188,10 +188,11 @@ export const ConnectButtonClient = (input: {
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
-    setPersonaData: (personaData: PersonaData[]) =>
+    setPersonaData: (personaData: { value: string; field: string }[]) =>
       subjects.personaData.next(personaData),
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
+    setDappName: (dAppName: string) => subjects.dAppName.next(dAppName),
     destroy: () => {
       subscriptions.unsubscribe()
     },
