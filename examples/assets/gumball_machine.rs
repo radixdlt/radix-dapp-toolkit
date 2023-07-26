@@ -46,6 +46,7 @@ mod gumball_machine {
                         init {
                             "name" => "Gumball".to_owned(), locked;
                             "symbol" => flavor.to_owned(), locked;
+                            "icon_url" => Url("https://static.vecteezy.com/system/resources/previews/010/283/423/original/sweet-candy-graphics-illustration-free-vector.jpg".to_owned()), locked;
                             "description" => "A delicious gumball".to_owned(), locked;
                             "dapp_definition" => dapp.to_owned(), locked;
                         }
