@@ -15,6 +15,9 @@ import { accounts as accountsBuilder } from '../../../src/data-request/builders/
 import { gatewayApi } from '../../rdt/rdt'
 import { getInstantiateGumballMachineManifest } from '../../manifests/deploy-package'
 
+const DEFAULT_GUMBALL_IMAGE =
+  'https://static.vecteezy.com/system/resources/previews/010/283/423/original/sweet-candy-graphics-illustration-free-vector.jpg'
+
 export const InstantiateGumballMachineCard = () => {
   const rdt = useRdt()
   const gumballMachineState = useGumballMachineState()
@@ -24,6 +27,7 @@ export const InstantiateGumballMachineCard = () => {
     ownerAccount: '',
     gumballPrice: 1,
     gumballFlavour: 'GUM',
+    gumballImage: DEFAULT_GUMBALL_IMAGE,
   })
 
   const getAccounts = () => {
@@ -38,6 +42,7 @@ export const InstantiateGumballMachineCard = () => {
           address,
           state.gumballPrice,
           state.gumballFlavour,
+          state.gumballImage,
           gumballMachineState.gumballMachinePackageAddress
         ),
         version: 1,
@@ -51,12 +56,18 @@ export const InstantiateGumballMachineCard = () => {
     addLog(`instantiating gumball machine component`)
     return instantiateComponent(state.ownerAccount)
       .map((values) => {
-        const createdEntities = (
-          values.transaction.receipt?.state_updates as any
-        )?.new_global_entities.map((entity) => entity.entity_address)
+        console.log(values)
+        const state_updates = values.transaction.receipt?.state_updates as {
+          new_global_entities: { entity_address: string; entity_type: string }[]
+        }
+
+        const createdEntities = state_updates.new_global_entities.map(
+          (entity) => entity.entity_address
+        )
         const entities = {
-          adminBadge: createdEntities[1],
-          gumballToken: createdEntities[2],
+          dApp: createdEntities[1],
+          adminBadge: createdEntities[2],
+          gumballToken: createdEntities[3],
         }
 
         addGumballMachineComponent({
@@ -127,6 +138,20 @@ export const InstantiateGumballMachineCard = () => {
               }}
               sx={{ mb: 1 }}
               placeholder="Type Gumball Flavour... (default: GUM)"
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Gumball Image</FormLabel>
+            <Input
+              onChange={(ev) => {
+                setState((prev) => ({
+                  ...prev,
+                  gumballImage: ev.target.value || DEFAULT_GUMBALL_IMAGE,
+                }))
+              }}
+              sx={{ mb: 1 }}
+              placeholder="Gumball Image URL"
             />
           </FormControl>
 

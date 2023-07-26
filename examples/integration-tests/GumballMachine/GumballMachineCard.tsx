@@ -17,25 +17,8 @@ export const GumballMachineCard = (
   const [currentPrice, setCurrentPrice] = React.useState<number>(
     gumballMachine.gumballPrice
   )
-  const { setPrice, setRelatedEntities } =
-    GumballMachineTransactionManifests(gumballMachine)
+  const { setPrice } = GumballMachineTransactionManifests(gumballMachine)
   const transactionManifest = setPrice(currentPrice)
-  const updateClaimedEntities = () => {
-    const tx = setRelatedEntities()
-    addLog(tx)
-    rdt.walletApi
-      .sendTransaction({
-        transactionManifest: tx,
-        version: 1,
-      })
-      .andThen(({ transactionIntentHash }) =>
-        gatewayApi.getTransactionDetails(transactionIntentHash)
-      )
-      .map((response) =>
-        addLog(`transaction status: ${response.transaction.transaction_status}`)
-      )
-      .mapErr((error) => addLog(JSON.stringify(error, null, 2)))
-  }
 
   const exec = () => {
     addLog(transactionManifest)
@@ -74,11 +57,15 @@ export const GumballMachineCard = (
             address={gumballMachine.ownerAccountAddress}
           ></GumballMachineInfoBox>
           <GumballMachineInfoBox
-            label="Admin Badge"
-            address={gumballMachine.entities.adminBadge}
+            label="dApp"
+            address={gumballMachine.entities.dApp}
           ></GumballMachineInfoBox>
         </Layout.Row>
         <Layout.Row>
+          <GumballMachineInfoBox
+            label="Admin Badge"
+            address={gumballMachine.entities.adminBadge}
+          ></GumballMachineInfoBox>
           <GumballMachineInfoBox
             label="Gumball Token"
             address={gumballMachine.entities.gumballToken}
@@ -110,9 +97,6 @@ export const GumballMachineCard = (
             </Button>
           </Box>
         </Layout.Row>
-        <Button onClick={updateClaimedEntities}>
-          Set Related Entities on owner account
-        </Button>
       </Stack>
     </Card>
   )

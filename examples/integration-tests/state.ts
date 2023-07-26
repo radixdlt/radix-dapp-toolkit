@@ -7,6 +7,7 @@ export type GumballMachineComponentState = {
   entities: {
     adminBadge: string
     gumballToken: string
+    dApp: string
   }
   gumballPrice: number
   gumballFlavour: string
@@ -42,7 +43,9 @@ export const useGumballMachineState = createObservableHook(
   getGumballMachineState()
 )
 
-export const addGumballMachineComponent = (value: GumballMachineComponentState) => {
+export const addGumballMachineComponent = (
+  value: GumballMachineComponentState
+) => {
   const state = getGumballMachineState()
   state.components[value.address] = value
   setGumballMachineState(state)
