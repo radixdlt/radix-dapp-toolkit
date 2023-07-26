@@ -155,7 +155,7 @@ A dApp Definition account should be created after you’ve built your dApp’s c
 
 Creating a dApp Definition for your dApp will provide the necessary information for clients like the Radix Wallet to let users interact with your dApp in a way that is easy, safe, and informative. It also acts as a hub that connects all your dApp pieces together.
 
-You can read more about dApp Definitions [here](https://docs-babylon.radixdlt.com/main/standards/metadata.html#_metadata_for_dapp_verification).
+You can read more about dApp Definitions [here](https://docs-babylon.radixdlt.com/main/standards/metadata-for-verification.html).
 
 ## Setting up a dApp Definition on the Radix Dashboard
 
