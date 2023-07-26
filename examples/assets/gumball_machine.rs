@@ -77,7 +77,7 @@ mod gumball_machine {
                 init {
                     "name" => "Gumball Machine".to_owned(), locked;
                     "description" => "Sandbox Gumball Machine just for you to play around!".to_owned(), locked;
-                    "icon_url" => "https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned(), locked;
+                    "icon_url" => Url("https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned()), locked;
                     "dapp_definition" => dapp.to_owned(), locked;
                 }
             })
