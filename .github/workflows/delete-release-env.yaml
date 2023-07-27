@@ -4,7 +4,7 @@ on: delete
 
 jobs:
   delete-release-env:
-    if: github.event.ref_type == 'branch' && contains('release', github.ref_name)
+    if: github.event.ref_type == 'branch' && contains(github.event.ref, 'release')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
