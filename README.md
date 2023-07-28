@@ -6,17 +6,24 @@
 - [Installation](#installation)
 - [Usage](#usage)
   - [Getting started](#getting-started)
-  - [Wallet data](#wallet-data)
-      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
-    - [Change requested data](#change-requested-data)
-    - [One Time Data Request](#one-time-data-request)
-  - [State changes](#state-changes)
-  - [Send transaction](#send-transaction)
-    - [Build transaction manifest](#build-transaction-manifest)
-    - [sendTransaction](#sendtransaction)
-  - [Login](#login)
+  - [Login requests](#login-requests)
     - [User authentication](#user-authentication)
     - [User authentication management](#user-authentication-management)
+  - [Wallet data requests](#wallet-data-requests)
+      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
+    - [Change requested data](#change-requested-data)
+    - [Data request builder](#data-request-builder)
+      - [`DataRequestBuilder.persona()`](#datarequestbuilderpersona)
+      - [`DataRequestBuilder.accounts()`](#datarequestbuilderaccounts)
+      - [`OneTimeDataRequestBuilderItem.accounts()`](#onetimedatarequestbuilderitemaccounts)
+      - [`DataRequestBuilder.personaData()`](#datarequestbuilderpersonadata)
+      - [`OneTimeDataRequestBuilderItem.personaData()`](#onetimedatarequestbuilderitempersonadata)
+      - [`DataRequestBuilder.config(input: DataRequestState)`](#datarequestbuilderconfiginput-datarequeststate)
+    - [One Time Data Request](#one-time-data-request)
+  - [State changes](#state-changes)
+  - [Transaction requests](#transaction-requests)
+    - [Build transaction manifest](#build-transaction-manifest)
+    - [sendTransaction](#sendtransaction)
 - [ROLA (Radix Off-Ledger Authentication)](#rola-radix-off-ledger-authentication)
 - [√ Connect Button](#-connect-button)
 - [Setting up your dApp Definition](#setting-up-your-dapp-definition)
@@ -26,7 +33,7 @@
 
 # What is Radix dApp Toolkit?
 
-Radix dApp Toolkit (RDT) is a TypeScript library that helps facilitate communication with the Radix Wallet and provides an easy-to-use interface over lower level APIs.
+Radix dApp Toolkit (RDT) is a TypeScript library that automates getting users logged in to your dApp using a Persona, maintains a browser session for that login, and provides a local cache of data the user has given permission to your app to access associated with their Persona. It also provides an interface to request accounts and personal data from the user's wallet, either as a permission for ongoing access or as a one-time request, as well as to submit transaction manifest stubs for the user to review, sign, and submit in their wallet.
 
 The current version only supports desktop browser webapps with requests made via the Radix Wallet Connector browser extension. It is intended to later add support for mobile browser webapps using deep linking with the same essential interface.
 
@@ -77,129 +84,17 @@ const rdt = RadixDappToolkit({
 - **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
 - **requires** networkId - Target radix network ID.
 
-## Wallet data
+## Login requests
 
-A data requests needs to be sent to the wallet in order to read wallet data.
+The user's journey on your dApp always always starts with connecting their wallet and logging in with a Persona. The "Connect" button always requests a Persona login from the user's wallet.
 
-There are two ways to trigger a data request:
+The default behavior is to request the login alone, but you may also choose to add additional requests for account information or personal data to get at the time of login. This is useful if there is information that you know your dApp always needs to be able to function. You can also however choose to keep the login simple and make other requests later, as needed. Doing it this way allows your dApp to provide a helpful description in its UI of what a given piece of requested information is needed for, such as "please share all of your accounts that you want to use with this dApp" or "providing your email address will let us keep you informed of new features".
 
-1. By user action in the √ Connect button
-2. Programmatically through `walletApi.sendRequest` method
+The Persona the user logs in with sets the context for all ongoing account and personal data requests for that session. The Radix Wallet keeps track of what permissions the user has provided for each dApp and each Persona they've used with that dApp. RDT automatically keeps track of the currently logged in Persona so that requests to the wallet are for the correct Persona.
 
-#### Trigger wallet data request programmatically
+After login, RDT also provides your dApp with a local cache of all account information and personal data that a user has given permission to share with your dApp for their chosen Persona.
 
-```typescript
-const result = await rdt.walletApi.sendRequest()
-
-if (result.isError()) return handleException()
-
-const walletData = result.value
-```
-
-### Change requested data
-
-By default, a data request will ask the wallet for a persona login.
-
-Use `walletApi.setRequestData` together with `DataRequestBuilder` to change the wallet data request.
-
-```typescript
-rdt.walletApi.setRequestData(
-  DataRequestBuilder.accounts().exactly(1),
-  DataRequestBuilder.personaData().fullName().emailAddresses()
-)
-```
-
-### One Time Data Request
-
-One Time data requests will always result in the Radix Wallet asking for the user's permission to share the data with the dApp. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
-
-```typescript
-const result = rdt.walletApi.sendOneTimeRequest(
-  OneTimeDataRequestBuilder.accounts().exactly(1),
-  OneTimeDataRequestBuilder.personaData().fullName()
-)
-
-if (result.isError()) return handleException()
-
-const walletData = result.value
-```
-
-## State changes
-
-Listen to wallet data changes by subscribing to `walletApi.walletData$`.
-
-```typescript
-const subscription = rdt.walletApi.walletData$.subscribe((walletData) => {
-  doSomethingWithAccounts(walletData.accounts)
-})
-```
-
-When your dApp is done listening to state changes remember to unsubscribe in order to prevent memory leaks.
-
-```typescript
-subscription.unsubscribe()
-```
-
-Get the latest wallet data by calling `walletApi.getWalletData()`.
-
-```typescript
-const walletData = rdt.walletApi.getWalletData()
-```
-
-## Send transaction
-
-Your dApp can send transactions to the user's Radix Wallet for them to review, sign, and submit them to the Radix Network.
-
-Radix transactions are built using "transaction manifests", that use a simple syntax to describe desired behavior. See [documentation on transaction manifest commands here](https://docs-babylon.radixdlt.com/main/scrypto/transaction-manifest/intro.html).
-
-It is important to note that what your dApp sends to the Radix Wallet is actually a "transaction manifest stub". It is completed before submission by the Radix Wallet. For example, the Radix Wallet will automatically add a command to lock the necessary amount of network fees from one of the user's accounts. It may also add "assert" commands to the manifest according to user desires for expected returns.
-
-**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs-babylon.radixdlt.com/main/standards/comforming-transactions.html) that ensures clear presentation and handling in the Radix Wallet.
-
-### Build transaction manifest
-
-We recommend using template strings for constructing simpler transaction manifests. If your dApp is sending complex manifests a manifest builder can be found in [TypeScript Radix Engine Toolkit](https://github.com/radixdlt/typescript-radix-engine-toolkit#building-manifests)
-
-### sendTransaction
-
-This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed.
-
-```typescript
-type SendTransactionInput = {
-  transactionManifest: string
-  version: number
-  blobs?: string[]
-  message?: string
-}
-```
-
-- **requires** transactionManifest - specify the transaction manifest
-- **requires** version - specify the version of the transaction manifest
-- **optional** blobs - used for deploying packages
-- **optional** message - message to be included in the transaction
-
-<details>
-
-<summary>sendTransaction example</summary>
-
-```typescript
-const result = await rdt.walletApi.sendTransaction({
-  version: 1,
-  transactionManifest: '...',
-})
-
-if (result.isErr()) {
-  // code to handle the exception
-}
-
-const transactionIntentHash = result.value.transactionIntentHash
-```
-
-</details>
-
-## Login
-
-A user is considered logged-in when a wallet data request is successfully resolved. For a frontend only dApp, that is all that is needed for the user to access all features of the dApp.
+For a pure frontend dApp (where you have no backend or user database), there is typically no reason for a Persona login to be verified and the login process is completely automated by RDT.
 
 ### User authentication
 
@@ -277,6 +172,247 @@ rdt.disconnect()
 ```
 
 The `disconnect` method resets the RDT state, to login anew, a wallet data request needs to be triggered.
+
+## Wallet data requests
+
+For your dApp to access data from a user's wallet, whether account information or personal data, a request must be sent to the wallet. By default, the request will be "ongoing", meaning that the user will be asked for permission to share the information whenever they login to your dApp with their current Persona. A request may also be "one time" if it is for transient use and you do not require the permission to be retained by the user's wallet.
+
+There are two ways to trigger a data request:
+
+1. As part of the login request when the user clicks the √ Connect button's "Connect"
+2. Programmatically through the walletApi.sendRequest method
+
+#### Trigger wallet data request programmatically
+
+```typescript
+const result = await rdt.walletApi.sendRequest()
+
+if (result.isError()) return handleException()
+
+// {
+//   persona?: Persona,
+//   accounts: Account[],
+//   personaData: WalletDataPersonaData[],
+//   proofs: SignedChallenge[],
+// }
+const walletData = result.value
+```
+
+### Change requested data
+
+By default, a data request requires a Persona to set its context and so if the user is not already logged in, the data request will include a request for login.
+
+Use `walletApi.setRequestData` together with `DataRequestBuilder` to change the wallet data request.
+
+```typescript
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.persona().withProof(),
+  DataRequestBuilder.accounts().exactly(1),
+  DataRequestBuilder.personaData().fullName().emailAddresses()
+)
+```
+
+### Data request builder
+
+The `DataRequestBuilder` and `OneTimeDataRequestBuilder` is there to assist you in constructing a wallet data request.
+
+#### `DataRequestBuilder.persona()`
+
+```typescript
+withProof: (value?: boolean) => PersonaRequestBuilder
+```
+
+Example: Request persona with proof of ownership
+
+```typescript
+rdt.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
+```
+
+#### `DataRequestBuilder.accounts()`
+
+```typescript
+atLeast: (n: number) => AccountsRequestBuilder
+exactly: (n: number) => AccountsRequestBuilder
+withProof: (value?: boolean) => AccountsRequestBuilder
+reset: (value?: boolean) => AccountsRequestBuilder
+```
+
+Example: Request at least 1 account with proof of ownership
+
+```typescript
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.accounts().atLeast(1).withProof()
+)
+```
+
+#### `OneTimeDataRequestBuilderItem.accounts()`
+
+```typescript
+atLeast: (n: number) => OneTimeAccountsRequestBuilder
+exactly: (n: number) => OneTimeAccountsRequestBuilder
+withProof: (value?: boolean) => OneTimeAccountsRequestBuilder
+```
+
+Example: Exactly 2 accounts
+
+```typescript
+rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.accounts().exactly(2)
+)
+```
+
+#### `DataRequestBuilder.personaData()`
+
+```typescript
+fullName: (value?: boolean) => PersonaDataRequestBuilder
+emailAddresses: (value?: boolean) => PersonaDataRequestBuilder
+phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
+reset: (value?: boolean) => PersonaDataRequestBuilder
+```
+
+Example: Request full name and email address
+
+```typescript
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.personaData().fullName().emailAddresses()
+)
+```
+
+#### `OneTimeDataRequestBuilderItem.personaData()`
+
+```typescript
+fullName: (value?: boolean) => PersonaDataRequestBuilder
+emailAddresses: (value?: boolean) => PersonaDataRequestBuilder
+phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
+```
+
+Example: Request phone number
+
+```typescript
+rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.personaData().phoneNumbers()
+)
+```
+
+#### `DataRequestBuilder.config(input: DataRequestState)`
+
+Use this method if you prefer to provide a raw data request object.
+
+Example: Request at least 1 account and full name.
+
+```typescript
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.config({
+    personaData: { fullName: true },
+    accounts: { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
+  })
+)
+```
+
+### One Time Data Request
+
+One-time data requests do not have a Persona context, and so will always result in the Radix Wallet asking the user to select where to draw personal data from. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
+
+```typescript
+const result = rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.accounts().exactly(1),
+  OneTimeDataRequestBuilder.personaData().fullName()
+)
+
+if (result.isError()) return handleException()
+
+// {
+//   accounts: Account[],
+//   personaData: WalletDataPersonaData[],
+//   proofs: SignedChallenge[],
+// }
+const walletData = result.value
+```
+
+## State changes
+
+Listen to wallet data changes by subscribing to `walletApi.walletData$`.
+
+```typescript
+const subscription = rdt.walletApi.walletData$.subscribe((walletData) => {
+  // {
+  //   persona?: Persona,
+  //   accounts: Account[],
+  //   personaData: WalletDataPersonaData[],
+  //   proofs: SignedChallenge[],
+  // }
+  doSomethingWithAccounts(walletData.accounts)
+})
+```
+
+When your dApp is done listening to state changes remember to unsubscribe in order to prevent memory leaks.
+
+```typescript
+subscription.unsubscribe()
+```
+
+Get the latest wallet data by calling `walletApi.getWalletData()`.
+
+```typescript
+// {
+//   persona?: Persona,
+//   accounts: Account[],
+//   personaData: WalletDataPersonaData[],
+//   proofs: SignedChallenge[],
+// }
+const walletData = rdt.walletApi.getWalletData()
+```
+
+## Transaction requests
+
+Your dApp can send transactions to the user's Radix Wallet for them to review, sign, and submit them to the Radix Network.
+
+Radix transactions are built using "transaction manifests", that use a simple syntax to describe desired behavior. See [documentation on transaction manifest commands here](https://docs-babylon.radixdlt.com/main/scrypto/transaction-manifest/intro.html).
+
+It is important to note that what your dApp sends to the Radix Wallet is actually a "transaction manifest stub". It is completed before submission by the Radix Wallet. For example, the Radix Wallet will automatically add a command to lock the necessary amount of network fees from one of the user's accounts. It may also add "assert" commands to the manifest according to user desires for expected returns.
+
+**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs-babylon.radixdlt.com/main/standards/comforming-transactions.html) that ensures clear presentation and handling in the Radix Wallet.
+
+### Build transaction manifest
+
+We recommend using template strings for constructing simpler transaction manifests. If your dApp is sending complex manifests a manifest builder can be found in [TypeScript Radix Engine Toolkit](https://github.com/radixdlt/typescript-radix-engine-toolkit#building-manifests)
+
+### sendTransaction
+
+This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed.
+
+```typescript
+type SendTransactionInput = {
+  transactionManifest: string
+  version: number
+  blobs?: string[]
+  message?: string
+}
+```
+
+- **requires** transactionManifest - specify the transaction manifest
+- **requires** version - specify the version of the transaction manifest
+- **optional** blobs - used for deploying packages
+- **optional** message - message to be included in the transaction
+
+<details>
+
+<summary>sendTransaction example</summary>
+
+```typescript
+const result = await rdt.walletApi.sendTransaction({
+  version: 1,
+  transactionManifest: '...',
+})
+
+if (result.isErr()) {
+  // code to handle the exception
+}
+
+const transactionIntentHash = result.value.transactionIntentHash
+```
+
+</details>
 
 # ROLA (Radix Off-Ledger Authentication)
 
