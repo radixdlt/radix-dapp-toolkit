@@ -2,6 +2,7 @@ import { BehaviorSubject } from 'rxjs'
 import {
   DataRequestBuilder,
   DataRequestStateClient,
+  OneTimeDataRequestBuilder,
   RadixDappToolkit,
 } from '../../src'
 import { appLogger } from '../logger/state'
@@ -106,3 +107,10 @@ rdt.walletApi.walletData$.subscribe((state) => {
 })
 
 rdt.walletApi.provideChallengeGenerator(async () => createChallenge())
+
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.config({
+    personaData: { fullName: true },
+    accounts: { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
+  })
+)

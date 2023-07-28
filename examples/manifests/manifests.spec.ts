@@ -98,6 +98,7 @@ describe('tx manifests', () => {
         'account_tdx_d_12x73uw57xyzxm46rdget90s6te524v9wmzpmjk3x9thtd05srsmlc9',
         5,
         'apple',
+        '',
         'package_tdx_d_1phnlvwut0t6n7gw6rhx53jykunczlc84s86wxttffa9qyh4fvtlp0p'
       )
       await testManifest(stringManifest)
@@ -249,6 +250,7 @@ describe('tx manifests', () => {
       gumballFlavour: 'FLAV',
       gumballPrice: 1,
       entities: {
+        dApp: 'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
         adminBadge:
           'resource_tdx_d_1tkx7f4tdf9zlqnhvtjrftddxvpjtvwqshjw5p9v0qslka44un68w6k',
         gumballToken:
@@ -257,9 +259,6 @@ describe('tx manifests', () => {
     })
     it('should create valid `setPrice` manifest', () => {
       testManifest(manifests.setPrice(2))
-    })
-    it('should create valid `setRelatedEntities` manifest', () => {
-      testManifest(manifests.setRelatedEntities())
     })
   })
 })
