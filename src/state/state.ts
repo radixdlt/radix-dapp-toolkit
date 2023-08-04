@@ -41,7 +41,11 @@ export const StateClient = (
   }
 
   const resetState = () => {
-    subjects.state.next({ walletData: walletDataDefault, sharedData: {} })
+    subjects.state.next({
+      walletData: walletDataDefault,
+      sharedData: {},
+      loggedInTimestamp: '',
+    })
   }
 
   const initializeState = () =>
@@ -91,6 +95,9 @@ export const StateClient = (
       filter((initialized) => initialized),
       switchMap(() => subjects.state)
     ),
+    patchState: (state: Partial<RdtState>) => {
+      setState({ ...(subjects.state.value || {}), ...state })
+    },
     reset: resetState,
     stateInitialized$: subjects.initialized.asObservable(),
     destroy: () => {

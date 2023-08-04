@@ -4,6 +4,7 @@ import { RdtState, walletDataDefault } from './types'
 export type StateSubjects = ReturnType<typeof StateSubjects>
 export const StateSubjects = () => ({
   state: new BehaviorSubject<RdtState>({
+    loggedInTimestamp: '',
     walletData: walletDataDefault,
     sharedData: {},
   }),

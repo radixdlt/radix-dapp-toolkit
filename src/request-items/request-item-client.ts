@@ -3,21 +3,45 @@ import { map, Subscription, tap } from 'rxjs'
 import { Logger } from 'tslog'
 import { RequestItemSubjects } from './subjects'
 import { errorType } from '@radixdlt/wallet-sdk'
+import { StorageProvider } from '../_types'
 
 export type RequestItemClient = ReturnType<typeof RequestItemClient>
-export const RequestItemClient = (input: {
-  subjects?: RequestItemSubjects
-  logger?: Logger<unknown>
-}) => {
+export const RequestItemClient = (
+  storageKey: string,
+  storageClient: StorageProvider,
+  input: {
+    subjects?: RequestItemSubjects
+    logger?: Logger<unknown>
+  }
+) => {
   const logger = input.logger
-  const requestsItemStore = new Map<string, RequestItem>()
   const requestItemIds = new Set<string>()
   const subscriptions = new Subscription()
+  const requestsItemStore = new Map<string, RequestItem>()
   const subjects = input.subjects || RequestItemSubjects()
+  const requestItemStoreKey = `${storageKey}:requestItemStore`
+
+  storageClient
+    .getData<Record<string, RequestItem>>(requestItemStoreKey)
+    .map((store) => {
+      if (store) {
+        Object.keys(store).forEach((key) => {
+          requestItemIds.add(key)
+          requestsItemStore.set(key, store[key])
+        })
+      }
+      subjects.items.next(getItemsList())
+    })
+
+  const emitChange = (
+    oldValue: RequestItem | undefined,
+    newValue: RequestItem | undefined
+  ) => subjects.onChange.next({ oldValue, newValue })
 
   const createItem = (type: RequestItem['type']): RequestItem => ({
     type,
     status: 'pending',
+    timestamp: Date.now(),
     id: crypto.randomUUID(),
     showCancel: true,
   })
@@ -26,7 +50,7 @@ export const RequestItemClient = (input: {
     const item = createItem(type)
     requestsItemStore.set(item.id, item)
     requestItemIds.add(item.id)
-    subjects.onChange.next()
+    emitChange(undefined, item)
     logger?.trace(`addRequestItem`, {
       id: item.id,
       status: item.status,
@@ -36,9 +60,10 @@ export const RequestItemClient = (input: {
 
   const remove = (id: string) => {
     if (requestsItemStore.has(id)) {
+      const oldValue = requestsItemStore.get(id)!
       requestsItemStore.delete(id)
       requestItemIds.delete(id)
-      subjects.onChange.next()
+      emitChange(oldValue, undefined)
       logger?.trace(`removeRequestItem`, id)
     }
   }
@@ -51,7 +76,7 @@ export const RequestItemClient = (input: {
         ...partialValue,
       } as RequestItem
       requestsItemStore.set(id, updated)
-      subjects.onChange.next()
+      emitChange(item, updated)
       logger?.trace(`patchRequestItemStatus`, updated)
     }
   }
@@ -66,7 +91,7 @@ export const RequestItemClient = (input: {
   const reset = () => {
     requestsItemStore.clear()
     requestItemIds.clear()
-    subjects.onChange.next()
+    emitChange(undefined, undefined)
     logger?.trace(`resetRequestItems`)
   }
 
@@ -94,12 +119,13 @@ export const RequestItemClient = (input: {
         updated.transactionIntentHash = transactionIntentHash!
       }
       requestsItemStore.set(id, updated)
-      subjects.onChange.next()
+      emitChange(item, updated)
+
       logger?.trace(`updateRequestItemStatus`, updated)
     }
   }
 
-  const getIds = () => [...requestItemIds]
+  const getIds = () => [...requestItemIds].reverse()
 
   const getItemsList = () =>
     getIds()
@@ -110,7 +136,17 @@ export const RequestItemClient = (input: {
     subjects.onChange
       .pipe(
         map(() => getItemsList()),
-        tap((items) => subjects.items.next(items))
+        tap((items) => subjects.items.next(items)),
+        tap(() => {
+          const entries = Array.from(requestsItemStore.entries())
+
+          storageClient.setData(
+            requestItemStoreKey,
+            Object.fromEntries(
+              entries.filter(([, value]) => value.status !== 'pending')
+            )
+          )
+        })
       )
       .subscribe()
   )
@@ -126,6 +162,6 @@ export const RequestItemClient = (input: {
       subscriptions.unsubscribe()
     },
     items$: subjects.items.asObservable(),
-    subjects,
+    change$: subjects.onChange.asObservable(),
   }
 }

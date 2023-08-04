@@ -108,6 +108,7 @@ export const DataRequestClient = ({
           .map((walletData) => {
             if (!oneTime)
               stateClient.setState({
+                loggedInTimestamp: Date.now().toString(),
                 walletData,
                 sharedData: transformWalletRequestToSharedData(
                   walletDataRequest,

@@ -2,7 +2,6 @@ import { BehaviorSubject } from 'rxjs'
 import {
   DataRequestBuilder,
   DataRequestStateClient,
-  OneTimeDataRequestBuilder,
   RadixDappToolkit,
 } from '../../src'
 import { appLogger } from '../logger/state'

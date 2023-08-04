@@ -12,6 +12,7 @@ import { StateSubjects } from '../state/subjects'
 import { RequestItemSubjects } from '../request-items/subjects'
 import { okAsync } from 'neverthrow'
 import { InMemoryClient } from '../storage/in-memory-storage-client'
+import { of } from 'rxjs'
 
 export type Context = {
   stateClient: StateClient
@@ -47,7 +48,13 @@ export const createMockContext = (): MockContext => {
 
   const gatewayApiClientMock = mockDeep<GatewayApiClient>()
   const connectButtonMock = mockDeep<ConnectButtonClient>()
-  const walletSdkMock = mockDeep<WalletSdk>()
+  const walletSdkMock = {
+    ...mockDeep<WalletSdk>(),
+    extensionStatus$: of({
+      isWalletLinked: true,
+      isExtensionAvailable: true,
+    }),
+  }
 
   const storageClient = InMemoryClient()
   const stateClient = StateClient(`rdt:test:12`, storageClient, {
@@ -55,7 +62,7 @@ export const createMockContext = (): MockContext => {
     logger,
   })
 
-  const requestItemClient = RequestItemClient({
+  const requestItemClient = RequestItemClient(`rdt:test:12`, storageClient, {
     subjects: requestItemSubjects,
     logger,
   })
@@ -69,11 +76,13 @@ export const createMockContext = (): MockContext => {
     logger,
     requestItemClient,
     gatewayClient,
-    walletSdk: walletSdkMock,
+    walletSdk: walletSdkMock as any,
     onCancelRequestItem$:
       connectButtonSubjects.onCancelRequestItem.asObservable(),
   })
 
+  connectButtonMock.onShowPopover$ =
+    connectButtonSubjects.onShowPopover.asObservable() as any
   connectButtonMock.onConnect$ =
     connectButtonSubjects.onConnect.asObservable() as any
   connectButtonMock.onDisconnect$ =
@@ -97,7 +106,7 @@ export const createMockContext = (): MockContext => {
     gatewayClient,
     gatewayApiClient: gatewayApiClientMock,
     connectButton: connectButtonMock,
-    walletSdk: walletSdkMock,
+    walletSdk: walletSdkMock as any,
     storageClient,
   }
 }
