@@ -56,7 +56,6 @@ export const InstantiateGumballMachineCard = () => {
     addLog(`instantiating gumball machine component`)
     return instantiateComponent(state.ownerAccount)
       .map((values) => {
-        console.log(values)
         const state_updates = values.transaction.receipt?.state_updates as {
           new_global_entities: { entity_address: string; entity_type: string }[]
         }

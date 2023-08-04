@@ -8,6 +8,7 @@ import { SettingsPage } from './settings/SettingsPage'
 import { SendTransactionPage } from './send-transaction/SendTransactionPage'
 import { RolaPage } from './rola/RolaPage'
 import { OneTimeDataRequestsPage } from './one-time-data-request/OneTimeDataRequestsPage'
+import { PoolsPage } from './pools/PoolsPage'
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
       {
         path: 'send-transaction',
         element: <SendTransactionPage />,
+      },
+      {
+        path: 'pools',
+        element: <PoolsPage />,
       },
       {
         path: 'settings',
