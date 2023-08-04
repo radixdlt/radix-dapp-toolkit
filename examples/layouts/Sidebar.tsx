@@ -32,6 +32,7 @@ export const Sidebar = () => (
           { path: 'data-request', label: 'Data Requests' },
           { path: 'one-time-data-request', label: 'One Time Data Requests' },
           { path: 'create-token', label: 'Create Token' },
+          { path: 'pools', label: 'Pools' },
           {
             path: 'send-transaction',
             label: 'Send Transaction',

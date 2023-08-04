@@ -16,13 +16,22 @@ export const bootstrapNetwork = (networkId: number) => {
       ...response,
       gateway: RadixNetworkConfigById[networkId].gatewayUrl,
     })
-    return xrdAddress.next(response.well_known_addresses.xrd)
+    xrdAddress.next(response.well_known_addresses.xrd)
+    poolPackageAddress.next(
+      response.well_known_addresses.pool_package ||
+        'package_tdx_d_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxa0ecqd'
+    )
   })
 }
 
-const xrdAddress = new BehaviorSubject<string | undefined>(undefined)
+const poolPackageAddress = new BehaviorSubject<string>('')
+const xrdAddress = new BehaviorSubject<string>('')
 
-export const useXrdAddress = createObservableHook(xrdAddress, '')
+export const useXrdAddress = createObservableHook<string>(xrdAddress, '')
+export const usePoolPackageAddress = createObservableHook<string>(
+  poolPackageAddress,
+  ''
+)
 
 const getNetworkIdDefault = () => {
   const urlParams = new URLSearchParams(window.location.search)
