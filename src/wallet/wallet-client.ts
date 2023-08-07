@@ -54,6 +54,11 @@ export const WalletClient = (input: {
             filter((requestItemId) => requestItemId === id),
             switchMap(() => {
               requestItemClient.cancel(id)
+              requestItemClient.updateStatus({
+                id,
+                status: 'fail',
+                error: 'userCancelledRequest',
+              })
               return cancelRequest()
             })
           )

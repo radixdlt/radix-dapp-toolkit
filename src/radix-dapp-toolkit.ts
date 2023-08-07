@@ -28,7 +28,7 @@ import {
   RadixDappToolkitOptions,
   WalletApi,
 } from './_types'
-import { withLatestFrom } from 'rxjs/operators'
+import { mergeMap, withLatestFrom } from 'rxjs/operators'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
@@ -232,7 +232,7 @@ export const RadixDappToolkit = (
             connectButtonClient.setStatus('pending')
           }
         }),
-        switchMap(([change]) => {
+        mergeMap(([change]) => {
           const newStatus = change.newValue?.status
           const oldStatus = change.oldValue?.status
 
@@ -243,6 +243,7 @@ export const RadixDappToolkit = (
             connectButtonClient.setStatus(
               newStatus === 'success' ? 'success' : 'error'
             )
+
             return timer(2000).pipe(
               withLatestFrom(walletClient.requestItems$),
               tap(([_, items]) => {
