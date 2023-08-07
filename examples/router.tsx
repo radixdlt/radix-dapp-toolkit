@@ -9,6 +9,7 @@ import { SendTransactionPage } from './send-transaction/SendTransactionPage'
 import { RolaPage } from './rola/RolaPage'
 import { OneTimeDataRequestsPage } from './one-time-data-request/OneTimeDataRequestsPage'
 import { PoolsPage } from './pools/PoolsPage'
+import { StandardMetadataPage } from './standard-metadata/StandardMetadataPage'
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
       {
         path: 'integration-tests',
         element: <IntegrationTestsPage />,
+      },
+      {
+        path: 'standard-metadata',
+        element: <StandardMetadataPage />,
       },
       {
         path: 'send-transaction',

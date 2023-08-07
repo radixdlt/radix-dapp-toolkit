@@ -166,7 +166,7 @@ export const CreatePoolCard = () => {
                       <Select
                         disabled={isLoading}
                         variant="plain"
-                        placeholder="Select from predefined"
+                        placeholder="Owned fungibles"
                         onChange={(_, value: any) => {
                           updateResourceAddress(value || '', index)
                         }}

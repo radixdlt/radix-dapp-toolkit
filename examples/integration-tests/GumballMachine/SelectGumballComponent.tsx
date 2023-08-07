@@ -21,7 +21,6 @@ export const SelectGumballComponent = ({
       sx={sx}
       value={value}
       onChange={(_, value) => {
-        console.log(value)
         if (value) {
           onChange(value)
         }
