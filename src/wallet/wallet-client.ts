@@ -8,7 +8,7 @@ import {
   Subscription,
   filter,
   firstValueFrom,
-  merge,
+  map,
   switchMap,
   tap,
 } from 'rxjs'
@@ -37,21 +37,25 @@ export const WalletClient = (input: {
       eventCallback: (event) => {
         messageLifeCycleEvent.next(event)
       },
-      requestControl: ({ cancelRequest }) => {
+      requestControl: ({ cancelRequest, getRequest }) => {
         firstValueFrom(
-          merge(
-            messageLifeCycleEvent.pipe(
-              filter((event) => event === 'receivedByWallet'),
-              tap(() => {
+          messageLifeCycleEvent.pipe(
+            filter((event) => event === 'receivedByWallet'),
+            map(() => getRequest()),
+            tap((request) => {
+              if (request.items.discriminator === 'transaction')
                 requestItemClient.patch(id, { showCancel: false })
-              })
-            ),
-            input.onCancelRequestItem$.pipe(
-              filter((requestItemId) => requestItemId === id),
-              switchMap(() =>
-                cancelRequest().map(() => requestItemClient.cancel(id))
-              )
-            )
+            })
+          )
+        )
+
+        firstValueFrom(
+          input.onCancelRequestItem$.pipe(
+            filter((requestItemId) => requestItemId === id),
+            switchMap(() => {
+              requestItemClient.cancel(id)
+              return cancelRequest()
+            })
           )
         )
       },
