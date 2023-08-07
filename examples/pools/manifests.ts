@@ -19,7 +19,7 @@ export const createPoolManifest = (
   const manifest = `CALL_FUNCTION Address("${poolAddress}") 
     "${poolType}"
     "instantiate"
-    Enum<OwnerRole::None>() 
+    Enum<OwnerRole::Fixed>(Enum<AccessRule::AllowAll>())
     Enum<AccessRule::AllowAll>() 
     ${resourcesParameters[poolType](resourceAddresses)};`
 

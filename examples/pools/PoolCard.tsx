@@ -29,9 +29,11 @@ import { SelectAccount } from '../account/SelectAccount'
 import { rdt } from '../rdt/rdt'
 import { shortenAddress } from '../helpers/shorten-address'
 import { InfoBox } from '../components/InfoBox'
+import { StandardMetadata } from '../standard-metadata/StandardMetadata'
 export const PoolCard = ({ pool }: { pool: InstantiatedPool }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState<boolean>(false)
   const [account, setAccount] = useState<string>('')
   const [contributions, setContributiones] = useState<
     Record<
@@ -124,6 +126,47 @@ export const PoolCard = ({ pool }: { pool: InstantiatedPool }) => {
           </List>
         </Sheet>
       </Modal>
+      <Modal
+        open={isMetadataModalOpen}
+        onClose={() => setIsMetadataModalOpen(false)}
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Sheet
+          variant="outlined"
+          sx={{
+            maxWidth: 800,
+            minWidth: 500,
+            borderRadius: 'md',
+            p: 3,
+            boxShadow: 'lg',
+          }}
+        >
+          <ModalClose
+            variant="outlined"
+            sx={{
+              top: 'calc(-1/4 * var(--IconButton-size))',
+              right: 'calc(-1/4 * var(--IconButton-size))',
+              boxShadow: '0 2px 12px 0 rgba(0 0 0 / 0.2)',
+              borderRadius: '50%',
+              bgcolor: 'background.surface',
+            }}
+          />
+          <Typography
+            component="h2"
+            id="modal-title"
+            level="h4"
+            textColor="inherit"
+            fontWeight="lg"
+            mb={1}
+          >
+            Pool Unit Metadata
+          </Typography>
+          <StandardMetadata
+            address={pool.poolUnit}
+            type="fungible"
+          ></StandardMetadata>
+        </Sheet>
+      </Modal>
       <Card
         title={shortenAddress(pool.address)}
         side={
@@ -139,10 +182,19 @@ export const PoolCard = ({ pool }: { pool: InstantiatedPool }) => {
         }
       >
         <Stack spacing={2}>
-          <InfoBox label="Pool Unit" address={pool.poolUnit}></InfoBox>
+          <Stack direction="row" spacing={2}>
+            <InfoBox label="Pool Unit" address={pool.poolUnit}></InfoBox>
+            <Button
+              color="neutral"
+              onClick={() => setIsMetadataModalOpen(true)}
+            >
+              Set Metadata
+            </Button>
+          </Stack>
+
           <Divider></Divider>
           <SelectAccount
-            label="Deposition Account"
+            label="Pool Unit Deposition Account"
             onChange={(value) => {
               setContributiones({
                 ...contributions,
@@ -203,7 +255,7 @@ export const PoolCard = ({ pool }: { pool: InstantiatedPool }) => {
             )
           })}
           <Button fullWidth onClick={contribute} disabled={isLoading}>
-            Contribute
+            Contribute to pool
           </Button>
         </Stack>
       </Card>
