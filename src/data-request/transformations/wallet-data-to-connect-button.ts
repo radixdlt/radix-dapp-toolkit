@@ -11,8 +11,12 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
         return {
           value:
             variant === 'western'
-              ? `${givenNames} "${nickname}" ${familyName}`
-              : `${familyName} "${nickname}" ${givenNames}`,
+              ? `${givenNames}${
+                  nickname ? ` "${nickname}" ` : ' '
+                }${familyName}`
+              : `${familyName}${
+                  nickname ? ` "${nickname}" ` : ' '
+                }${givenNames}`,
           field: 'fullName',
         }
       } else if (item.entry === 'emailAddresses') {
