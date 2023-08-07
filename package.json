@@ -21,9 +21,18 @@
   "main": "dist/radix-dapp-toolkit.mjs",
   "license": "Apache-2.0",
   "exports": {
-    ".": "./dist/radix-dapp-toolkit.mjs"
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/radix-dapp-toolkit.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/radix-dapp-toolkit.js"
+      }
+    }
   },
-  "types": "types/index.d.ts",
+  "types": "./types/index.d.ts",
   "files": [
     "dist",
     "types"
