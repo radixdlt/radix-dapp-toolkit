@@ -91,6 +91,8 @@ export const createMockContext = (): MockContext => {
     connectButtonSubjects.onCancelRequestItem.asObservable() as any
   connectButtonMock.onUpdateSharedData$ =
     connectButtonSubjects.onUpdateSharedData.asObservable() as any
+  connectButtonMock.onLinkClick$ =
+    connectButtonSubjects.onLinkClick.asObservable() as any
 
   gatewayApiClientMock.getEntityDetails.mockReturnValue(
     okAsync(undefined) as any
