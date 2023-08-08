@@ -62,11 +62,6 @@ export const RadixDappToolkit = (
     providers?.connectButton ??
     ConnectButtonClient({
       logger,
-      explorer: explorer ?? {
-        baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
-        transactionPath: '/transaction/',
-        accountsPath: '/account/',
-      },
     })
 
   const gatewayClient =
@@ -169,6 +164,27 @@ export const RadixDappToolkit = (
             isConnect: true,
             oneTime: false,
           })
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onLinkClick$
+      .pipe(
+        tap(({ type, data }) => {
+          const { baseUrl, transactionPath, accountsPath } = explorer ?? {
+            baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+            transactionPath: '/transaction/',
+            accountsPath: '/account/',
+          }
+          if (!baseUrl || !window) return
+
+          const url = `${baseUrl}${
+            type === 'transaction' ? transactionPath : accountsPath
+          }${data}`
+
+          window.open(url)
         })
       )
       .subscribe()

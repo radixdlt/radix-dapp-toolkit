@@ -1,9 +1,5 @@
-@import url('../node_modules/@radixdlt/connect-button/dist/style.css');
-
 body {
-  --radix-connect-button-width: 138px;
-  --radix-connect-button-height: 42px;
-  --radix-connect-button-border-radius: 12px;
+  --radix-connect-button-border-radius: 8px;
 }
 pre {
   margin: 0;

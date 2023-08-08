@@ -28,4 +28,5 @@ export const ConnectButtonSubjects = () => ({
   personaLabel: new BehaviorSubject<string>(''),
   personaData: new BehaviorSubject<{ value: string; field: string }[]>([]),
   dAppName: new BehaviorSubject<string>(''),
+  onLinkClick: new Subject<{ type: 'account' | 'transaction'; data: string }>(),
 })

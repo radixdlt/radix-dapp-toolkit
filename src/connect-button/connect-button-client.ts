@@ -26,7 +26,6 @@ export const isMobile = () =>
 export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
-  explorer?: ConnectButton['explorer']
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
@@ -52,8 +51,6 @@ export const ConnectButtonClient = (input: {
         switchMap((connectButtonElement) => {
           logger?.debug(`connectButtonDiscovered`)
 
-          if (input.explorer) connectButtonElement.explorer = input.explorer
-
           connectButtonElement.isMobile = isMobile()
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
@@ -76,6 +73,14 @@ export const ConnectButtonClient = (input: {
           ).pipe(
             tap(() => {
               subjects.onDisconnect.next()
+            })
+          )
+
+          const onLinkClick$ = fromEvent<
+            CustomEvent<{ type: 'account' | 'transaction'; data: string }>
+          >(connectButtonElement, 'onLinkClick').pipe(
+            tap((ev) => {
+              subjects.onLinkClick.next(ev.detail)
             })
           )
 
@@ -216,7 +221,8 @@ export const ConnectButtonClient = (input: {
             onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
-            dAppName$
+            dAppName$,
+            onLinkClick$
           )
         })
       )
@@ -229,6 +235,7 @@ export const ConnectButtonClient = (input: {
     onShowPopover$: subjects.onShowPopover.asObservable(),
     onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
+    onLinkClick$: subjects.onLinkClick.asObservable(),
     setStatus: (value: RadixButtonStatus) => subjects.status.next(value),
     setTheme: (value: RadixButtonTheme) => subjects.theme.next(value),
     setMode: (value: 'light' | 'dark') => subjects.mode.next(value),
