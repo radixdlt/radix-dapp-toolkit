@@ -8,7 +8,6 @@ import {
   BehaviorSubject,
   Subscription,
   filter,
-  map,
   merge,
   of,
   switchMap,
@@ -29,6 +28,7 @@ import {
   WalletApi,
 } from './_types'
 import { mergeMap, withLatestFrom } from 'rxjs/operators'
+import { WalletData } from './state/types'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
@@ -301,6 +301,9 @@ export const RadixDappToolkit = (
     provideChallengeGenerator: (
       input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
     ) => dataRequestClient.provideChallengeGenerator(input),
+    dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
+      dataRequestClient.provideDataRequestControl(fn)
+    },
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,

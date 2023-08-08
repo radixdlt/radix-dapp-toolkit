@@ -11,6 +11,7 @@ import {
   transformWalletRequestToSharedData,
 } from './transformations/shared-data'
 import { DataRequestStateClient } from './data-request-state'
+import { WalletData } from '../state/types'
 
 export type DataRequestClient = ReturnType<typeof DataRequestClient>
 
@@ -31,6 +32,10 @@ export const DataRequestClient = ({
     | (() => ResultAsync<string, { error: string; message: string }>)
     | undefined
 
+  let dataRequestControl: (
+    walletData: WalletData
+  ) => ResultAsync<any, { error: string; message: string }>
+
   const isChallengeNeeded = (dataRequestState: DataRequestState) =>
     dataRequestState.accounts?.withProof || dataRequestState.persona?.withProof
 
@@ -49,6 +54,16 @@ export const DataRequestClient = ({
       ResultAsync.fromPromise(fn(), () => ({
         error: 'GenerateChallengeError',
         message: 'Failed to generate challenge',
+      }))
+  }
+
+  const provideDataRequestControl = (
+    fn: (walletData: WalletData) => Promise<any>
+  ) => {
+    dataRequestControl = (walletData: WalletData) =>
+      ResultAsync.fromPromise(fn(walletData), () => ({
+        error: 'LoginRejectedByDapp',
+        message: 'Login rejected by dApp',
       }))
   }
 
@@ -105,6 +120,25 @@ export const DataRequestClient = ({
             })
           )
           .andThen(transformWalletResponseToRdtWalletData)
+          .andThen((response) => {
+            if (dataRequestControl)
+              return dataRequestControl(response)
+                .map(() => {
+                  requestItemClient.updateStatus({ id, status: 'success' })
+                  return response
+                })
+                .mapErr((error) => {
+                  requestItemClient.updateStatus({
+                    id,
+                    status: 'fail',
+                    error: error.error,
+                  })
+                  return error
+                })
+
+            requestItemClient.updateStatus({ id, status: 'success' })
+            return ok(response)
+          })
           .map((walletData) => {
             if (!oneTime)
               stateClient.setState({
@@ -143,6 +177,7 @@ export const DataRequestClient = ({
 
   return {
     provideChallengeGenerator,
+    provideDataRequestControl,
     sendOneTimeRequest,
     setState,
     sendRequest: ({

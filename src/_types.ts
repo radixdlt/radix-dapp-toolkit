@@ -126,6 +126,7 @@ export type WalletApi = {
   getWalletData: () => WalletDataState
   walletData$: Observable<WalletDataState>
   provideChallengeGenerator: (fn: () => Promise<string>) => void
+  dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedData: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
