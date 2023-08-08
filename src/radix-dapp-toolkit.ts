@@ -304,8 +304,8 @@ export const RadixDappToolkit = (
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,
-    walletData$: stateClient.state$.pipe(map((state) => state.walletData)),
-    getWalletData: () => stateClient.getState().walletData,
+    walletData$: stateClient.walletData$,
+    getWalletData: () => stateClient.getWalletData(),
   }
 
   const buttonApi = {
