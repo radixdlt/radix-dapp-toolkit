@@ -75,7 +75,7 @@ export const WalletClient = (input: {
       .request(input, cancelRequestControl(requestItemId))
       .map((response) => {
         logger?.debug(`⬇️walletSuccessResponse`, response)
-        requestItemClient.updateStatus({ id: requestItemId, status: 'success' })
+
         return response
       })
       .mapErr((error) => {
