@@ -169,7 +169,7 @@ rdt.walletApi.dataRequestControl(async (walletData) => {
 
 A typical full stack dApp will require the user to provide proof of ownership. After sending a data request and getting the proof from the wallet, you need authenticate the user through ROLA on the dApp backend.
 
-Use `walletApi.dataRequestControl` to provide a callback function that intercepts the RDT data request response flow. If no error has been thrown inside of the callback function RDT will proceed.
+Use `walletApi.dataRequestControl` to provide a callback function that intercepts the RDT data request response flow. If no error has been thrown inside of the callback function the RDT flow will proceed as usual.
 
 ```typescript
 rdt.walletApi.dataRequestControl(async (walletData) => {
@@ -180,7 +180,7 @@ rdt.walletApi.dataRequestControl(async (walletData) => {
 })
 ```
 
-Throwing an error inside of `walletApi.dataRequestControl` callback will prevent RDT from getting into a logged in state.
+Throwing an error inside of `walletApi.dataRequestControl` callback will prevent RDT from getting into a logged in state. A full stack dApp may wish to do this to prevent RDT from treating the user as logged in because the ROLA authentication check failed, or for other application-specific reasons why a given user should not be allowed to login.
 
 ```typescript
 rdt.walletApi.dataRequestControl(async (walletData) => {
