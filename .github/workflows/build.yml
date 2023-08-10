@@ -95,7 +95,11 @@ jobs:
       tag: ${{ steps.setup_tags.outputs.tag }}
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-
+      
+      - name: Setup tags for docker image
+        id: setup_tags
+        run: echo "tag=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
         with:
@@ -126,9 +130,8 @@ jobs:
       image_registry: "docker.io"
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
+      tag: ${{ needs.build.outputs.tag }}
       tags: |
-        type=sha,event=branch
-        type=sha,event=pr
         type=semver,pattern={{version}}
       context: "./"
       dockerfile: "./Dockerfile"
