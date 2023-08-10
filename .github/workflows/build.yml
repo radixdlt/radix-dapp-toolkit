@@ -96,10 +96,6 @@ jobs:
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
 
-      - name: Setup tags for docker image
-        id: setup_tags
-        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
         with:
@@ -130,8 +126,8 @@ jobs:
       image_registry: "docker.io"
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
-      tag: ${{ needs.build.outputs.tag }}
       tags: |
+        type=raw,value={{branch}}-{{sha}}
         type=sha,event=branch
         type=sha,event=pr
         type=semver,pattern={{version}}
@@ -171,7 +167,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs:
-      - build
       - push-docker-image
     permissions:
       id-token: write
@@ -188,7 +183,7 @@ jobs:
           snyk_secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
           parse_json: true
           snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
-          image: docker.io/radixdlt/private-radix-dapp-toolkit:sha-${{ needs.build.outputs.tag }}
+          image: docker.io/radixdlt/private-radix-dapp-toolkit:${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
           target_ref: ${{ github.ref_name }}
 
   deploy-pr:
