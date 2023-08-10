@@ -173,18 +173,26 @@ export const RadixDappToolkit = (
     connectButtonClient.onLinkClick$
       .pipe(
         tap(({ type, data }) => {
-          const { baseUrl, transactionPath, accountsPath } = explorer ?? {
-            baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
-            transactionPath: '/transaction/',
-            accountsPath: '/account/',
+          if (['account', 'transaction'].includes(type)) {
+            const { baseUrl, transactionPath, accountsPath } = explorer ?? {
+              baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+              transactionPath: '/transaction/',
+              accountsPath: '/account/',
+            }
+            if (!baseUrl || !window) return
+
+            const url = `${baseUrl}${
+              type === 'transaction' ? transactionPath : accountsPath
+            }${data}`
+
+            window.open(url)
+          } else if (type === 'setupGuide')
+            window.open(
+              'https://docs-babylon.radixdlt.com/main/getting-started-developers/wallet/wallet-and-connector-installation.html'
+            )
+          else if (type === 'showQrCode') {
+            walletSdk.openPopup()
           }
-          if (!baseUrl || !window) return
-
-          const url = `${baseUrl}${
-            type === 'transaction' ? transactionPath : accountsPath
-          }${data}`
-
-          window.open(url)
         })
       )
       .subscribe()

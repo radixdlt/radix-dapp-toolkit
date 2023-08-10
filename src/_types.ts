@@ -41,7 +41,10 @@ export type ConnectButtonProvider = {
   onUpdateSharedData$: Observable<void>
   onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
-  onLinkClick$: Observable<{ type: 'account' | 'transaction'; data: string }>
+  onLinkClick$: Observable<{
+    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide'
+    data: string
+  }>
   setStatus: (value: RadixButtonStatus) => void
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
