@@ -127,7 +127,6 @@ jobs:
       image_organization: "radixdlt"
       image_name: "private-radix-dapp-toolkit"
       tags: |
-        type=raw,value={{branch}}-{{sha}}
         type=sha,event=branch
         type=sha,event=pr
         type=semver,pattern={{version}}
