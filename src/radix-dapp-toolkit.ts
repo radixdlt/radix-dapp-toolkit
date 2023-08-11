@@ -1,5 +1,8 @@
 import { StateClient } from './state/state'
-import { ConnectButtonClient } from './connect-button/connect-button-client'
+import {
+  ConnectButtonClient,
+  isMobile,
+} from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
@@ -63,6 +66,8 @@ export const RadixDappToolkit = (
     ConnectButtonClient({
       logger,
     })
+
+  connectButtonClient.setIsMobile(isMobile())
 
   const gatewayClient =
     providers?.gatewayClient ??

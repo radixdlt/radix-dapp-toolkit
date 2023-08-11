@@ -8,15 +8,13 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
     .map((item) => {
       if (item.entry === 'fullName') {
         const { variant, givenNames, familyName, nickname } = item.fields
+        const value =
+          variant === 'western'
+            ? `${givenNames}${nickname ? ` "${nickname}" ` : ' '}${familyName}`
+            : `${familyName}${nickname ? ` "${nickname}" ` : ' '}${givenNames}`
+
         return {
-          value:
-            variant === 'western'
-              ? `${givenNames}${
-                  nickname ? ` "${nickname}" ` : ' '
-                }${familyName}`
-              : `${familyName}${
-                  nickname ? ` "${nickname}" ` : ' '
-                }${givenNames}`,
+          value,
           field: 'fullName',
         }
       } else if (item.entry === 'emailAddresses') {
@@ -40,7 +38,7 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
       ): item is {
         value: string
         field: string
-      } => !!item
+      } => !!item && !!item.value.trim()
     )
 
   return { accounts, personaLabel, connected, personaData }

@@ -51,8 +51,6 @@ export const ConnectButtonClient = (input: {
         switchMap((connectButtonElement) => {
           logger?.debug(`connectButtonDiscovered`)
 
-          connectButtonElement.isMobile = isMobile()
-
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
               onConnect((value) => {
