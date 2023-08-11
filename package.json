@@ -21,9 +21,18 @@
   "main": "dist/radix-dapp-toolkit.mjs",
   "license": "Apache-2.0",
   "exports": {
-    ".": "./dist/radix-dapp-toolkit.mjs"
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/radix-dapp-toolkit.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/radix-dapp-toolkit.js"
+      }
+    }
   },
-  "types": "types/index.d.ts",
+  "types": "./types/index.d.ts",
   "files": [
     "dist",
     "types"
@@ -37,8 +46,8 @@
   },
   "dependencies": {
     "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-rc.2.4",
-    "@radixdlt/connect-button": "0.13.0-alpha.1",
-    "@radixdlt/wallet-sdk": "0.9.0-alpha.11",
+    "@radixdlt/connect-button": "0.13.2",
+    "@radixdlt/wallet-sdk": "0.10.0",
     "immer": "^10.0.2",
     "lodash.isequal": "^4.5.0",
     "neverthrow": "^6.0.0",

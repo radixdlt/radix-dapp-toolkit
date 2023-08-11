@@ -8,6 +8,7 @@
   - [Getting started](#getting-started)
   - [Login requests](#login-requests)
     - [User authentication](#user-authentication)
+    - [Handle user authentication](#handle-user-authentication)
     - [User authentication management](#user-authentication-management)
   - [Wallet data requests](#wallet-data-requests)
       - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
@@ -26,6 +27,12 @@
     - [sendTransaction](#sendtransaction)
 - [ROLA (Radix Off-Ledger Authentication)](#rola-radix-off-ledger-authentication)
 - [√ Connect Button](#-connect-button)
+  - [Styling](#styling)
+    - [Themes](#themes)
+    - [Modes](#modes)
+    - [CSS variables](#css-variables)
+    - [Compact mode](#compact-mode)
+    - [Sandbox](#sandbox)
 - [Setting up your dApp Definition](#setting-up-your-dapp-definition)
   - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
@@ -149,11 +156,35 @@ rdt.walletApi.provideChallengeGenerator(requestChallengeFromDappBackendFn)
 
 rdt.walletApi.setRequestData(DataRequestBuilder.persona.withProof())
 
-rdt.walletApi.walletData$.subscribe((walletData) => {
+// handle the wallet response
+rdt.walletApi.dataRequestControl(async (walletData) => {
   const personaProof = walletData.proofs.find(
     (proof) => proof.type === 'persona'
   )
-  if (personaProof) handleLogin(personaProof)
+  if (personaProof) await handleLogin(personaProof)
+})
+```
+
+### Handle user authentication
+
+A typical full stack dApp will require the user to provide proof of ownership. After sending a data request and getting the proof from the wallet, you need authenticate the user through ROLA on the dApp backend.
+
+Use `walletApi.dataRequestControl` to provide a callback function that intercepts the RDT data request response flow. If no error has been thrown inside of the callback function the RDT flow will proceed as usual.
+
+```typescript
+rdt.walletApi.dataRequestControl(async (walletData) => {
+  const personaProof = walletData.proofs.find(
+    (proof) => proof.type === 'persona'
+  )
+  if (personaProof) await handleLogin(personaProof)
+})
+```
+
+Throwing an error inside of `walletApi.dataRequestControl` callback will prevent RDT from getting into a logged in state. A full stack dApp may wish to do this to prevent RDT from treating the user as logged in because the ROLA authentication check failed, or for other application-specific reasons why a given user should not be allowed to login.
+
+```typescript
+rdt.walletApi.dataRequestControl(async (walletData) => {
+  throw new Error('something bad happened...')
 })
 ```
 
@@ -437,7 +468,58 @@ Just add the HTML element in your code, and you're all set.
 <radix-connect-button />
 ```
 
-Currently you as the developer have no control over the styling. A complete make-over is coming shortly with more customization options to fit your dApp's branding needs.
+## Styling
+
+Configure the √ Connect Button to fit your dApp's branding.
+
+### Themes
+
+Available themes:
+
+- `radix-blue` (default)
+- `black`
+- `white-with-outline`
+- `white`
+
+```typescript
+rdt.buttonApi.setTheme('black')
+```
+
+### Modes
+
+Available modes:
+
+- `light` (default)
+- `dark`
+
+```typescript
+rdt.buttonApi.setMode('dark')
+```
+
+### CSS variables
+
+There are three CSS variables available:
+
+- `--radix-connect-button-width` (default 138px)
+- `--radix-connect-button-height` (default 42px)
+- `--radix-connect-button-border-radius` (default 0px)
+
+```css
+body {
+  --radix-connect-button-width: 200px;
+  --radix-connect-button-height: 42px;
+  --radix-connect-button-border-radius: 12px;
+}
+```
+
+### Compact mode
+
+Setting `--radix-connect-button-width` below `138px` will enable compact mode.
+
+### Sandbox
+
+Play around with the different configurations on the
+[sandbox environment](https://connect-button-storybook.radixdlt.com/)
 
 # Setting up your dApp Definition
 

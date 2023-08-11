@@ -1,10 +1,21 @@
 import { Logger } from 'tslog'
 import { StateSubjects } from './subjects'
 import { StorageProvider } from '../_types'
-import { Subscription, filter, first, skip, switchMap, tap } from 'rxjs'
-import { removeUndefined } from '../helpers/remove-undefined'
+import {
+  Subscription,
+  combineLatest,
+  debounceTime,
+  filter,
+  first,
+  map,
+  skip,
+  switchMap,
+  tap,
+} from 'rxjs'
 import { ResultAsync } from 'neverthrow'
 import { RdtState, walletDataDefault } from './types'
+import { produce } from 'immer'
+import isEqual from 'lodash.isequal'
 
 export type StateClient = ReturnType<typeof StateClient>
 
@@ -21,6 +32,18 @@ export const StateClient = (
 
   const subscriptions = new Subscription()
 
+  const state = combineLatest([
+    subjects.walletData,
+    subjects.sharedData,
+    subjects.loggedInTimestamp,
+  ]).pipe(
+    map(([walletData, sharedData, loggedInTimestamp]) => ({
+      walletData,
+      sharedData,
+      loggedInTimestamp,
+    }))
+  )
+
   const readStateFromStorage = () =>
     storageClient.getData<RdtState>(key).map((state) => {
       if (state) logger?.debug('readFromStorage')
@@ -28,20 +51,36 @@ export const StateClient = (
     })
 
   const writeStateToStorage = (value: RdtState) => {
-    return storageClient.setData(key, value).map(() => {
-      logger?.trace('writeToStorage', value)
-    })
+    return storageClient
+      .setData(
+        key,
+        produce(value, (draft) => {
+          draft.walletData.proofs = []
+        })
+      )
+      .map(() => {
+        logger?.trace('writeToStorage', value)
+      })
   }
 
   const setState = (state: Partial<RdtState>) => {
-    removeUndefined(state).map((data) => {
-      if (Object.keys(data).length)
-        subjects.state.next({ ...subjects.state.value, ...data })
-    })
+    const { walletData, sharedData, loggedInTimestamp } = state
+    if (walletData && !isEqual(subjects.walletData.value, walletData)) {
+      subjects.walletData.next(walletData)
+    }
+
+    if (sharedData) subjects.sharedData.next(sharedData)
+    if (loggedInTimestamp !== undefined)
+      subjects.loggedInTimestamp.next(loggedInTimestamp)
   }
 
   const resetState = () => {
-    subjects.state.next({ walletData: walletDataDefault, sharedData: {} })
+    if (!isEqual(subjects.walletData.value, walletDataDefault)) {
+      subjects.walletData.next(walletDataDefault)
+    }
+
+    subjects.sharedData.next({})
+    subjects.loggedInTimestamp.next('')
   }
 
   const initializeState = () =>
@@ -59,7 +98,12 @@ export const StateClient = (
       .map((storedState) => {
         if (storedState) {
           logger?.debug(`initializeStateFromStorage`)
-          return subjects.state.next(storedState)
+          return setState(
+            produce(storedState, (draft) => {
+              draft.walletData.persona = draft.walletData.persona ?? undefined
+              return draft
+            })
+          )
         } else {
           logger?.debug(`initializeStateFromDefault`)
           resetState()
@@ -68,12 +112,10 @@ export const StateClient = (
 
   initializeState()
 
-  subscriptions.add(
-    subjects.state.pipe(switchMap(writeStateToStorage)).subscribe()
-  )
+  subscriptions.add(state.pipe(switchMap(writeStateToStorage)).subscribe())
 
   subscriptions.add(
-    subjects.state
+    state
       .pipe(
         skip(1),
         first(),
@@ -84,13 +126,33 @@ export const StateClient = (
       .subscribe()
   )
 
+  const getState = () => {
+    return {
+      walletData: subjects.walletData.value,
+      sharedData: subjects.sharedData.value,
+      loggedInTimestamp: subjects.loggedInTimestamp.value,
+    }
+  }
+
   return {
     setState,
-    getState: () => subjects.state.value,
+    getState,
+    walletData$: combineLatest([
+      subjects.initialized,
+      subjects.walletData,
+    ]).pipe(
+      debounceTime(1),
+      filter(([initialized]) => initialized),
+      map(() => subjects.walletData.value)
+    ),
+    getWalletData: () => subjects.walletData.value,
     state$: subjects.initialized.pipe(
       filter((initialized) => initialized),
-      switchMap(() => subjects.state)
+      switchMap(() => state)
     ),
+    patchState: (state: Partial<RdtState>) => {
+      setState({ ...getState(), ...state })
+    },
     reset: resetState,
     stateInitialized$: subjects.initialized.asObservable(),
     destroy: () => {

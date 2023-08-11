@@ -1,5 +1,8 @@
 import { StateClient } from './state/state'
-import { ConnectButtonClient } from './connect-button/connect-button-client'
+import {
+  ConnectButtonClient,
+  isMobile,
+} from './connect-button/connect-button-client'
 import { WalletClient } from './wallet/wallet-client'
 import { WalletSdk } from '@radixdlt/wallet-sdk'
 import { GatewayApiClient } from './gateway/gateway-api'
@@ -8,10 +11,11 @@ import {
   BehaviorSubject,
   Subscription,
   filter,
-  map,
   merge,
+  of,
   switchMap,
   tap,
+  timer,
 } from 'rxjs'
 
 import { RequestItemClient } from './request-items/request-item-client'
@@ -20,11 +24,19 @@ import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 import { DataRequestStateClient } from './data-request/data-request-state'
 import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
-import { GatewayApi, RadixDappToolkitOptions, WalletApi } from './_types'
+import {
+  ButtonApi,
+  GatewayApi,
+  RadixDappToolkitOptions,
+  WalletApi,
+} from './_types'
+import { mergeMap, withLatestFrom } from 'rxjs/operators'
+import { WalletData } from './state/types'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
   gatewayApi: GatewayApi
+  buttonApi: ButtonApi
   disconnect: () => void
   destroy: () => void
 }
@@ -53,12 +65,9 @@ export const RadixDappToolkit = (
     providers?.connectButton ??
     ConnectButtonClient({
       logger,
-      explorer: explorer ?? {
-        baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
-        transactionPath: '/transaction/',
-        accountsPath: '/account/',
-      },
     })
+
+  connectButtonClient.setIsMobile(isMobile())
 
   const gatewayClient =
     providers?.gatewayClient ??
@@ -71,6 +80,8 @@ export const RadixDappToolkit = (
       }),
     })
 
+  const storageClient = providers?.storageClient ?? LocalStorageClient()
+
   const walletSdk =
     providers?.walletSdk ??
     WalletSdk({
@@ -81,7 +92,7 @@ export const RadixDappToolkit = (
 
   const requestItemClient =
     providers?.requestItemClient ??
-    RequestItemClient({
+    RequestItemClient(storageKey, storageClient, {
       logger,
     })
 
@@ -94,8 +105,6 @@ export const RadixDappToolkit = (
       gatewayClient,
       requestItemClient,
     })
-
-  const storageClient = providers?.storageClient ?? LocalStorageClient()
 
   const stateClient =
     providers?.stateClient ??
@@ -138,6 +147,20 @@ export const RadixDappToolkit = (
   )
 
   subscriptions.add(
+    walletClient.extensionStatus$
+      .pipe(
+        tap((result) => {
+          connectButtonClient.setIsExtensionAvailable(
+            result.isExtensionAvailable
+          )
+          connectButtonClient.setIsWalletLinked(result.isWalletLinked)
+        })
+      )
+
+      .subscribe()
+  )
+
+  subscriptions.add(
     connectButtonClient.onConnect$
       .pipe(
         switchMap(() => {
@@ -146,6 +169,48 @@ export const RadixDappToolkit = (
             isConnect: true,
             oneTime: false,
           })
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onLinkClick$
+      .pipe(
+        tap(({ type, data }) => {
+          if (['account', 'transaction'].includes(type)) {
+            const { baseUrl, transactionPath, accountsPath } = explorer ?? {
+              baseUrl: RadixNetworkConfigById[networkId].dashboardUrl,
+              transactionPath: '/transaction/',
+              accountsPath: '/account/',
+            }
+            if (!baseUrl || !window) return
+
+            const url = `${baseUrl}${
+              type === 'transaction' ? transactionPath : accountsPath
+            }${data}`
+
+            window.open(url)
+          } else if (type === 'setupGuide')
+            window.open(
+              'https://docs-babylon.radixdlt.com/main/getting-started-developers/wallet/wallet-and-connector-installation.html'
+            )
+          else if (type === 'showQrCode') {
+            walletSdk.openPopup()
+          }
+        })
+      )
+      .subscribe()
+  )
+
+  subscriptions.add(
+    connectButtonClient.onShowPopover$
+      .pipe(
+        withLatestFrom(walletClient.requestItems$),
+        tap(([_, items]) => {
+          if (items.filter((item) => item.status === 'pending').length > 0) {
+            connectButtonClient.setActiveTab('requests')
+          }
         })
       )
       .subscribe()
@@ -169,6 +234,7 @@ export const RadixDappToolkit = (
         tap((state) => {
           const { personaData, accounts, personaLabel, connected } =
             transformWalletDataToConnectButton(state.walletData)
+          connectButtonClient.setLoggedInTimestamp(state.loggedInTimestamp)
           connectButtonClient.setAccounts(accounts)
           connectButtonClient.setPersonaData(personaData)
           connectButtonClient.setPersonaLabel(personaLabel)
@@ -180,18 +246,47 @@ export const RadixDappToolkit = (
 
   subscriptions.add(
     walletClient.requestItems$
+      .pipe(tap((items) => connectButtonClient.setRequestItems(items)))
+      .subscribe()
+  )
+
+  subscriptions.add(
+    requestItemClient.change$
       .pipe(
-        tap((items) => {
-          connectButtonClient.setRequestItems(items)
-          connectButtonClient.setConnecting(
-            items.some(
-              (item) =>
-                item.status === 'pending' && item.type === 'loginRequest'
+        withLatestFrom(requestItemClient.items$),
+        tap(([, items]) => {
+          const hasPendingItem = items.find((item) => item.status === 'pending')
+
+          if (hasPendingItem) {
+            connectButtonClient.setStatus('pending')
+          }
+        }),
+        mergeMap(([change]) => {
+          const newStatus = change.newValue?.status
+          const oldStatus = change.oldValue?.status
+
+          if (
+            oldStatus === 'pending' &&
+            (newStatus === 'success' || newStatus === 'fail')
+          ) {
+            connectButtonClient.setStatus(
+              newStatus === 'success' ? 'success' : 'error'
             )
-          )
-          connectButtonClient.setLoading(
-            items.some((item) => item.status === 'pending')
-          )
+
+            return timer(2000).pipe(
+              withLatestFrom(walletClient.requestItems$),
+              tap(([_, items]) => {
+                const pendingItem = items.find(
+                  (item) => item.status === 'pending'
+                )
+                connectButtonClient.setStatus(
+                  pendingItem ? 'pending' : 'default'
+                )
+              })
+            )
+          }
+
+          return of()
         })
       )
       .subscribe()
@@ -219,11 +314,19 @@ export const RadixDappToolkit = (
     provideChallengeGenerator: (
       input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
     ) => dataRequestClient.provideChallengeGenerator(input),
+    dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
+      dataRequestClient.provideDataRequestControl(fn)
+    },
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,
-    walletData$: stateClient.state$.pipe(map((state) => state.walletData)),
-    getWalletData: () => stateClient.getState().walletData,
+    walletData$: stateClient.walletData$,
+    getWalletData: () => stateClient.getWalletData(),
+  }
+
+  const buttonApi = {
+    setTheme: connectButtonClient.setTheme,
+    setMode: connectButtonClient.setMode,
   }
 
   const disconnect = () => {
@@ -241,6 +344,7 @@ export const RadixDappToolkit = (
   return {
     walletApi,
     gatewayApi,
+    buttonApi,
     disconnect,
     destroy,
   }
