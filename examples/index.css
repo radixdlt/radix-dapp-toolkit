@@ -1,3 +1,6 @@
+body {
+  --radix-connect-button-border-radius: 8px;
+}
 pre {
   margin: 0;
 }

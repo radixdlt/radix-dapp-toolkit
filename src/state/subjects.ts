@@ -1,11 +1,10 @@
 import { BehaviorSubject } from 'rxjs'
-import { RdtState, walletDataDefault } from './types'
+import { SharedData, WalletData, walletDataDefault } from './types'
 
 export type StateSubjects = ReturnType<typeof StateSubjects>
 export const StateSubjects = () => ({
-  state: new BehaviorSubject<RdtState>({
-    walletData: walletDataDefault,
-    sharedData: {},
-  }),
+  walletData: new BehaviorSubject<WalletData>(walletDataDefault),
+  sharedData: new BehaviorSubject<SharedData>({}),
+  loggedInTimestamp: new BehaviorSubject<string>(''),
   initialized: new BehaviorSubject<boolean>(false),
 })

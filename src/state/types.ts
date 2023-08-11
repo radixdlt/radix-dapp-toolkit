@@ -73,6 +73,7 @@ export const SharedData = object({
 
 export type RdtState = z.infer<typeof RdtState>
 export const RdtState = object({
+  loggedInTimestamp: string(),
   walletData: WalletData,
   sharedData: SharedData,
 })
