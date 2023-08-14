@@ -1,6 +1,7 @@
 import { RadixEngineToolkit } from '@radixdlt/radix-engine-toolkit'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { SignedChallenge } from '../../../src'
+import { Buffer } from 'buffer'
 
 const deriveVirtualIdentityAddress = (publicKey: string, networkId: number) =>
   ResultAsync.fromPromise(
