@@ -17,6 +17,9 @@
     "Alex Stelea <alex.stelea@rdx.works>",
     "Dawid Sowa <dawid.sowa@rdx.works>"
   ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "bugs": "https://github.com/radixdlt/radix-dapp-toolkit/issues",
   "main": "dist/radix-dapp-toolkit.mjs",
   "license": "Apache-2.0",
