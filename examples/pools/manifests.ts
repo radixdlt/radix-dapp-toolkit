@@ -74,7 +74,8 @@ export const contributeToPoolManifest = (
     CALL_METHOD
       Address("${account}")
       "try_deposit_batch_or_abort"
-      Expression("ENTIRE_WORKTOP");
+      Expression("ENTIRE_WORKTOP") 
+      Enum<0u8>();
   `
   console.log(manifest)
   return manifest
