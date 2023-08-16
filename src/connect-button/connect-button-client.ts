@@ -228,6 +228,7 @@ export const ConnectButtonClient = (input: {
   )
 
   return {
+    status$: subjects.status.asObservable(),
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
     onShowPopover$: subjects.onShowPopover.asObservable(),
