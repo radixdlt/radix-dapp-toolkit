@@ -327,6 +327,7 @@ export const RadixDappToolkit = (
   const buttonApi = {
     setTheme: connectButtonClient.setTheme,
     setMode: connectButtonClient.setMode,
+    status$: connectButtonClient.status$,
   }
 
   const disconnect = () => {

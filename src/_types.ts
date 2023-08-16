@@ -36,6 +36,7 @@ export type StorageProvider = {
 }
 
 export type ConnectButtonProvider = {
+  status$: Observable<RadixButtonStatus>
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
   onUpdateSharedData$: Observable<void>
@@ -118,6 +119,7 @@ export type GatewayApi = {
 export type ButtonApi = {
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
+  status$: Observable<RadixButtonStatus>
 }
 
 export type WalletDataRequestResult = ResultAsync<
