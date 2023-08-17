@@ -19,7 +19,7 @@ export const bootstrapNetwork = (networkId: number) => {
     xrdAddress.next(response.well_known_addresses.xrd)
     poolPackageAddress.next(
       response.well_known_addresses.pool_package ||
-        'package_tdx_d_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxa0ecqd'
+        'package_tdx_22_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxx5xy7q7'
     )
   })
 }
@@ -51,4 +51,7 @@ export const setNetworkId = (value: number) => {
   location.reload()
 }
 
-export const useNetworkId = createObservableHook(networkId, getNetworkIdDefault())
+export const useNetworkId = createObservableHook(
+  networkId,
+  getNetworkIdDefault()
+)
