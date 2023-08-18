@@ -5,6 +5,7 @@ import {
 import { ResultAsync } from 'neverthrow'
 import { networkId } from '../network/state'
 import { firstValueFrom } from 'rxjs'
+import { Buffer } from 'buffer'
 
 export const sborDecode = (hexEncodedSchema: string) =>
   ResultAsync.fromPromise(
