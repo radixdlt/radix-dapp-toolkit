@@ -34,7 +34,7 @@ TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("2.5") Bucket("Echo");
 TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("3.5") Bucket("Foxtrot");
 CALL_METHOD Address("${componentAlpha?.address}") "buy_gumball" Bucket("Delta");
 TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("1") Bucket("Golf");
-CALL_METHOD Address("${accountAlpha}") "try_deposit_batch_or_abort" Array<Bucket>(Bucket("Echo"),Bucket("Foxtrot"));
+CALL_METHOD Address("${accountAlpha}") "try_deposit_batch_or_abort" Array<Bucket>(Bucket("Echo"), Bucket("Foxtrot")) Enum<0u8>();
 CALL_METHOD Address("${accountBravo}") "try_deposit_or_abort" Bucket("Golf") Enum<0u8>();
 CALL_METHOD Address("${accountAlpha}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP") Enum<0u8>();
 `
