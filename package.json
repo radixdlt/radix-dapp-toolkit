@@ -48,7 +48,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-fig.5",
+    "@radixdlt/babylon-gateway-api-sdk": "^1.0.0-fig.6",
     "@radixdlt/connect-button": "0.13.3",
     "@radixdlt/wallet-sdk": "0.10.1-alpha.1",
     "immer": "^10.0.2",
