@@ -4,8 +4,8 @@ module.exports = {
     'next',
     {
       name: 'develop',
-      channel: 'dev-elm',
-      prerelease: 'dev-elm',
+      channel: 'dev-fig',
+      prerelease: 'dev-fig',
     },
     {
       name: 'release/([a-z0-9-]+)',

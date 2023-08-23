@@ -1,6 +1,6 @@
 import { RadixNetwork } from '@radixdlt/babylon-gateway-api-sdk'
 
-export const DEFAULT_NETWORK_ID = RadixNetwork.Ansharnet.toString()
+export const DEFAULT_NETWORK_ID = RadixNetwork.Hammunet.toString()
 
 export const getNetworkId = () => {
   const urlParams = new URLSearchParams(window.location.search)
