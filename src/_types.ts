@@ -8,7 +8,11 @@ import {
 } from '@radixdlt/wallet-sdk'
 import { Observable } from 'rxjs'
 import { WalletClient } from './wallet/wallet-client'
-import { RequestItem } from '@radixdlt/connect-button'
+import {
+  RadixButtonStatus,
+  RadixButtonTheme,
+  RequestItem,
+} from '@radixdlt/connect-button'
 import { GatewayClient } from './gateway/gateway'
 import { StateClient } from './state/state'
 import { RequestItemClient } from './request-items/request-item-client'
@@ -32,18 +36,30 @@ export type StorageProvider = {
 }
 
 export type ConnectButtonProvider = {
+  status$: Observable<RadixButtonStatus>
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
   onUpdateSharedData$: Observable<void>
+  onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
-  setLoading: (value: boolean) => void
+  onLinkClick$: Observable<{
+    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide'
+    data: string
+  }>
+  setStatus: (value: RadixButtonStatus) => void
+  setMode: (value: 'light' | 'dark') => void
+  setTheme: (value: RadixButtonTheme) => void
+  setActiveTab: (value: 'sharing' | 'requests') => void
+  setIsMobile: (value: boolean) => void
+  setIsWalletLinked: (value: boolean) => void
+  setIsExtensionAvailable: (value: boolean) => void
   setConnected: (value: boolean) => void
+  setLoggedInTimestamp: (value: string) => void
   setRequestItems: (value: RequestItem[]) => void
   setAccounts: (value: Account[]) => void
   setPersonaData: (value: { value: string; field: string }[]) => void
   setPersonaLabel: (value: string) => void
   setDappName: (value: string) => void
-  setConnecting: (value: boolean) => void
   destroy: () => void
 }
 
@@ -100,6 +116,12 @@ export type GatewayApi = {
   transaction: Transaction
 }
 
+export type ButtonApi = {
+  setMode: (value: 'light' | 'dark') => void
+  setTheme: (value: RadixButtonTheme) => void
+  status$: Observable<RadixButtonStatus>
+}
+
 export type WalletDataRequestResult = ResultAsync<
   WalletData,
   { error: string; message?: string }
@@ -109,6 +131,7 @@ export type WalletApi = {
   getWalletData: () => WalletDataState
   walletData$: Observable<WalletDataState>
   provideChallengeGenerator: (fn: () => Promise<string>) => void
+  dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedData: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void

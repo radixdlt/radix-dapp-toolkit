@@ -1,3 +1,4 @@
+import { shortenAddress } from './../helpers/shorten-address'
 import { BehaviorSubject } from 'rxjs'
 import { ResultAsync, errAsync, okAsync } from 'neverthrow'
 import { gatewayApi, rdt } from '../rdt/rdt'
@@ -8,6 +9,7 @@ import {
   StateEntityDetailsResponseComponentDetails,
 } from '@radixdlt/babylon-gateway-api-sdk'
 import { createObservableHook } from '../helpers/create-observable-hook'
+import { getStringMetadata } from '../helpers/find-metadata'
 
 const entityType = {
   account: 'account',
@@ -35,6 +37,7 @@ type Entity = {
     entityType: typeof entityType.fungibleToken
     address: string
     value: number
+    displayLabel?: string
     metadata: EntityMetadataItem[]
   }
   [entityType.nftCollection]: {
@@ -138,112 +141,138 @@ const setEntities = (entities: EntityCollections) => {
   entitiesState.next(entities)
 }
 
-const fetchEntity = (entity: AddEntityToCollectionInput) =>
-  gatewayApi
-    .getEntityDetails(entity.address)
-    .andThen(
-      ({
-        fungible_resources,
-        non_fungible_resources,
-        metadata,
-        details,
-      }): ResultAsync<EntityKind[], Error> => {
-        const fungibleTokens = fungible_resources.items.map(
-          transformFungibleResourceItemResponse
-        )
+const fetchEntities = (requestedEntities: AddEntityToCollectionInput[]) => {
+  const requestedEntitiesMap = requestedEntities.reduce((prev, next) => {
+    prev[next.address] = next
+    return prev
+  }, {})
+  return gatewayApi
+    .getEntitiesDetails(requestedEntities.map((item) => item.address))
+    .andThen((items) =>
+      ResultAsync.combine(
+        items.map(
+          ({
+            fungible_resources,
+            non_fungible_resources,
+            metadata,
+            details,
+            address,
+          }) => {
+            const entity = requestedEntitiesMap[address]
+            if (!entity) {
+              console.warn('didnt found matching entity!')
+              return okAsync([])
+            }
 
-        const nftCollections =
-          entity.type === 'account'
-            ? non_fungible_resources.items.map(
-                (item: NonFungibleResourcesCollectionItemVaultAggregated) => ({
-                  ...transformNftResourceItemResponse(item),
-                  ownerAddress: entity.address,
-                })
-              )
-            : []
+            const fungibleTokens = fungible_resources.items.map(
+              transformFungibleResourceItemResponse
+            )
 
-        switch (entity.type) {
-          case entityType.account:
-            return okAsync([
-              {
-                entityType: entity.type,
-                address: entity.address,
-                metadata: metadata.items,
-                fungibleTokens,
-                nftCollections,
-              } satisfies Entity['account'],
-            ])
+            const nftCollections =
+              entity.type === 'account'
+                ? non_fungible_resources.items.map(
+                    (
+                      item: NonFungibleResourcesCollectionItemVaultAggregated
+                    ) => ({
+                      ...transformNftResourceItemResponse(item),
+                      ownerAddress: entity.address,
+                    })
+                  )
+                : []
 
-          case entityType.component:
-            return okAsync([
-              {
-                entityType: entity.type,
-                address: entity.address,
-                metadata: metadata.items,
-                fungibleTokens,
-                nftCollections,
-                details: details as Entity['component']['details'],
-              } satisfies Entity['component'],
-            ])
+            switch (entity.type) {
+              case entityType.account:
+                return okAsync([
+                  {
+                    entityType: entity.type,
+                    address: entity.address,
+                    metadata: metadata.items,
+                    fungibleTokens,
+                    nftCollections,
+                  } satisfies Entity['account'],
+                ])
 
-          case entityType.identity:
-            return okAsync([
-              {
-                entityType: entity.type,
-                address: entity.address,
-                metadata: metadata.items,
-              } satisfies Entity['identity'],
-            ])
+              case entityType.component:
+                return okAsync([
+                  {
+                    entityType: entity.type,
+                    address: entity.address,
+                    metadata: metadata.items,
+                    fungibleTokens,
+                    nftCollections,
+                    details: details as Entity['component']['details'],
+                  } satisfies Entity['component'],
+                ])
 
-          case entityType.fungibleToken:
-            return okAsync([
-              {
-                entityType: entity.type,
-                address: entity.address,
-                value: entity.value,
-                metadata: metadata.items,
-              } satisfies Entity['fungibleToken'],
-            ])
+              case entityType.identity:
+                return okAsync([
+                  {
+                    entityType: entity.type,
+                    address: entity.address,
+                    metadata: metadata.items,
+                  } satisfies Entity['identity'],
+                ])
 
-          case entityType.nftCollection:
-            return gatewayApi
-              .getEntityNonFungibleIds({
-                accountAddress: entity.ownerAddress,
-                nftAddress: entity.address,
-                vaultAddress: entity.vaultAddress,
-              })
-              .map((response) =>
-                response.items.map(
-                  (item) =>
-                    ({
-                      entityType: entityType.nft,
-                      nftId: item,
-                      address: `${entity.address}:${item}`,
-                      nftCollectionAddress: entity.address,
-                      ownerAddress: entity.ownerAddress,
-                    } satisfies Entity['nft'])
-                )
-              )
-              .map((items) => [
-                {
-                  entityType: entityType.nftCollection,
-                  address: entity.address,
+              case entityType.fungibleToken:
+                const symbol = getStringMetadata('symbol', {
                   metadata: metadata.items,
-                  vaultAddress: entity.vaultAddress,
-                  totalCount: entity.totalCount,
-                } satisfies Entity['nftCollection'],
-                ...items,
-              ])
+                })
+                const name = getStringMetadata('name', {
+                  metadata: metadata.items,
+                })
+                const displayLabel =
+                  [symbol, name].filter(Boolean).join(' - ') ||
+                  shortenAddress(entity.address)
+                return okAsync([
+                  {
+                    entityType: entity.type,
+                    address: entity.address,
+                    value: entity.value,
+                    metadata: metadata.items,
+                    displayLabel,
+                  } satisfies Entity['fungibleToken'],
+                ])
 
-          default: {
-            return errAsync(new Error('Invalid entity type'))
+              case entityType.nftCollection:
+                return gatewayApi
+                  .getEntityNonFungibleIds({
+                    accountAddress: entity.ownerAddress,
+                    nftAddress: entity.address,
+                    vaultAddress: entity.vaultAddress,
+                  })
+                  .map((response) =>
+                    response.items.map(
+                      (item) =>
+                        ({
+                          entityType: entityType.nft,
+                          nftId: item,
+                          address: `${entity.address}:${item}`,
+                          nftCollectionAddress: entity.address,
+                          ownerAddress: entity.ownerAddress,
+                        } satisfies Entity['nft'])
+                    )
+                  )
+                  .map((items) => [
+                    {
+                      entityType: entityType.nftCollection,
+                      address: entity.address,
+                      metadata: metadata.items,
+                      vaultAddress: entity.vaultAddress,
+                      totalCount: entity.totalCount,
+                    } satisfies Entity['nftCollection'],
+                    ...items,
+                  ])
+
+              default: {
+                return errAsync(new Error('Invalid entity type'))
+              }
+            }
           }
-        }
-      }
+        )
+      )
     )
-
-const fetchEntities = (items: AddEntityToCollectionInput[]) =>
-  ResultAsync.combine(items.map(fetchEntity)).map((items) => items.flat())
+    .map((items) => items.flat())
+}
 
 export const addEntities = (
   input: AddEntityToCollectionInput[],

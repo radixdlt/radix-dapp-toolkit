@@ -4,8 +4,12 @@ import { Card } from '../components/Card'
 import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import { setDAppDefinitionAddress, useDAppDefinitionAddress } from '../rdt/rdt'
-
+import Select from '@mui/joy/Select'
+import Option from '@mui/joy/Option'
+import { FormControl, FormLabel } from '@mui/joy'
+import { patchConnectButtonConfig, useConnectButtonConfig } from '../rdt/state'
 export const SettingsPage = () => {
+  const connectButtonConfig = useConnectButtonConfig()
   const dAppDefinitionAddress = useDAppDefinitionAddress()
   const [state, setState] = React.useState<{ dAppDefinitionAddress: string }>({
     dAppDefinitionAddress,
@@ -43,6 +47,31 @@ export const SettingsPage = () => {
           />
           <Button type="submit">Update</Button>
         </form>
+      </Card>
+      <Card title="Connect Button">
+        <FormControl>
+          <FormLabel>Theme</FormLabel>
+          <Select
+            value={connectButtonConfig.theme}
+            onChange={(_, theme: any) => patchConnectButtonConfig({ theme })}
+          >
+            <Option value="radix-blue">Radix Blue</Option>
+            <Option value="black">Black</Option>
+            <Option value="white">White</Option>
+            <Option value="white-with-outline">White with outline</Option>
+          </Select>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Mode</FormLabel>
+          <Select
+            value={connectButtonConfig.mode}
+            onChange={(_, mode: any) => patchConnectButtonConfig({ mode })}
+          >
+            <Option value="light">Light</Option>
+            <Option value="dark">Dark</Option>
+          </Select>
+        </FormControl>
       </Card>
     </Box>
   )

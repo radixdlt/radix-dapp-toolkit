@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs'
+import { BehaviorSubject, tap } from 'rxjs'
 import {
   DataRequestBuilder,
   DataRequestStateClient,
@@ -19,6 +19,7 @@ import {
   RadixNetwork,
   RadixNetworkConfigById,
 } from '@radixdlt/babylon-gateway-api-sdk'
+import { connectButtonConfigSubject } from './state'
 
 const networkId = networkIdSubject.value
 
@@ -106,3 +107,19 @@ rdt.walletApi.walletData$.subscribe((state) => {
 })
 
 rdt.walletApi.provideChallengeGenerator(async () => createChallenge())
+
+rdt.walletApi.setRequestData(
+  DataRequestBuilder.config({
+    personaData: { fullName: true },
+    accounts: { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
+  })
+)
+
+connectButtonConfigSubject
+  .pipe(
+    tap((value) => {
+      rdt.buttonApi.setTheme(value.theme as any)
+      rdt.buttonApi.setMode(value.mode as any)
+    })
+  )
+  .subscribe()

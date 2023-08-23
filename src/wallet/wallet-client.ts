@@ -8,7 +8,7 @@ import {
   Subscription,
   filter,
   firstValueFrom,
-  merge,
+  map,
   switchMap,
   tap,
 } from 'rxjs'
@@ -37,21 +37,30 @@ export const WalletClient = (input: {
       eventCallback: (event) => {
         messageLifeCycleEvent.next(event)
       },
-      requestControl: ({ cancelRequest }) => {
+      requestControl: ({ cancelRequest, getRequest }) => {
         firstValueFrom(
-          merge(
-            messageLifeCycleEvent.pipe(
-              filter((event) => event === 'receivedByWallet'),
-              tap(() => {
+          messageLifeCycleEvent.pipe(
+            filter((event) => event === 'receivedByWallet'),
+            map(() => getRequest()),
+            tap((request) => {
+              if (request.items.discriminator === 'transaction')
                 requestItemClient.patch(id, { showCancel: false })
+            })
+          )
+        )
+
+        firstValueFrom(
+          input.onCancelRequestItem$.pipe(
+            filter((requestItemId) => requestItemId === id),
+            switchMap(() => {
+              requestItemClient.cancel(id)
+              requestItemClient.updateStatus({
+                id,
+                status: 'fail',
+                error: 'userCancelledRequest',
               })
-            ),
-            input.onCancelRequestItem$.pipe(
-              filter((requestItemId) => requestItemId === id),
-              switchMap(() =>
-                cancelRequest().map(() => requestItemClient.cancel(id))
-              )
-            )
+              return cancelRequest()
+            })
           )
         )
       },
@@ -66,7 +75,7 @@ export const WalletClient = (input: {
       .request(input, cancelRequestControl(requestItemId))
       .map((response) => {
         logger?.debug(`⬇️walletSuccessResponse`, response)
-        requestItemClient.updateStatus({ id: requestItemId, status: 'success' })
+
         return response
       })
       .mapErr((error) => {
@@ -120,6 +129,7 @@ export const WalletClient = (input: {
   return {
     request: sendWalletRequest,
     sendTransaction,
+    extensionStatus$: walletSdk.extensionStatus$,
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,
     destroy: () => {

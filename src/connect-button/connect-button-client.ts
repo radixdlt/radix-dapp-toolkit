@@ -8,14 +8,24 @@ import {
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
-import { Account, ConnectButton, RequestItem } from '@radixdlt/connect-button'
+import {
+  Account,
+  ConnectButton,
+  RadixButtonStatus,
+  RadixButtonTheme,
+  RequestItem,
+} from '@radixdlt/connect-button'
 import { ConnectButtonProvider } from '../_types'
 import { ConnectButtonSubjects } from './subjects'
+
+export const isMobile = () =>
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    globalThis.navigator ? globalThis.navigator.userAgent : ''
+  )
 
 export type ConnectButtonClient = ReturnType<typeof ConnectButtonClient>
 
 export const ConnectButtonClient = (input: {
-  explorer?: ConnectButton['explorer']
   onConnect?: (done: (input?: { challenge: string }) => void) => void
   subjects?: ConnectButtonSubjects
   logger?: Logger<unknown>
@@ -41,11 +51,15 @@ export const ConnectButtonClient = (input: {
         switchMap((connectButtonElement) => {
           logger?.debug(`connectButtonDiscovered`)
 
-          if (input.explorer) connectButtonElement.explorer = input.explorer
-
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
               onConnect((value) => {
+                if (
+                  !connectButtonElement.isWalletLinked ||
+                  !connectButtonElement.isExtensionAvailable
+                )
+                  return
+
                 subjects.onConnect.next(value)
               })
             })
@@ -57,6 +71,14 @@ export const ConnectButtonClient = (input: {
           ).pipe(
             tap(() => {
               subjects.onDisconnect.next()
+            })
+          )
+
+          const onLinkClick$ = fromEvent<
+            CustomEvent<{ type: 'account' | 'transaction'; data: string }>
+          >(connectButtonElement, 'onLinkClick').pipe(
+            tap((ev) => {
+              subjects.onLinkClick.next(ev.detail)
             })
           )
 
@@ -96,13 +118,47 @@ export const ConnectButtonClient = (input: {
             })
           )
 
-          const loading$ = subjects.loading.pipe(
-            tap((value) => (connectButtonElement.loading = value))
+          const status$ = subjects.status.pipe(
+            tap((value) => (connectButtonElement.status = value))
+          )
+
+          const mode$ = subjects.mode.pipe(
+            tap((value) => (connectButtonElement.mode = value))
           )
 
           const connected$ = subjects.connected.pipe(
             tap((value) => {
               connectButtonElement.connected = value
+            })
+          )
+
+          const isMobile$ = subjects.isMobile.pipe(
+            tap((value) => {
+              connectButtonElement.isMobile = value
+            })
+          )
+
+          const isWalletLinked$ = subjects.isWalletLinked.pipe(
+            tap((value) => {
+              connectButtonElement.isWalletLinked = value
+            })
+          )
+
+          const isExtensionAvailable$ = subjects.isExtensionAvailable.pipe(
+            tap((value) => {
+              connectButtonElement.isExtensionAvailable = value
+            })
+          )
+
+          const loggedInTimestamp$ = subjects.loggedInTimestamp.pipe(
+            tap((value) => {
+              connectButtonElement.loggedInTimestamp = value
+            })
+          )
+
+          const activeTab$ = subjects.activeTab.pipe(
+            tap((value) => {
+              connectButtonElement.activeTab = value
             })
           )
 
@@ -131,46 +187,40 @@ export const ConnectButtonClient = (input: {
             })
           )
 
-          const connecting$ = subjects.connecting.pipe(
-            tap((connecting) => {
-              connectButtonElement.connecting = connecting
-            })
-          )
-
           const dAppName$ = subjects.dAppName.pipe(
             tap((value) => {
               connectButtonElement.dAppName = value
             })
           )
 
-          const showNotification$ = merge(
-            subjects.showNotification,
-            subjects.onShowPopover.pipe(map(() => false)),
-            subjects.requestItems.pipe(map((items) => !!items.length))
-          ).pipe(
+          const theme$ = subjects.theme.pipe(
             tap((value) => {
-              const showNotification =
-                !connectButtonElement.showPopover && value
-              connectButtonElement.showNotification = showNotification
+              connectButtonElement.theme = value
             })
           )
 
           return merge(
             onConnect$,
-            loading$,
+            status$,
+            theme$,
+            mode$,
             connected$,
             requestItems$,
+            loggedInTimestamp$,
+            isMobile$,
+            activeTab$,
+            isWalletLinked$,
+            isExtensionAvailable$,
             onDisconnect$,
             onCancelRequestItem$,
             accounts$,
             personaData$,
             personaLabel$,
-            connecting$,
             onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
-            showNotification$,
-            dAppName$
+            dAppName$,
+            onLinkClick$
           )
         })
       )
@@ -178,12 +228,24 @@ export const ConnectButtonClient = (input: {
   )
 
   return {
+    status$: subjects.status.asObservable(),
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
+    onShowPopover$: subjects.onShowPopover.asObservable(),
     onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
-    setLoading: (value: boolean) => subjects.loading.next(value),
-    setConnecting: (value: boolean) => subjects.connecting.next(value),
+    onLinkClick$: subjects.onLinkClick.asObservable(),
+    setStatus: (value: RadixButtonStatus) => subjects.status.next(value),
+    setTheme: (value: RadixButtonTheme) => subjects.theme.next(value),
+    setMode: (value: 'light' | 'dark') => subjects.mode.next(value),
+    setActiveTab: (value: 'sharing' | 'requests') =>
+      subjects.activeTab.next(value),
+    setIsMobile: (value: boolean) => subjects.isMobile.next(value),
+    setIsWalletLinked: (value: boolean) => subjects.isWalletLinked.next(value),
+    setIsExtensionAvailable: (value: boolean) =>
+      subjects.isExtensionAvailable.next(value),
+    setLoggedInTimestamp: (value: string) =>
+      subjects.loggedInTimestamp.next(value),
     setConnected: (value: boolean) => subjects.connected.next(value),
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),

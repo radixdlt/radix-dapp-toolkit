@@ -8,6 +8,8 @@ import { SettingsPage } from './settings/SettingsPage'
 import { SendTransactionPage } from './send-transaction/SendTransactionPage'
 import { RolaPage } from './rola/RolaPage'
 import { OneTimeDataRequestsPage } from './one-time-data-request/OneTimeDataRequestsPage'
+import { PoolsPage } from './pools/PoolsPage'
+import { StandardMetadataPage } from './standard-metadata/StandardMetadataPage'
 
 export const router = createBrowserRouter([
   {
@@ -32,8 +34,16 @@ export const router = createBrowserRouter([
         element: <IntegrationTestsPage />,
       },
       {
+        path: 'standard-metadata',
+        element: <StandardMetadataPage />,
+      },
+      {
         path: 'send-transaction',
         element: <SendTransactionPage />,
+      },
+      {
+        path: 'pools',
+        element: <PoolsPage />,
       },
       {
         path: 'settings',
