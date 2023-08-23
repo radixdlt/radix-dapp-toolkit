@@ -29,10 +29,10 @@ mod gumball_machine {
             icon_url: String
         ) -> (ComponentAddress, Bucket) {
             let (reservation, component_address) =
-                Runtime::allocate_component_address(Runtime::blueprint_id());
+                Runtime::allocate_component_address(GumballMachine::blueprint_id());
 
             let non_fungible_global_id = NonFungibleGlobalId::package_of_direct_caller_badge(
-                Runtime::blueprint_id().package_address,
+                GumballMachine::blueprint_id().package_address,
             );
             let account = Blueprint::<Account>::create_advanced(OwnerRole::Fixed(rule!(require(
                 non_fungible_global_id
