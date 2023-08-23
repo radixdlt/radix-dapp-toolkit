@@ -1,4 +1,4 @@
-import { RadixEngineToolkit } from '@radixdlt/radix-engine-toolkit'
+import { PublicKey, RadixEngineToolkit } from '@radixdlt/radix-engine-toolkit'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { SignedChallenge } from '../../../src'
 import { Buffer } from 'buffer'
@@ -6,7 +6,7 @@ import { Buffer } from 'buffer'
 const deriveVirtualIdentityAddress = (publicKey: string, networkId: number) =>
   ResultAsync.fromPromise(
     RadixEngineToolkit.Derive.virtualIdentityAddressFromPublicKey(
-      { kind: 'Ed25519', publicKey: Buffer.from(publicKey, 'hex') },
+      new PublicKey.Ed25519(Buffer.from(publicKey, 'hex')),
       networkId
     ),
     (error: any): Error => error
@@ -18,7 +18,7 @@ const deriveVirtualEddsaEd25519AccountAddress = (
 ) =>
   ResultAsync.fromPromise(
     RadixEngineToolkit.Derive.virtualAccountAddressFromPublicKey(
-      { kind: 'Ed25519', publicKey: Buffer.from(publicKey, 'hex') },
+      new PublicKey.Ed25519(Buffer.from(publicKey, 'hex')),
       networkId
     ),
     (error: any): Error => error
@@ -30,7 +30,7 @@ const deriveVirtualEcdsaSecp256k1AccountAddress = (
 ) =>
   ResultAsync.fromPromise(
     RadixEngineToolkit.Derive.virtualAccountAddressFromPublicKey(
-      { kind: 'Secp256k1', publicKey: Buffer.from(publicKey, 'hex') },
+      new PublicKey.Secp256k1(Buffer.from(publicKey, 'hex')),
       networkId
     ),
     (error: any): Error => error
