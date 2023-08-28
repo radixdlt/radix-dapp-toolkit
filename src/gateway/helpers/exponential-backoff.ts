@@ -11,9 +11,9 @@ export type ExponentialBackoffInput = {
 export type ExponentialBackoff = typeof ExponentialBackoff
 export const ExponentialBackoff = ({
   maxDelayTime = 10_000,
-  multiplier = 3,
+  multiplier = 2,
   timeout,
-  interval = 1_000,
+  interval = 2_000,
 }: ExponentialBackoffInput = {}) => {
   const trigger = new Subject<void>()
   let numberOfRetries = 0
