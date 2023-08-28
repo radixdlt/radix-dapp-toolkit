@@ -15,6 +15,7 @@ import {
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { TransactionStatus } from '@radixdlt/babylon-gateway-api-sdk'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -115,9 +116,25 @@ export const WalletClient = (input: {
           }))
       )
       .map((response) => {
+        const convertTxStatusToRequestItemStatus = (
+          status: TransactionStatus
+        ) => {
+          switch (status) {
+            case TransactionStatus.Unknown:
+            case TransactionStatus.Pending:
+              return 'pending'
+            case TransactionStatus.CommittedSuccess:
+              return 'success'
+            case TransactionStatus.CommittedFailure:
+            case TransactionStatus.Rejected:
+              return 'fail'
+            default:
+              return 'success'
+          }
+        }
         requestItemClient.updateStatus({
           id,
-          status: 'success',
+          status: convertTxStatusToRequestItemStatus(response.status),
           transactionIntentHash: response.transactionIntentHash,
         })
 
