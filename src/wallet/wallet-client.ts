@@ -16,6 +16,7 @@ import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
 import { TransactionStatus } from '@radixdlt/babylon-gateway-api-sdk'
+import { err, ok } from 'neverthrow'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -104,7 +105,11 @@ export const WalletClient = (input: {
           status: 'fail',
           error: response.error,
         })
-        logger?.debug(`⬇️walletErrorResponse`, response)
+        logger?.debug(`⬇️ walletErrorResponse`, response)
+        return response
+      })
+      .map((response) => {
+        logger?.debug(`⬇️ walletSuccessResponse`, response)
         return response
       })
       .andThen(({ transactionIntentHash }) =>
@@ -115,31 +120,27 @@ export const WalletClient = (input: {
             status: transactionStatusResponse.status,
           }))
       )
-      .map((response) => {
-        const convertTxStatusToRequestItemStatus = (
-          status: TransactionStatus
-        ) => {
-          switch (status) {
-            case TransactionStatus.Unknown:
-            case TransactionStatus.Pending:
-              return 'pending'
-            case TransactionStatus.CommittedSuccess:
-              return 'success'
-            case TransactionStatus.CommittedFailure:
-            case TransactionStatus.Rejected:
-              return 'fail'
-            default:
-              return 'success'
-          }
-        }
+      .andThen((response) => {
+        const failedTransactionStatus: TransactionStatus[] = [
+          TransactionStatus.Rejected,
+          TransactionStatus.CommittedFailure,
+        ]
+
+        const isFailedTransaction = failedTransactionStatus.includes(
+          response.status
+        )
+
         requestItemClient.updateStatus({
           id,
-          status: convertTxStatusToRequestItemStatus(response.status),
+          status: isFailedTransaction ? 'fail' : 'success',
           transactionIntentHash: response.transactionIntentHash,
         })
 
-        logger?.debug(`⬇️walletSuccessResponse`, response)
-        return response
+        logger?.debug(`🔁 Gateway polling finished`, response)
+
+        return isFailedTransaction
+          ? err({ ...response, error: 'transactionNotSuccessful' })
+          : ok(response)
       })
   }
 

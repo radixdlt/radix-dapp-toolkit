@@ -100,7 +100,12 @@ export type SendTransactionResult = ResultAsync<
     transactionIntentHash: string
     status: TransactionStatus
   },
-  { error: string; message?: string }
+  {
+    error: string
+    message?: string
+    transactionIntentHash?: string
+    status?: TransactionStatus
+  }
 >
 
 export type SendTransactionInput = {
