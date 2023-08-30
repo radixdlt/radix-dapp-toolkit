@@ -21,9 +21,9 @@ export const TransformRdtDataRequestToWalletRequestInput = object({
     challenge: string().optional(),
   }).optional(),
   personaData: object({
-    isRequestingName: boolean().optional(),
-    numberOfRequestedPhoneNumbers: NumberOfValues.optional(),
-    numberOfRequestedEmailAddresses: NumberOfValues.optional(),
+    fullName: boolean().optional(),
+    phoneNumbers: NumberOfValues.optional(),
+    emailAddresses: NumberOfValues.optional(),
     reset: boolean(),
     oneTime: boolean().optional(),
   }).optional(),
@@ -114,9 +114,9 @@ const withPersonaDataRequestItem =
 
     if (input.personaData) {
       const {
-        isRequestingName,
-        numberOfRequestedPhoneNumbers,
-        numberOfRequestedEmailAddresses,
+        fullName: isRequestingName,
+        phoneNumbers: numberOfRequestedPhoneNumbers,
+        emailAddresses: numberOfRequestedEmailAddresses,
       } = input.personaData
 
       if (input.personaData?.oneTime) {
