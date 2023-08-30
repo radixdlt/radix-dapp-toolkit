@@ -110,9 +110,10 @@ export type SendTransactionResult = ResultAsync<
 
 export type SendTransactionInput = {
   transactionManifest: string
-  version: number
-  blobs?: string[] | undefined
-  message?: string | undefined
+  version?: number
+  blobs?: string[]
+  message?: string
+  onTransactionId?: (transactionId: string) => void
 }
 
 export type GatewayApi = {
