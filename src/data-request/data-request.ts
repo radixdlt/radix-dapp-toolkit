@@ -1,4 +1,4 @@
-import { ResultAsync, ok, okAsync } from 'neverthrow'
+import { ResultAsync, err, ok, okAsync } from 'neverthrow'
 import { DataRequestState, DataRequestBuilderItem } from './builders'
 import { StateClient } from '../state/state'
 import { RequestItemClient } from '../request-items/request-item-client'
@@ -12,6 +12,10 @@ import {
 } from './transformations/shared-data'
 import { DataRequestStateClient } from './data-request-state'
 import { WalletData } from '../state/types'
+import {
+  AwaitedWalletDataRequestResult,
+  WalletDataRequestResult,
+} from '../_types'
 
 export type DataRequestClient = ReturnType<typeof DataRequestClient>
 
@@ -30,6 +34,10 @@ export const DataRequestClient = ({
 }) => {
   let challengeGenerator:
     | (() => ResultAsync<string, { error: string; message: string }>)
+    | undefined
+
+  let connectResponseCallback:
+    | ((result: AwaitedWalletDataRequestResult) => any)
     | undefined
 
   let dataRequestControl: (
@@ -57,6 +65,12 @@ export const DataRequestClient = ({
       }))
   }
 
+  const provideConnectResponseCallback = (
+    fn: (result: AwaitedWalletDataRequestResult) => any
+  ) => {
+    connectResponseCallback = (result) => fn(result)
+  }
+
   const provideDataRequestControl = (
     fn: (walletData: WalletData) => Promise<any>
   ) => {
@@ -82,7 +96,7 @@ export const DataRequestClient = ({
     dataRequestState: DataRequestState
     isConnect: boolean
     oneTime: boolean
-  }) =>
+  }): WalletDataRequestResult =>
     ok(dataRequestState)
       .asyncAndThen((dataRequestState) =>
         getChallenge(dataRequestState).andThen((challenge) =>
@@ -177,6 +191,7 @@ export const DataRequestClient = ({
   return {
     provideChallengeGenerator,
     provideDataRequestControl,
+    provideConnectResponseCallback,
     sendOneTimeRequest,
     setState,
     sendRequest: ({
@@ -185,12 +200,24 @@ export const DataRequestClient = ({
     }: {
       isConnect: boolean
       oneTime: boolean
-    }) =>
-      sendRequest({
+    }) => {
+      const result = sendRequest({
         isConnect,
         oneTime,
         dataRequestState: dataRequestStateClient.getState(),
-      }),
+      })
+
+      if (connectResponseCallback)
+        result
+          .map((result) => {
+            connectResponseCallback!(ok(result))
+          })
+          .mapErr((error) => {
+            connectResponseCallback!(err(error))
+          })
+
+      return result
+    },
     updateSharedData,
   }
 }

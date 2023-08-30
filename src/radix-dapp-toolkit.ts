@@ -317,6 +317,8 @@ export const RadixDappToolkit = (
     dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
       dataRequestClient.provideDataRequestControl(fn)
     },
+    provideConnectResponseCallback:
+      dataRequestClient.provideConnectResponseCallback,
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,
