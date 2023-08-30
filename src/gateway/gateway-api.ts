@@ -6,12 +6,16 @@ export type GatewayApiClient = ReturnType<typeof GatewayApiClient>
 
 export const GatewayApiClient = ({
   basePath,
+  dAppDefinitionAddress,
 }: {
   basePath: string
   dAppDefinitionAddress?: string
 }) => {
   const { transaction, state, status } = BabylonGatewayApiClient.initialize({
     basePath,
+    applicationName: 'Radix Sandbox dApp',
+    applicationVersion: '0.0.1',
+    applicationDappDefinitionAddress: dAppDefinitionAddress,
   })
 
   const getTransactionStatus = (transactionIntentHash: string) =>
