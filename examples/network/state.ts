@@ -38,7 +38,7 @@ const getNetworkIdDefault = () => {
   const networkId = parseInt(
     urlParams.get('networkId') ||
       localStorage.getItem('networkId') ||
-      RadixNetwork.Hammunet.toString(),
+      RadixNetwork.Enkinet.toString(),
     10
   )
   return networkId

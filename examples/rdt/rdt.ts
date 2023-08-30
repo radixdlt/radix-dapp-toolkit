@@ -37,6 +37,8 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
           'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
         [RadixNetwork.Hammunet]:
           'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
+        [RadixNetwork.Enkinet]:
+          'account_tdx_21_168ydk240yx69yl7zdz2mzkdjc3r5p6n4gwypqsype2d6d942z0tyvx',
       }
     }
 

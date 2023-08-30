@@ -14,15 +14,15 @@ export const GatewayApiClient = ({
     basePath,
   })
 
-  const getTransactionStatus = (transactionIntentHashHex: string) =>
+  const getTransactionStatus = (transactionIntentHash: string) =>
     ResultAsync.fromPromise(
-      transaction.getStatus(transactionIntentHashHex),
+      transaction.getStatus(transactionIntentHash),
       errorIdentity
     )
 
-  const getTransactionDetails = (transactionIntentHashHex: string) =>
+  const getTransactionDetails = (transactionIntentHash: string) =>
     ResultAsync.fromPromise(
-      transaction.getCommittedDetails(transactionIntentHashHex),
+      transaction.getCommittedDetails(transactionIntentHash),
       errorIdentity
     )
 

@@ -100,14 +100,20 @@ export type SendTransactionResult = ResultAsync<
     transactionIntentHash: string
     status: TransactionStatus
   },
-  { error: string; message?: string }
+  {
+    error: string
+    message?: string
+    transactionIntentHash?: string
+    status?: TransactionStatus
+  }
 >
 
 export type SendTransactionInput = {
   transactionManifest: string
-  version: number
-  blobs?: string[] | undefined
-  message?: string | undefined
+  version?: number
+  blobs?: string[]
+  message?: string
+  onTransactionId?: (transactionId: string) => void
 }
 
 export type GatewayApi = {

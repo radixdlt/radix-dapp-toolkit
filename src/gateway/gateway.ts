@@ -31,7 +31,7 @@ export const GatewayClient = ({
   logger?: AppLogger
   retryConfig?: ExponentialBackoffInput
 }) => {
-  const pollTransactionStatus = (transactionIntentHashHex: string) => {
+  const pollTransactionStatus = (transactionIntentHash: string) => {
     const retry = ExponentialBackoff(retryConfig)
 
     const completedTransactionStatus = new Set<TransactionStatus>([
@@ -49,7 +49,7 @@ export const GatewayClient = ({
             logger?.debug(`pollingTxStatus retry #${result.value + 1}`)
 
             return gatewayApi
-              .getTransactionStatus(transactionIntentHashHex)
+              .getTransactionStatus(transactionIntentHash)
               .map((response) => {
                 if (completedTransactionStatus.has(response.status))
                   return response

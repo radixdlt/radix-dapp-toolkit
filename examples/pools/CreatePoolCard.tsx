@@ -74,8 +74,7 @@ export const CreatePoolCard = () => {
             resources: Object.values(resourceAddresses),
             transactions: [
               {
-                transactionIntentHash:
-                  response.transaction.intent_hash_hex || '',
+                transactionIntentHash: response.transaction.intent_hash || '',
                 status: response.transaction.transaction_status,
               },
             ],
