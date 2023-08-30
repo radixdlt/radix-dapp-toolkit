@@ -15,6 +15,7 @@ import {
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { SendTransactionInput } from '../_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -91,12 +92,13 @@ export const WalletClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const sendTransaction = (
-    input: Parameters<WalletSdkType['sendTransaction']>[0]
-  ) => {
+  const sendTransaction = ({
+    onTransactionId,
+    ...rest
+  }: SendTransactionInput) => {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
-      .sendTransaction(input, cancelRequestControl(id))
+      .sendTransaction({ version: 1, ...rest }, cancelRequestControl(id))
       .mapErr((response) => {
         requestItemClient.updateStatus({
           id,
@@ -106,14 +108,15 @@ export const WalletClient = (input: {
         logger?.debug(`⬇️walletErrorResponse`, response)
         return response
       })
-      .andThen(({ transactionIntentHash }) =>
-        gatewayClient
+      .andThen(({ transactionIntentHash }) => {
+        if (onTransactionId) onTransactionId(transactionIntentHash)
+        return gatewayClient
           .pollTransactionStatus(transactionIntentHash)
           .map((transactionStatusResponse) => ({
             transactionIntentHash,
             status: transactionStatusResponse.status,
           }))
-      )
+      })
       .map((response) => {
         requestItemClient.updateStatus({
           id,
