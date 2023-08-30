@@ -110,7 +110,6 @@ export const DataRequestClient = ({
         const { id } = requestItemClient.add(
           isLoginRequest ? 'loginRequest' : 'dataRequest'
         )
-
         return walletClient
           .request(walletDataRequest, id)
           .mapErr(
