@@ -61,6 +61,7 @@ export type ConnectButtonProvider = {
   setPersonaLabel: (value: string) => void
   setDappName: (value: string) => void
   destroy: () => void
+  disconnect: () => void
 }
 
 export type Providers = {

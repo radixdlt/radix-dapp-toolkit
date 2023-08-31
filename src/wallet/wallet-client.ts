@@ -9,6 +9,7 @@ import {
   filter,
   firstValueFrom,
   map,
+  merge,
   switchMap,
   tap,
 } from 'rxjs'
@@ -31,6 +32,7 @@ export const WalletClient = (input: {
   const requestItemClient = input.requestItemClient
   const walletSdk = input.walletSdk
   const gatewayClient = input.gatewayClient
+  const cancelRequestSubject = new Subject<string>()
 
   const cancelRequestControl = (id: string) => {
     const messageLifeCycleEvent = new Subject<
@@ -53,7 +55,7 @@ export const WalletClient = (input: {
         )
 
         firstValueFrom(
-          input.onCancelRequestItem$.pipe(
+          merge(input.onCancelRequestItem$, cancelRequestSubject).pipe(
             filter((requestItemId) => requestItemId === id),
             switchMap(() => {
               requestItemClient.cancel(id)
@@ -153,6 +155,7 @@ export const WalletClient = (input: {
     extensionStatus$: walletSdk.extensionStatus$,
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,
+    cancelRequest: (id: string) => cancelRequestSubject.next(id),
     destroy: () => {
       requestItemClient.destroy()
       walletSdk.destroy()
