@@ -84,6 +84,8 @@ const rdt = RadixDappToolkit({
   dAppDefinitionAddress:
     'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
   networkId: 1,
+  applicationName: 'Radix Web3 dApp',
+  applicationVersion: '1.0.0'
 })
 ```
 
@@ -91,6 +93,8 @@ const rdt = RadixDappToolkit({
 
 - **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
 - **requires** networkId - Target radix network ID.
+- *optional* applicationName - Your dApp name. It's only used for statistics purposes on gateway side
+- *optional* applicationVersion - Your dApp version. It's only used for statistics purposes on gateway side
 
 ## Login requests
 

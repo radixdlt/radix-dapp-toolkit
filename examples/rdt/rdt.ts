@@ -78,6 +78,9 @@ bootstrapNetwork(networkId)
 
 export const gatewayApi = GatewayApiClient({
   basePath: RadixNetworkConfigById[networkId].gatewayUrl,
+  applicationName: 'Radix Sandbox dApp',
+  dAppDefinitionAddress: dAppDefinitionAddress.value,
+  applicationVersion: '0.0.1',
 })
 
 export const dataRequestStateClient = DataRequestStateClient({})

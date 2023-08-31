@@ -88,6 +88,8 @@ export type OptionalRadixDappToolkitOptions = {
 
   explorer: ExplorerConfig
   gatewayBaseUrl: string
+  applicationName: string
+  applicationVersion: string
   useCache: boolean
   providers: Partial<Providers>
 }
