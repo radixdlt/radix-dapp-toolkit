@@ -4,8 +4,8 @@ module.exports = {
     'next',
     {
       name: 'develop',
-      channel: 'dev-grape',
-      prerelease: 'dev-grape',
+      channel: 'dev-rc3',
+      prerelease: 'dev-rc3',
     },
     {
       name: 'release/([a-z0-9-]+)',
