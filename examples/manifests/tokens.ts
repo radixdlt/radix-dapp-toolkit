@@ -33,22 +33,24 @@ export const createToken = (address: string) => ({
     )
     Tuple(                                                                   # Metadata initialization
         Map<String, Tuple>(                                                  # Initial metadata values
-            "name" => Tuple(
-                Some(Enum<Metadata::String>("${name}")),    # Resource Name
+            ${[
+              { key: 'name', value: name, type: 'String' },
+              {
+                key: 'symbol',
+                value: symbol,
+                type: 'String',
+              },
+              { key: 'description', value: description, type: 'String' },
+              { key: 'icon_url', value: iconUrl, type: 'Url' },
+            ]
+              .filter(({ value }) => Boolean(value))
+              .map(
+                ({ key, value, type }) => `"${key}" => Tuple(
+                Some(Enum<Metadata::${type}>("${value}")),    # Resource Name
                 true                                                         # Locked
-            ),
-            "symbol" => Tuple(
-                Some(Enum<Metadata::String>("${symbol}")),   
-                true                                                        
-            ),
-            "description" => Tuple(
-                Some(Enum<Metadata::String>("${description}")),   
-                true                                                        
-            ),
-            "icon_url" => Tuple(
-              Some(Enum<Metadata::Url>("${iconUrl}")),
-              true
-            )
+            )`
+              )
+              .join(', ')}
         ),
         Map<String, Enum>(                                                   # Metadata roles
             "metadata_setter" => Some(Enum<AccessRule::AllowAll>()),         # Metadata setter role
