@@ -43,6 +43,5 @@ export const transformSharedDataToDataRequestState = (
           sharedData.ongoingPersonaData.numberOfRequestedEmailAddresses,
         reset: true,
       }
-      debugger
     }
   })
