@@ -23,12 +23,16 @@ mod gumball_machine {
     }
 
     impl GumballMachine {
-        pub fn instantiate(price: Decimal, flavor: String) -> (ComponentAddress, Bucket) {
+        pub fn instantiate(
+            price: Decimal, 
+            flavor: String,
+            icon_url: String
+        ) -> (ComponentAddress, Bucket) {
             let (reservation, component_address) =
-                Runtime::allocate_component_address(Runtime::blueprint_id());
+                Runtime::allocate_component_address(GumballMachine::blueprint_id());
 
             let non_fungible_global_id = NonFungibleGlobalId::package_of_direct_caller_badge(
-                Runtime::blueprint_id().package_address,
+                GumballMachine::blueprint_id().package_address,
             );
             let account = Blueprint::<Account>::create_advanced(OwnerRole::Fixed(rule!(require(
                 non_fungible_global_id
@@ -40,10 +44,11 @@ mod gumball_machine {
                     init {
                         "name" => vec![flavor.to_owned(), "admin badge".to_owned()].join(" "), locked;
                         "description" => "Admin badge for Sandbox Gumball Machine".to_owned(), locked;
+                        "icon_url" => UncheckedUrl(icon_url.to_owned()), locked;
                         "dapp_definitions" => vec![GlobalAddress::from(account.address())], locked;
                     }
                 })
-                .mint_initial_supply(10);
+                .mint_initial_supply(10).into();
 
             // create a new Gumball resource, with a fixed quantity of 100
             let gumballs_resource_manager: ResourceManager =
@@ -53,8 +58,8 @@ mod gumball_machine {
                             "name" => vec![flavor.to_owned(), "Gumball".to_owned()].join(" "), locked;
                             "tags" => vec!["gumball".to_owned(), flavor.to_owned(), "sandbox".to_owned(), "testing".to_owned()], locked;
                             "symbol" => flavor.to_owned(), locked;
-                            "info_url" => Url("https://www.radixdlt.com".to_owned()), locked;
-                            "icon_url" => Url("https://static.vecteezy.com/system/resources/previews/010/283/423/original/sweet-candy-graphics-illustration-free-vector.jpg".to_owned()), locked;
+                            "info_url" => UncheckedUrl("https://www.radixdlt.com".to_owned()), locked;
+                            "icon_url" => UncheckedUrl(icon_url.to_owned()), locked;
                             "description" => "A delicious gumball".to_owned(), locked;
                             "dapp_definitions" => vec![GlobalAddress::from(account.address())], locked;
                         }
@@ -72,7 +77,7 @@ mod gumball_machine {
             let component = Self {
                 gumballs_resource_manager: gumballs_resource_manager,
                 gumballs: Vault::with_bucket(bucket_of_gumballs),
-                collected_xrd: Vault::new(RADIX_TOKEN),
+                collected_xrd: Vault::new(XRD),
                 price: price,
             }
             .instantiate()
@@ -94,7 +99,7 @@ mod gumball_machine {
 
             account.set_metadata(
                 "icon_url", 
-                Url("https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned())
+                UncheckedUrl("https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned())
             );
 
             account.set_metadata(

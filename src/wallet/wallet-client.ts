@@ -9,12 +9,16 @@ import {
   filter,
   firstValueFrom,
   map,
+  merge,
   switchMap,
   tap,
 } from 'rxjs'
 import { Logger } from 'tslog'
 import { GatewayClient } from '../gateway/gateway'
 import { RequestItemClient } from '../request-items/request-item-client'
+import { TransactionStatus } from '@radixdlt/babylon-gateway-api-sdk'
+import { err, ok } from 'neverthrow'
+import { SendTransactionInput } from '../_types'
 
 export type WalletClient = ReturnType<typeof WalletClient>
 export const WalletClient = (input: {
@@ -28,6 +32,7 @@ export const WalletClient = (input: {
   const requestItemClient = input.requestItemClient
   const walletSdk = input.walletSdk
   const gatewayClient = input.gatewayClient
+  const cancelRequestSubject = new Subject<string>()
 
   const cancelRequestControl = (id: string) => {
     const messageLifeCycleEvent = new Subject<
@@ -50,7 +55,7 @@ export const WalletClient = (input: {
         )
 
         firstValueFrom(
-          input.onCancelRequestItem$.pipe(
+          merge(input.onCancelRequestItem$, cancelRequestSubject).pipe(
             filter((requestItemId) => requestItemId === id),
             switchMap(() => {
               requestItemClient.cancel(id)
@@ -91,38 +96,56 @@ export const WalletClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const sendTransaction = (
-    input: Parameters<WalletSdkType['sendTransaction']>[0]
-  ) => {
+  const sendTransaction = ({
+    onTransactionId,
+    ...rest
+  }: SendTransactionInput) => {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
-      .sendTransaction(input, cancelRequestControl(id))
+      .sendTransaction({ version: 1, ...rest }, cancelRequestControl(id))
       .mapErr((response) => {
         requestItemClient.updateStatus({
           id,
           status: 'fail',
           error: response.error,
         })
-        logger?.debug(`⬇️walletErrorResponse`, response)
+        logger?.debug(`⬇️ walletErrorResponse`, response)
         return response
       })
-      .andThen(({ transactionIntentHash }) =>
-        gatewayClient
+      .map((response) => {
+        logger?.debug(`⬇️ walletSuccessResponse`, response)
+        return response
+      })
+      .andThen(({ transactionIntentHash }) => {
+        if (onTransactionId) onTransactionId(transactionIntentHash)
+        return gatewayClient
           .pollTransactionStatus(transactionIntentHash)
           .map((transactionStatusResponse) => ({
             transactionIntentHash,
             status: transactionStatusResponse.status,
           }))
-      )
-      .map((response) => {
+      })
+      .andThen((response) => {
+        const failedTransactionStatus: TransactionStatus[] = [
+          TransactionStatus.Rejected,
+          TransactionStatus.CommittedFailure,
+        ]
+
+        const isFailedTransaction = failedTransactionStatus.includes(
+          response.status
+        )
+
         requestItemClient.updateStatus({
           id,
-          status: 'success',
+          status: isFailedTransaction ? 'fail' : 'success',
           transactionIntentHash: response.transactionIntentHash,
         })
 
-        logger?.debug(`⬇️walletSuccessResponse`, response)
-        return response
+        logger?.debug(`🔁 Gateway polling finished`, response)
+
+        return isFailedTransaction
+          ? err({ ...response, error: 'transactionNotSuccessful' })
+          : ok(response)
       })
   }
 
@@ -132,6 +155,7 @@ export const WalletClient = (input: {
     extensionStatus$: walletSdk.extensionStatus$,
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,
+    cancelRequest: (id: string) => cancelRequestSubject.next(id),
     destroy: () => {
       requestItemClient.destroy()
       walletSdk.destroy()

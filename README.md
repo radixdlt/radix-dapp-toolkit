@@ -20,6 +20,7 @@
       - [`DataRequestBuilder.personaData()`](#datarequestbuilderpersonadata)
       - [`OneTimeDataRequestBuilderItem.personaData()`](#onetimedatarequestbuilderitempersonadata)
       - [`DataRequestBuilder.config(input: DataRequestState)`](#datarequestbuilderconfiginput-datarequeststate)
+    - [Handle connect responses](#handle-connect-responses)
     - [One Time Data Request](#one-time-data-request)
   - [State changes](#state-changes)
   - [Transaction requests](#transaction-requests)
@@ -83,6 +84,8 @@ const rdt = RadixDappToolkit({
   dAppDefinitionAddress:
     'account_tdx_22_1pz7vywgwz4fq6e4v3aeeu8huamq0ctmsmzltay07vzpqm82mp5',
   networkId: 1,
+  applicationName: 'Radix Web3 dApp',
+  applicationVersion: '1.0.0'
 })
 ```
 
@@ -90,6 +93,8 @@ const rdt = RadixDappToolkit({
 
 - **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
 - **requires** networkId - Target radix network ID.
+- *optional* applicationName - Your dApp name. It's only used for statistics purposes on gateway side
+- *optional* applicationVersion - Your dApp version. It's only used for statistics purposes on gateway side
 
 ## Login requests
 
@@ -218,7 +223,7 @@ There are two ways to trigger a data request:
 ```typescript
 const result = await rdt.walletApi.sendRequest()
 
-if (result.isError()) return handleException()
+if (result.isErr()) return handleException()
 
 // {
 //   persona?: Persona,
@@ -340,6 +345,18 @@ rdt.walletApi.setRequestData(
 )
 ```
 
+### Handle connect responses
+
+Add a callback function to `provideConnectResponseCallback` that emits a wallet response.
+
+```typescript
+rdt.walletApi.provideConnectResponseCallback((result) => {
+  if (result.isErr()) {
+    // handle connect error
+  }
+})
+```
+
 ### One Time Data Request
 
 One-time data requests do not have a Persona context, and so will always result in the Radix Wallet asking the user to select where to draw personal data from. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
@@ -350,7 +367,7 @@ const result = rdt.walletApi.sendOneTimeRequest(
   OneTimeDataRequestBuilder.personaData().fullName()
 )
 
-if (result.isError()) return handleException()
+if (result.isErr()) return handleException()
 
 // {
 //   accounts: Account[],
@@ -415,16 +432,18 @@ This sends the transaction manifest stub to a user's Radix Wallet, where it will
 ```typescript
 type SendTransactionInput = {
   transactionManifest: string
-  version: number
+  version?: number
   blobs?: string[]
   message?: string
+  onTransactionId?: (transactionId: string) => void
 }
 ```
 
 - **requires** transactionManifest - specify the transaction manifest
-- **requires** version - specify the version of the transaction manifest
+- **optional** version - specify the version of the transaction manifest
 - **optional** blobs - used for deploying packages
 - **optional** message - message to be included in the transaction
+- **optional** onTransactionId - provide a callback that emits a transaction ID
 
 <details>
 
@@ -432,7 +451,6 @@ type SendTransactionInput = {
 
 ```typescript
 const result = await rdt.walletApi.sendTransaction({
-  version: 1,
   transactionManifest: '...',
 })
 

@@ -1,6 +1,4 @@
-import {
-  GumballMachineComponentState,
-} from '../integration-tests/state'
+import { GumballMachineComponentState } from '../integration-tests/state'
 
 export const GumballMachineTransactionManifests = (
   {
@@ -22,6 +20,6 @@ export const GumballMachineTransactionManifests = (
     price: number
   ) => `CALL_METHOD Address("${ownerAccountAddress}") "create_proof" Address("${entities.adminBadge}");
 CALL_METHOD Address("${gumballMachineComponentAddress}") "set_price" Decimal("${price}");
-CALL_METHOD Address("${ownerAccountAddress}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP");`
+CALL_METHOD Address("${ownerAccountAddress}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP") Enum<0u8>();`
   return { setPrice }
 }

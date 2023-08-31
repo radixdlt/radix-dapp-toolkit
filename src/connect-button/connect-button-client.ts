@@ -228,6 +228,7 @@ export const ConnectButtonClient = (input: {
   )
 
   return {
+    status$: subjects.status.asObservable(),
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
     onShowPopover$: subjects.onShowPopover.asObservable(),
@@ -254,6 +255,10 @@ export const ConnectButtonClient = (input: {
     setPersonaLabel: (personaLabel: string) =>
       subjects.personaLabel.next(personaLabel),
     setDappName: (dAppName: string) => subjects.dAppName.next(dAppName),
+    disconnect: () => {
+      subjects.connected.next(false)
+      subjects.status.next('default')
+    },
     destroy: () => {
       subscriptions.unsubscribe()
     },

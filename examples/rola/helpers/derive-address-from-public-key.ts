@@ -1,34 +1,37 @@
-import { ManifestAstValue, PublicKey } from '@radixdlt/radix-engine-toolkit'
+import { PublicKey, RadixEngineToolkit } from '@radixdlt/radix-engine-toolkit'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { SignedChallenge } from '../../../src'
 
-const deriveVirtualIdentityAddress = (publicKey: string, networkId: number) =>
+export const deriveVirtualIdentityAddress = (
+  publicKey: string,
+  networkId: number
+) =>
   ResultAsync.fromPromise(
-    ManifestAstValue.Address.virtualIdentityAddress(
+    RadixEngineToolkit.Derive.virtualIdentityAddressFromPublicKey(
       new PublicKey.Ed25519(publicKey),
       networkId
     ),
     (error: any): Error => error
   )
 
-const deriveVirtualEddsaEd25519AccountAddress = (
+export const deriveVirtualEddsaEd25519AccountAddress = (
   publicKey: string,
   networkId: number
 ) =>
   ResultAsync.fromPromise(
-    ManifestAstValue.Address.virtualAccountAddress(
+    RadixEngineToolkit.Derive.virtualAccountAddressFromPublicKey(
       new PublicKey.Ed25519(publicKey),
       networkId
     ),
     (error: any): Error => error
   )
 
-const deriveVirtualEcdsaSecp256k1AccountAddress = (
+export const deriveVirtualEcdsaSecp256k1AccountAddress = (
   publicKey: string,
   networkId: number
 ) =>
   ResultAsync.fromPromise(
-    ManifestAstValue.Address.virtualAccountAddress(
+    RadixEngineToolkit.Derive.virtualAccountAddressFromPublicKey(
       new PublicKey.Secp256k1(publicKey),
       networkId
     ),

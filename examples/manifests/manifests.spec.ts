@@ -1,8 +1,6 @@
 import {
-  InstructionList,
+  ManifestSborStringRepresentation,
   RadixEngineToolkit,
-  SborValue,
-  TransactionManifest,
 } from '@radixdlt/radix-engine-toolkit'
 import { getCreateBadgeManifest } from './create-badge'
 import { createToken } from './tokens'
@@ -27,15 +25,16 @@ describe('tx manifests', () => {
   const tokens = createToken(
     'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2'
   )
-  const testManifest = async (stringManifest: string, blobs: string[] = []) => {
-    let manifest = new TransactionManifest(
-      new InstructionList.StringInstructions(stringManifest),
-      blobs
+  const testManifest = async (stringManifest: string) => {
+    const manifest = RadixEngineToolkit.Instructions.staticallyValidate(
+      {
+        kind: 'String',
+        value: stringManifest,
+      },
+      NETWORK_ID
     )
 
-    await expect(
-      manifest.convert(InstructionList.Kind.Parsed, NETWORK_ID)
-    ).resolves.toBeDefined()
+    await expect(manifest).resolves.toBeDefined()
   }
   it('create badge', async () => {
     await testManifest(
@@ -52,6 +51,23 @@ describe('tx manifests', () => {
         symbol: 'TEST',
         description: 'TEST',
         iconUrl: 'TEST',
+        initialSupply: 1000,
+      })
+    )
+  })
+
+  it('create fungible token without data', async () => {
+    await testManifest(
+      tokens.fungible({
+        initialSupply: 1000,
+      })
+    )
+  })
+
+  it('create fungible token with some data', async () => {
+    await testManifest(
+      tokens.fungible({
+        description: 'TEST',
         initialSupply: 1000,
       })
     )
@@ -77,18 +93,20 @@ describe('tx manifests', () => {
         join(__dirname, '../assets/gumball_machine.wasm')
       ).toString('hex')
 
-      const sborDecodedSchema = (await RadixEngineToolkit.sborDecode(
-        gumballMachine,
-        NETWORK_ID
-      )) as SborValue.ManifestSbor
+      const sborDecodedSchema =
+        await RadixEngineToolkit.ManifestSbor.decodeToString(
+          Buffer.from(gumballMachine, 'hex'),
+          NETWORK_ID,
+          ManifestSborStringRepresentation.ManifestString
+        )
 
       const stringManifest = getDeployPackageManifest({
         wasm: gumballMachineWasm,
-        rpd: sborDecodedSchema.manifestString,
+        rpd: sborDecodedSchema,
         nftAddress: 'TEST',
       })
 
-      await testManifest(stringManifest, [gumballMachineWasm])
+      await testManifest(stringManifest)
     })
   })
 
