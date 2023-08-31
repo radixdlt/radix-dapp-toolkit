@@ -44,11 +44,11 @@ mod gumball_machine {
                     init {
                         "name" => vec![flavor.to_owned(), "admin badge".to_owned()].join(" "), locked;
                         "description" => "Admin badge for Sandbox Gumball Machine".to_owned(), locked;
-                        "icon_url" => Url(icon_url.to_owned()), locked;
+                        "icon_url" => UncheckedUrl(icon_url.to_owned()), locked;
                         "dapp_definitions" => vec![GlobalAddress::from(account.address())], locked;
                     }
                 })
-                .mint_initial_supply(10);
+                .mint_initial_supply(10).into();
 
             // create a new Gumball resource, with a fixed quantity of 100
             let gumballs_resource_manager: ResourceManager =
@@ -58,8 +58,8 @@ mod gumball_machine {
                             "name" => vec![flavor.to_owned(), "Gumball".to_owned()].join(" "), locked;
                             "tags" => vec!["gumball".to_owned(), flavor.to_owned(), "sandbox".to_owned(), "testing".to_owned()], locked;
                             "symbol" => flavor.to_owned(), locked;
-                            "info_url" => Url("https://www.radixdlt.com".to_owned()), locked;
-                            "icon_url" => Url(icon_url.to_owned()), locked;
+                            "info_url" => UncheckedUrl("https://www.radixdlt.com".to_owned()), locked;
+                            "icon_url" => UncheckedUrl(icon_url.to_owned()), locked;
                             "description" => "A delicious gumball".to_owned(), locked;
                             "dapp_definitions" => vec![GlobalAddress::from(account.address())], locked;
                         }
@@ -99,7 +99,7 @@ mod gumball_machine {
 
             account.set_metadata(
                 "icon_url", 
-                Url("https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned())
+                UncheckedUrl("https://img.freepik.com/free-vector/bubble-gum-realistic-composition-with-ball-shaped-vending-machine-with-colorful-gumballs_1284-64158.jpg?w=1000".to_owned())
             );
 
             account.set_metadata(

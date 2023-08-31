@@ -161,7 +161,7 @@ export const RequestItemClient = (
     destroy: () => {
       subscriptions.unsubscribe()
     },
-    items$: subjects.items.asObservable(),
+    items$: subjects.items,
     change$: subjects.onChange.asObservable(),
   }
 }

@@ -39,6 +39,10 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
           'account_tdx_22_12xt9uxe39dxdfy9c23vn0qj7eaxs8p3fjjpkr8f48edsfvyk00ck3l',
         [RadixNetwork.Enkinet]:
           'account_tdx_21_168ydk240yx69yl7zdz2mzkdjc3r5p6n4gwypqsype2d6d942z0tyvx',
+        [RadixNetwork.RCnetV3]:
+          'account_tdx_e_168ydk240yx69yl7zdz2mzkdjc3r5p6n4gwypqsype2d6d942m5z2ns',
+        [RadixNetwork.Zabanet]:
+          'account_tdx_e_168ydk240yx69yl7zdz2mzkdjc3r5p6n4gwypqsype2d6d942m5z2ns',
       }
     }
 
@@ -74,6 +78,9 @@ bootstrapNetwork(networkId)
 
 export const gatewayApi = GatewayApiClient({
   basePath: RadixNetworkConfigById[networkId].gatewayUrl,
+  applicationName: 'Radix Sandbox dApp',
+  dAppDefinitionAddress: dAppDefinitionAddress.value,
+  applicationVersion: '0.0.1',
 })
 
 export const dataRequestStateClient = DataRequestStateClient({})

@@ -52,6 +52,8 @@ export const RadixDappToolkit = (
     onDisconnect,
     explorer,
     gatewayBaseUrl,
+    applicationName,
+    applicationVersion,
     useCache = true,
   } = options || {}
 
@@ -77,6 +79,8 @@ export const RadixDappToolkit = (
         basePath:
           gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
         dAppDefinitionAddress,
+        applicationName,
+        applicationVersion,
       }),
     })
 
@@ -124,6 +128,16 @@ export const RadixDappToolkit = (
       useCache,
       dataRequestStateClient,
     })
+
+  const disconnect = () => {
+    requestItemClient.items$.value.forEach((item) => {
+      if (item.showCancel) walletClient.cancelRequest(item.id)
+    })
+    stateClient.reset()
+    walletClient.resetRequestItems()
+    connectButtonClient.disconnect()
+    if (onDisconnect) onDisconnect()
+  }
 
   subscriptions.add(
     dAppDefinitionAddressSubject
@@ -217,15 +231,7 @@ export const RadixDappToolkit = (
   )
 
   subscriptions.add(
-    connectButtonClient.onDisconnect$
-      .pipe(
-        tap(() => {
-          stateClient.reset()
-          walletClient.resetRequestItems()
-          if (onDisconnect) onDisconnect()
-        })
-      )
-      .subscribe()
+    connectButtonClient.onDisconnect$.pipe(tap(disconnect)).subscribe()
   )
 
   subscriptions.add(
@@ -317,6 +323,8 @@ export const RadixDappToolkit = (
     dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
       dataRequestClient.provideDataRequestControl(fn)
     },
+    provideConnectResponseCallback:
+      dataRequestClient.provideConnectResponseCallback,
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
     sendTransaction: walletClient.sendTransaction,
@@ -328,11 +336,6 @@ export const RadixDappToolkit = (
     setTheme: connectButtonClient.setTheme,
     setMode: connectButtonClient.setMode,
     status$: connectButtonClient.status$,
-  }
-
-  const disconnect = () => {
-    walletClient.resetRequestItems()
-    stateClient.reset()
   }
 
   const destroy = () => {

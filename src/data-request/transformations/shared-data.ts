@@ -36,8 +36,13 @@ export const transformSharedDataToDataRequestState = (
 
     if (sharedData.ongoingPersonaData) {
       draft.personaData = {
-        ...sharedData.ongoingPersonaData,
+        fullName: sharedData.ongoingPersonaData.isRequestingName,
+        phoneNumbers:
+          sharedData.ongoingPersonaData.numberOfRequestedPhoneNumbers,
+        emailAddresses:
+          sharedData.ongoingPersonaData.numberOfRequestedEmailAddresses,
         reset: true,
       }
+      debugger
     }
   })

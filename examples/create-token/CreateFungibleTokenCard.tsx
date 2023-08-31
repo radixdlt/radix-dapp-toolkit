@@ -99,7 +99,7 @@ export const CreateFungibleTokenCard = () => {
       {Logger}
       <Button
         fullWidth
-        disabled={Object.values(state.fungible).some((v) => !v)}
+        disabled={!state.fungible.initialSupply}
         onClick={async () => {
           const values = state.fungible
           await rdt.walletApi

@@ -56,6 +56,23 @@ describe('tx manifests', () => {
     )
   })
 
+  it('create fungible token without data', async () => {
+    await testManifest(
+      tokens.fungible({
+        initialSupply: 1000,
+      })
+    )
+  })
+
+  it('create fungible token with some data', async () => {
+    await testManifest(
+      tokens.fungible({
+        description: 'TEST',
+        initialSupply: 1000,
+      })
+    )
+  })
+
   it('create nft', async () => {
     await testManifest(
       tokens.nft({

@@ -1,4 +1,4 @@
-import { ResultAsync } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
 import {
   WalletSdk,
   Account,
@@ -61,6 +61,7 @@ export type ConnectButtonProvider = {
   setPersonaLabel: (value: string) => void
   setDappName: (value: string) => void
   destroy: () => void
+  disconnect: () => void
 }
 
 export type Providers = {
@@ -84,8 +85,11 @@ export type ExplorerConfig = {
 export type OptionalRadixDappToolkitOptions = {
   logger: AppLogger
   onDisconnect: () => void
+
   explorer: ExplorerConfig
   gatewayBaseUrl: string
+  applicationName: string
+  applicationVersion: string
   useCache: boolean
   providers: Partial<Providers>
 }
@@ -133,10 +137,18 @@ export type WalletDataRequestResult = ResultAsync<
   { error: string; message?: string }
 >
 
+export type AwaitedWalletDataRequestResult = Result<
+  WalletData,
+  { error: string; message?: string }
+>
+
 export type WalletApi = {
   getWalletData: () => WalletDataState
   walletData$: Observable<WalletDataState>
   provideChallengeGenerator: (fn: () => Promise<string>) => void
+  provideConnectResponseCallback: (
+    fn: (result: AwaitedWalletDataRequestResult) => void
+  ) => void
   dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedData: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
