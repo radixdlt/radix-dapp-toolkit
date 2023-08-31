@@ -52,6 +52,8 @@ export const RadixDappToolkit = (
     onDisconnect,
     explorer,
     gatewayBaseUrl,
+    applicationName,
+    applicationVersion,
     useCache = true,
   } = options || {}
 
@@ -77,6 +79,8 @@ export const RadixDappToolkit = (
         basePath:
           gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
         dAppDefinitionAddress,
+        applicationName,
+        applicationVersion,
       }),
     })
 
