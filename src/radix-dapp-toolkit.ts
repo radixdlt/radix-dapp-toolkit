@@ -125,6 +125,16 @@ export const RadixDappToolkit = (
       dataRequestStateClient,
     })
 
+  const disconnect = () => {
+    requestItemClient.items$.value.forEach((item) => {
+      if (item.showCancel) walletClient.cancelRequest(item.id)
+    })
+    stateClient.reset()
+    walletClient.resetRequestItems()
+    connectButtonClient.disconnect()
+    if (onDisconnect) onDisconnect()
+  }
+
   subscriptions.add(
     dAppDefinitionAddressSubject
       .pipe(
@@ -217,15 +227,7 @@ export const RadixDappToolkit = (
   )
 
   subscriptions.add(
-    connectButtonClient.onDisconnect$
-      .pipe(
-        tap(() => {
-          stateClient.reset()
-          walletClient.resetRequestItems()
-          if (onDisconnect) onDisconnect()
-        })
-      )
-      .subscribe()
+    connectButtonClient.onDisconnect$.pipe(tap(disconnect)).subscribe()
   )
 
   subscriptions.add(
@@ -330,11 +332,6 @@ export const RadixDappToolkit = (
     setTheme: connectButtonClient.setTheme,
     setMode: connectButtonClient.setMode,
     status$: connectButtonClient.status$,
-  }
-
-  const disconnect = () => {
-    walletClient.resetRequestItems()
-    stateClient.reset()
   }
 
   const destroy = () => {
