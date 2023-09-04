@@ -24,7 +24,7 @@ export const createPoolManifest = (
     ${resourcesParameters[poolType](resourceAddresses)}
     None;`
 
-  console.log(manifest)
+  // console.log(manifest)
   return manifest
 }
 
@@ -78,6 +78,6 @@ export const contributeToPoolManifest = (
       Expression("ENTIRE_WORKTOP") 
       Enum<0u8>();
   `
-  console.log(manifest)
+  // console.log(manifest)
   return manifest
 }

@@ -8,7 +8,7 @@ describe('hash', () => {
       join(__dirname, '../assets/gumball_machine.wasm')
     ).toString('hex')
     expect(hash(gumballMachineWasm).toString('hex')).toBe(
-      'cdaeb41199b5378d851eb1686f9eaadf3a6c26d37f175e58289f4050fc2df093'
+      '101137c37887f5310cd3b5f23c2f8546599f5b6fc1752eb775c92c39c1d3d9c2'
     )
   })
 })
