@@ -1,16 +1,14 @@
-import { Box, Button, Input } from '@mui/joy'
+import { Box, Button } from '@mui/joy'
 import * as React from 'react'
 import { Card } from '../components/Card'
-import { createChallenge } from '../helpers/create-challenge'
 import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
 import { Code } from '../components/Code'
 
 import { useDAppDefinitionAddress } from '../rdt/rdt'
-import { RolaError, RolaFactory } from './rola'
 import { useNetworkId } from '../network/state'
-import { GatewayService } from './gateway'
 import { DataRequestBuilder } from '../../src'
+import { Rola, RolaError } from '@radixdlt/rola'
 
 export const RolaPage = () => {
   const dAppDefinitionAddress = useDAppDefinitionAddress()
@@ -24,8 +22,8 @@ export const RolaPage = () => {
   const rdt = useRdt()
   const networkId = useNetworkId()
   const { Logger, addLog } = useLogger()
-  const rola = RolaFactory({
-    gatewayService: GatewayService(),
+  const { verifySignedChallenge } = Rola({
+    applicationName: 'dApp Sandbox',
     expectedOrigin: origin,
     dAppDefinitionAddress,
     networkId,
@@ -54,7 +52,7 @@ export const RolaPage = () => {
                     loading: false,
                   }))
 
-                  return rola(response.proofs![0])
+                  return verifySignedChallenge(response.proofs![0])
                 })
                 .map(() => {
                   setState((prev) => ({
@@ -63,9 +61,7 @@ export const RolaPage = () => {
                   }))
                 })
                 .mapErr((error) => {
-                  addLog(
-                    `ROLA error: ${(error as unknown as RolaError).reason}`
-                  )
+                  addLog(`ROLA error: ${(error as any).reason}`)
                   setState((prev) => ({
                     ...prev,
                     loading: false,
@@ -94,7 +90,7 @@ export const RolaPage = () => {
                     loading: false,
                   }))
 
-                  return rola(signedChallenge)
+                  return verifySignedChallenge(signedChallenge)
                 })
                 .map(() => {
                   setState((prev) => ({

@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 import blake from 'blakejs'
-import { bufferToUnit8Array } from '../rola/crypto/blake2b'
+import { bufferToUnit8Array } from './blake2b'
 
 export function hash(input: string): Buffer {
   return Buffer.from(
