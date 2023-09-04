@@ -2,7 +2,7 @@ import {
   ManifestSborStringRepresentation,
   RadixEngineToolkit,
 } from '@radixdlt/radix-engine-toolkit'
-import { getCreateBadgeManifest } from './create-badge'
+
 import { createToken } from './tokens'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -40,13 +40,6 @@ describe('tx manifests', () => {
     }
     expect(manifest.kind).toEqual('Valid')
   }
-  // it('create badge', async () => {
-  //   await testManifest(
-  //     getCreateBadgeManifest(
-  //       'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2'
-  //     )
-  //   )
-  // })
 
   it('create fungible token', async () => {
     await testManifest(
@@ -105,9 +98,12 @@ describe('tx manifests', () => {
         )
 
       const stringManifest = getDeployPackageManifest({
+        account:
+          'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
         wasm: gumballMachineWasm,
         rpd: sborDecodedSchema,
-        nftAddress: 'TEST',
+        nftAddress:
+          'resource_tdx_d_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxepwmma:#1#',
       })
 
       await testManifest(stringManifest)
