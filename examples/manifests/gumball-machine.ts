@@ -11,6 +11,7 @@ export const GumballMachineTransactionManifests = (
     gumballFlavour: '',
     gumballPrice: 0,
     entities: {
+      dApp: '',
       adminBadge: '',
       gumballToken: '',
     },
@@ -18,7 +19,7 @@ export const GumballMachineTransactionManifests = (
 ) => {
   const setPrice = (
     price: number
-  ) => `CALL_METHOD Address("${ownerAccountAddress}") "create_proof" Address("${entities.adminBadge}");
+  ) => `CALL_METHOD Address("${ownerAccountAddress}") "create_proof_of_amount" Address("${entities.adminBadge}") Decimal("1");
 CALL_METHOD Address("${gumballMachineComponentAddress}") "set_price" Decimal("${price}");
 CALL_METHOD Address("${ownerAccountAddress}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP") Enum<0u8>();`
   return { setPrice }
