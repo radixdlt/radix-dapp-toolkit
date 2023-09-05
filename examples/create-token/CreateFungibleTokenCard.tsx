@@ -8,7 +8,7 @@ import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
 import { Card } from '../components/Card'
 import { SelectAccount } from '../account/SelectAccount'
-import { Stack } from '@mui/joy'
+import { Alert, Stack } from '@mui/joy'
 
 type CreateTokenBase = {
   name: string
@@ -39,6 +39,12 @@ export const CreateFungibleTokenCard = () => {
   return (
     <Card title="Create Fungible token">
       <Stack spacing={2}>
+        {state.fungible.iconUrl.includes(' ') ? (
+          <Alert color="warning" variant="soft">
+            URL with empty spaces may not work correctly in the Radix Wallet
+          </Alert>
+        ) : null}
+
         <SelectAccount
           label="Token Owner Account"
           onChange={(account) => setState({ ...state, account })}
