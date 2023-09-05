@@ -4,5 +4,5 @@ import { useRdt } from './useRdt'
 export const useRequestData = () => {
   const rdt = useRdt()!
 
-  return useCallback(() => rdt.walletData.sendRequest(), [rdt])
+  return useCallback(() => rdt.walletApi.sendRequest(), [rdt])
 }
