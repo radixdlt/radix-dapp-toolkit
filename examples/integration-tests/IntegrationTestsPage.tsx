@@ -4,6 +4,7 @@ import { DeployGumballMachineCard } from './GumballMachine/DeployGumballMachineC
 import { GumballMachineExamples } from './GumballMachine/GumballMachineExamples'
 import { useGumballMachineState } from './state'
 import { GumballMachineCard } from './GumballMachine/GumballMachineCard'
+import { SetGumballMachinePackageCard } from './GumballMachine/SetGumballMachinePackageCard'
 
 export const IntegrationTestsPage = () => {
   const { components } = useGumballMachineState()
@@ -23,9 +24,13 @@ export const IntegrationTestsPage = () => {
         gap: 2,
       }}
     >
+      <SetGumballMachinePackageCard />
       <DeployGumballMachineCard />
       {Object.values(components).map((component) => (
-        <GumballMachineCard key={component.address} {...component}></GumballMachineCard>
+        <GumballMachineCard
+          key={component.address}
+          {...component}
+        ></GumballMachineCard>
       ))}
       {GumballMachineExamples()}
     </Box>

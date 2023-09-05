@@ -37,6 +37,7 @@ export const DeployGumballMachineCard = () => {
     loading: boolean
     account?: string
     nftAddress?: string
+    nftCollectionAddress?: string
   }>({ loading: false })
 
   const exec = () => {
