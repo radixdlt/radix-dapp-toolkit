@@ -10,6 +10,7 @@ import {
 export const bootstrapNetwork = (networkId: number) => {
   const gatewayApi = GatewayApiClient.initialize({
     basePath: RadixNetworkConfigById[networkId].gatewayUrl,
+    applicationName: 'Radix Sandbox dApp',
   })
   gatewayApi.status.getNetworkConfiguration().then((response) => {
     appLogger.debug({

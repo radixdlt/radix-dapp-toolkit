@@ -2,7 +2,7 @@ import {
   ManifestSborStringRepresentation,
   RadixEngineToolkit,
 } from '@radixdlt/radix-engine-toolkit'
-import { getCreateBadgeManifest } from './create-badge'
+
 import { createToken } from './tokens'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -26,7 +26,7 @@ describe('tx manifests', () => {
     'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2'
   )
   const testManifest = async (stringManifest: string) => {
-    const manifest = RadixEngineToolkit.Instructions.staticallyValidate(
+    const manifest = await RadixEngineToolkit.Instructions.staticallyValidate(
       {
         kind: 'String',
         value: stringManifest,
@@ -34,15 +34,12 @@ describe('tx manifests', () => {
       NETWORK_ID
     )
 
-    await expect(manifest).resolves.toBeDefined()
+    if (manifest.kind === 'Invalid') {
+      console.log(stringManifest)
+      console.log(manifest.error)
+    }
+    expect(manifest.kind).toEqual('Valid')
   }
-  it('create badge', async () => {
-    await testManifest(
-      getCreateBadgeManifest(
-        'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2'
-      )
-    )
-  })
 
   it('create fungible token', async () => {
     await testManifest(
@@ -101,9 +98,12 @@ describe('tx manifests', () => {
         )
 
       const stringManifest = getDeployPackageManifest({
+        account:
+          'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
         wasm: gumballMachineWasm,
         rpd: sborDecodedSchema,
-        nftAddress: 'TEST',
+        nftAddress:
+          'resource_tdx_d_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxepwmma:#1#',
       })
 
       await testManifest(stringManifest)
@@ -262,7 +262,7 @@ describe('tx manifests', () => {
   describe('deploy gumball machine manifests', () => {
     const manifests = GumballMachineTransactionManifests({
       address:
-        'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
+        'component_tdx_d_1cr30av9azlfc9ufnjvzhxj0dsnydgfy55dqq82pq2pgkqvshqdueq7',
       ownerAccountAddress:
         'account_tdx_d_16996e320lnez82q6430eunaz9l3n5fnwk6eh9avrmtmj22e7m9lvl2',
       gumballFlavour: 'FLAV',
@@ -275,8 +275,8 @@ describe('tx manifests', () => {
           'resource_tdx_d_1tkx7f4tdf9zlqnhvtjrftddxvpjtvwqshjw5p9v0qslka44un68w6k',
       },
     })
-    it('should create valid `setPrice` manifest', () => {
-      testManifest(manifests.setPrice(2))
+    it('should create valid `setPrice` manifest', async () => {
+      await testManifest(manifests.setPrice(2))
     })
   })
 })

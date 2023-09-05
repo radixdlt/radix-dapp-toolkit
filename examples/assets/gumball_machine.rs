@@ -24,9 +24,9 @@ mod gumball_machine {
 
     impl GumballMachine {
         pub fn instantiate(
-            price: Decimal, 
+            price: Decimal,
             flavor: String,
-            icon_url: String
+            icon_url: String,
         ) -> (ComponentAddress, Bucket) {
             let (reservation, component_address) =
                 Runtime::allocate_component_address(GumballMachine::blueprint_id());
@@ -34,9 +34,13 @@ mod gumball_machine {
             let non_fungible_global_id = NonFungibleGlobalId::package_of_direct_caller_badge(
                 GumballMachine::blueprint_id().package_address,
             );
-            let account = Blueprint::<Account>::create_advanced(OwnerRole::Fixed(rule!(require(
-                non_fungible_global_id
-            ))));
+            let account: Global<Account> = Blueprint::<Account>::call_function_raw(
+                "create_advanced",
+                scrypto_args!(
+                    OwnerRole::Fixed(rule!(require(non_fungible_global_id))),
+                    None::<GlobalAddressReservation>
+                ),
+            );
 
             let admin_badge: Bucket = ResourceBuilder::new_fungible(OwnerRole::None)
                 .divisibility(DIVISIBILITY_NONE)

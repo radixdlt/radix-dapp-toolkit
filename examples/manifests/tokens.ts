@@ -76,7 +76,7 @@ CALL_METHOD
     iconUrl: string
     name: string
     description: string
-    items: string[]
+    items: { name: string; description: string; value: string }[]
   }) => `
   CREATE_NON_FUNGIBLE_RESOURCE_WITH_INITIAL_SUPPLY
     Enum<0u8>()
@@ -140,12 +140,12 @@ CALL_METHOD
     )
     Map<NonFungibleLocalId, Tuple>(
         ${items
-          .map((item, index) => {
+          .map(({ name, description, value }, index) => {
             return `NonFungibleLocalId("#${index}#") => Tuple(
             Tuple(
-                "NFT Item Name",
-                "NFT Item description",
-                "${item}",
+                "${name}",
+                "${description}",
+                "${value}",
                 45u64
             )
         )`

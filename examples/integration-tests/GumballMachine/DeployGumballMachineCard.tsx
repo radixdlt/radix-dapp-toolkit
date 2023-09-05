@@ -36,7 +36,6 @@ export const DeployGumballMachineCard = () => {
     ownerBadgeAddress?: string
     loading: boolean
     account?: string
-    nftCollectionAddress?: string
     nftAddress?: string
   }>({ loading: false })
 
@@ -45,10 +44,12 @@ export const DeployGumballMachineCard = () => {
     return loadGumballMachineBinaries()
       .andThen(([wasm, rpd]) => {
         const transactionManifest = getDeployPackageManifest({
+          account: state.ownerAccountAddress!,
           nftAddress: state.nftAddress!,
           wasm,
           rpd,
         })
+        console.log(transactionManifest)
         addLog('deploying gumball machine package...')
         return rdt.walletApi.sendTransaction({
           transactionManifest,

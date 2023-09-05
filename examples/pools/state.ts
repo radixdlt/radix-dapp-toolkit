@@ -1,6 +1,5 @@
 import { BehaviorSubject } from 'rxjs'
 import { createObservableHook } from '../helpers/create-observable-hook'
-import { SendTransactionResult } from '../../src'
 import { TransactionStatus } from '@radixdlt/babylon-gateway-api-sdk'
 
 const POOLS_STATE_KEY = 'poolsState'

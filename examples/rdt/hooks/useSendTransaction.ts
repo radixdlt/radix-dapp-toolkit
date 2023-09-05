@@ -6,7 +6,7 @@ export const useSendTransaction = () => {
 
   return useCallback(
     (transactionManifest: string) => {
-      return rdt.sendTransaction({ transactionManifest, version: 1 })
+      return rdt.walletApi.sendTransaction({ transactionManifest, version: 1 })
     },
     [rdt]
   )
