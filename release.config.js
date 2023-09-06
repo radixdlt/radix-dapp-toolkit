@@ -8,7 +8,7 @@ module.exports = {
       prerelease: 'dev-rc3',
     },
     {
-      name: 'release/([a-z0-9-]+)',
+      name: 'release/([a-z0-9-.]+)',
       channel: '${name.replace(/^release\\//g, "")}',
       prerelease: '${name.replace(/^release\\//g, "")}',
     },

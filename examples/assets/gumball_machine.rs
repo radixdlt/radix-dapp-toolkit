@@ -34,12 +34,9 @@ mod gumball_machine {
             let non_fungible_global_id = NonFungibleGlobalId::package_of_direct_caller_badge(
                 GumballMachine::blueprint_id().package_address,
             );
-            let account: Global<Account> = Blueprint::<Account>::call_function_raw(
-                "create_advanced",
-                scrypto_args!(
-                    OwnerRole::Fixed(rule!(require(non_fungible_global_id))),
-                    None::<GlobalAddressReservation>
-                ),
+            let account: Global<Account> = Blueprint::<Account>::create_advanced(
+                OwnerRole::Fixed(rule!(require(non_fungible_global_id))),
+                None::<GlobalAddressReservation>,
             );
 
             let admin_badge: Bucket = ResourceBuilder::new_fungible(OwnerRole::None)
