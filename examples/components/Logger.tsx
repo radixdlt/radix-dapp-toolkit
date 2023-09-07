@@ -14,7 +14,9 @@ export const useLogger = () => {
     }))
 
   return {
-    Logger: state.logs.length ? <Code>{state.logs.join('\n')}</Code> : null,
+    Logger: state.logs.length ? (
+      <Code>{state.logs.reverse().join('\n')}</Code>
+    ) : null,
     addLog,
     reset: () => setState({ logs: [] }),
   }

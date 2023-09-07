@@ -1,16 +1,14 @@
 import * as React from 'react'
-import Box from '@mui/joy/Box'
-import Divider from '@mui/joy/Divider'
 import Input from '@mui/joy/Input'
 import FormControl from '@mui/joy/FormControl'
-import Typography from '@mui/joy/Typography'
 import FormLabel from '@mui/joy/FormLabel'
 import Button from '@mui/joy/Button'
-import Sheet from '@mui/joy/Sheet'
 import { createToken } from '../manifests/tokens'
 import { useRdt } from '../rdt/hooks/useRdt'
 import { useLogger } from '../components/Logger'
-import { accounts } from '../../src/data-request/builders/accounts'
+import { Card } from '../components/Card'
+import { SelectAccount } from '../account/SelectAccount'
+import { Alert, Stack } from '@mui/joy'
 
 type CreateTokenBase = {
   name: string
@@ -33,22 +31,24 @@ export const CreateFungibleTokenCard = () => {
   const rdt = useRdt()
   const [state, setState] = React.useState<{
     fungible: FungibleToken
+    account: string
   }>({
+    account: '',
     fungible: fungibleDefaultValues,
   })
   return (
-    <Sheet
-      variant="outlined"
-      sx={{
-        borderRadius: 'sm',
-        p: 2,
-      }}
-    >
-      <Typography sx={{ alignSelf: 'center' }} level="h6">
-        Create Fungible token
-      </Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
-      <Box sx={{ mb: 4, mt: 2 }}>
+    <Card title="Create Fungible token">
+      <Stack spacing={2}>
+        {state.fungible.iconUrl.includes(' ') ? (
+          <Alert color="warning" variant="soft">
+            URL with empty spaces may not work correctly in the Radix Wallet
+          </Alert>
+        ) : null}
+
+        <SelectAccount
+          label="Token Owner Account"
+          onChange={(account) => setState({ ...state, account })}
+        ></SelectAccount>
         {[
           {
             label: 'Name',
@@ -95,35 +95,32 @@ export const CreateFungibleTokenCard = () => {
             />
           </FormControl>
         ))}
-      </Box>
-      {Logger}
-      <Button
-        fullWidth
-        disabled={!state.fungible.initialSupply}
-        onClick={async () => {
-          const values = state.fungible
-          await rdt.walletApi
-            .sendOneTimeRequest(accounts().exactly(1))
-            .andThen(({ accounts }) => {
-              const transactionManifest = createToken(
-                accounts![0].address
-              ).fungible({
-                name: values.name,
-                description: values.description,
-                symbol: values.symbol,
-                iconUrl: values.iconUrl,
-                initialSupply: values.initialSupply,
-              })
-              addLog(transactionManifest)
-              return rdt.walletApi.sendTransaction({
+        <Button
+          fullWidth
+          disabled={!state.fungible.initialSupply || !state.account}
+          onClick={async () => {
+            const values = state.fungible
+            const transactionManifest = createToken(state.account).fungible({
+              name: values.name,
+              description: values.description,
+              symbol: values.symbol,
+              iconUrl: values.iconUrl,
+              initialSupply: values.initialSupply,
+            })
+            addLog(transactionManifest)
+            await rdt.walletApi
+              .sendTransaction({
                 transactionManifest,
                 version: 1,
               })
-            })
-        }}
-      >
-        Create
-      </Button>
-    </Sheet>
+              .mapErr((error) => addLog(JSON.stringify(error, null, 2)))
+          }}
+        >
+          Create
+        </Button>
+      </Stack>
+
+      {Logger}
+    </Card>
   )
 }

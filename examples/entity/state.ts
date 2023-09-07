@@ -1,7 +1,7 @@
 import { shortenAddress } from './../helpers/shorten-address'
 import { BehaviorSubject } from 'rxjs'
 import { ResultAsync, errAsync, okAsync } from 'neverthrow'
-import { gatewayApi, rdt } from '../rdt/rdt'
+import { gatewayApi } from '../rdt/rdt'
 import {
   EntityMetadataItem,
   FungibleResourcesCollectionItemVaultAggregated,
@@ -65,8 +65,6 @@ type Entity = {
     } & StateEntityDetailsResponseComponentDetails
   }
 }
-
-type EntityKind = Entity[keyof typeof entityType]
 
 type EntityCollections = {
   [EntityType in keyof typeof entityType]: Record<string, Entity[EntityType]>

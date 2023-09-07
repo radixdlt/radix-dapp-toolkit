@@ -21,7 +21,8 @@ export const createPoolManifest = (
     "instantiate"
     Enum<OwnerRole::Fixed>(Enum<AccessRule::AllowAll>())
     Enum<AccessRule::AllowAll>() 
-    ${resourcesParameters[poolType](resourceAddresses)};`
+    ${resourcesParameters[poolType](resourceAddresses)}
+    None;`
 
   console.log(manifest)
   return manifest
