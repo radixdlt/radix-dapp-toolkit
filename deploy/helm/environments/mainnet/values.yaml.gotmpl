@@ -1,0 +1,17 @@
+ingress:
+  enabled: true
+  hosts:
+    - host: {{ .StateValues.ci.ingressDomain }}
+      paths:
+        - path: /
+          pathType: Prefix
+
+alertmanager:
+  env: "mainnet"
+  nameOverride: "radix-dapp-toolkit-amcfg"
+  slackConfig:
+    channel: "feed--alerts-dapps-mainnet"
+  secrets:
+    region: eu-west-2
+    name: "rtlj-prod/eks/dapps/mainnet/alertmanager-integration-keys"
+  enable_pagerduty_notifications: true
