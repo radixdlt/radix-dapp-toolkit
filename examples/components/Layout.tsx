@@ -51,6 +51,7 @@ function Header(props: BoxProps) {
       sx={[
         {
           p: 2,
+          pr: 3,
           gap: 2,
           bgcolor: 'background.surface',
           display: 'flex',
