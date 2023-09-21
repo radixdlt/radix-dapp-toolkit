@@ -391,7 +391,7 @@ jobs:
 
           helmfile --environment mainnet --namespace radix-dapp-toolkit-mainnet \
                     --state-values-set "ci.tag=${{ env.CI_TAG }}" \
-                    --state-values-set "ci.ingressDomain=${{ env.MAINNET_INGRESS_DOMAIN }}" \
+                    --state-values-set "ci.ingressDomain=${{ env.INGRESS_DOMAIN }}" \
                     apply
         env:
           CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
