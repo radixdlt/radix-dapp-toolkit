@@ -355,7 +355,6 @@ jobs:
   deploy-mainnet:
     if: github.event_name == 'release' && !github.event.release.prerelease
     runs-on: ubuntu-latest
-    environment: mainnet
     needs:
       - push-docker-image
     permissions:
