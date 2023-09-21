@@ -77,10 +77,10 @@ a) Deposit entire worktop to Alpha`,
       ['accountAlpha', 'accountBravo', 'componentAlpha', 'componentBravo'],
       `Instantiate another gumball machine prior to this scenario, again assuming price of 1
 
-1) Withdraw 2 XRD from Alpha
-2) Create bucket of 2 XRD
+1) Withdraw 8 XRD from Alpha
+2) Create bucket of 8 XRD
 3) Call buy_gumball on machine Alpha with bucket
-4) Create bucket of all XRD
+4) Create bucket of 7 XRD
 5) Call buy_gumball on machine Bravo with bucket
 6) Deposit entire worktop to Bravo`,
     ],

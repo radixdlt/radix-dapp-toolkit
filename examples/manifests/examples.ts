@@ -69,10 +69,10 @@ export const getExample6 = (
   }: GumballMachineExampleConfig
 ) =>
   `
-CALL_METHOD Address("${accountAlpha}") "withdraw"  Address("${xrdAddress}") Decimal("2");
-TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("2") Bucket("xrd");
+CALL_METHOD Address("${accountAlpha}") "withdraw"  Address("${xrdAddress}") Decimal("8");
+TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("8") Bucket("xrd");
 CALL_METHOD Address("${componentAlpha?.address}") "buy_gumball" Bucket("xrd");
-TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("1") Bucket("restxrd");
+TAKE_FROM_WORKTOP Address("${xrdAddress}") Decimal("7") Bucket("restxrd");
 CALL_METHOD Address("${componentBravo?.address}") "buy_gumball" Bucket("restxrd");
 CALL_METHOD Address("${accountBravo}") "try_deposit_batch_or_abort" Expression("ENTIRE_WORKTOP") Enum<0u8>();
 `

@@ -82,7 +82,7 @@ CALL_METHOD
     Enum<0u8>()
     Enum<1u8>()
     true
-    Enum<NonFungibleDataSchema::Local>(
+    Enum<0u8>(
         Enum<0u8>(
             Tuple(
                 Array<Enum>(
@@ -94,15 +94,14 @@ CALL_METHOD
                             Enum<0u8>(
                                 12u8
                             ),
-                            Enum<1u8>(
-                                1u64
+                            Enum<0u8>(
+                                198u8
                             ),
                             Enum<0u8>(
                                 10u8
                             )
                         )
-                    ),
-                    Enum<12u8>()
+                    )
                 ),
                 Array<Tuple>(
                     Tuple(
@@ -119,16 +118,9 @@ CALL_METHOD
                                 )
                             )
                         )
-                    ),
-                    Tuple(
-                        Enum<1u8>(
-                            "UncheckedUrl"
-                        ),
-                        Enum<0u8>()
                     )
                 ),
                 Array<Enum>(
-                    Enum<0u8>(),
                     Enum<0u8>()
                 )
             )
