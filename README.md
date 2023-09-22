@@ -38,6 +38,7 @@
   - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
 - [Examples](#examples)
+- [License](#license)
 
 # What is Radix dApp Toolkit?
 
@@ -582,3 +583,7 @@ RDT handles writing and reading data to the browser’s local storage so that it
 # Examples
 
 The `examples` directory contains a react dApp that consumes RDT. Its main purpose is to be used by us internally for debugging but can also serve as a source of inspiration.
+
+# License
+
+The Radix Dapp Toolkit code is released under [Apache 2.0 license](LICENSE). Binaries are licensed under the [Radix Software EULA](http://www.radixdlt.com/terms/genericEULA)
