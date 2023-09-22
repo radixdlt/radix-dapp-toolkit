@@ -2,6 +2,14 @@ name: Build
 
 on:
   workflow_dispatch:
+    inputs:
+      ENVIRONMENT_NAME:
+        description: 'Environment Name'
+        required: true
+        default: Stokenet
+        type: choice
+        options:
+          - Stokenet
 
   push:
     branches:
@@ -246,7 +254,7 @@ jobs:
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
 
   deploy-dev:
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     runs-on: ubuntu-latest
     needs:
       - push-docker-image
@@ -349,6 +357,54 @@ jobs:
         env:
           CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
           INGRESS_DOMAIN: ${{ secrets.INGRESS_DOMAIN }}
+          HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
+          HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
+
+  deploy-stokenet:
+    if: ( github.event.inputs.ENVIRONMENT_NAME == 'Stokenet' && github.event_name == 'workflow_dispatch' )
+    runs-on: ubuntu-latest
+    environment: stokenet
+    needs:
+      - push-docker-image
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: unfor19/install-aws-cli-action@457b7980b125044247e455d87b9a26fc2299b787
+        with:
+          version: 2
+      - name: Setup helmfile and helm
+        uses: mamezou-tech/setup-helmfile@55ae2a66c5af4883148b7a50cc6ddc9b61042184
+        with:
+          helm-diff-plugin-version: 'v3.1.3'
+          helmfile-version: 'v0.144.0'
+          helm-version: 'v3.11.0'
+          install-kubectl: no
+      - name: Install kubectl
+        uses: azure/setup-kubectl@901a10e89ea615cf61f57ac05cecdf23e7de06d8 #v3.2
+        with:
+          version: 'v1.25.6'
+      - name: Configure AWS credentials for deployment
+        uses: aws-actions/configure-aws-credentials@bab55d3830fe69833c9fecaa51fe2c829a7508f3
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_STOKENET_IAM_ROLE }}
+          aws-region: eu-west-2
+      - name: Deploy application
+        working-directory: deploy/helm
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.STOKENET_CLUSTER_NAME }} \
+                                    --alias ${{ secrets.STOKENET_CLUSTER_NAME }} \
+                                    --region eu-west-2
+
+          helmfile --environment stokenet --namespace radix-dapp-toolkit-stokenet \
+                    --state-values-set "ci.tag=${{ env.CI_TAG }}" \
+                    --state-values-set "ci.ingressDomain=${{ env.INGRESS_DOMAIN }}" \
+                    apply
+        env:
+          CI_TAG: ${{ fromJSON(needs.push-docker-image.outputs.json).labels['org.opencontainers.image.version'] }}
+          INGRESS_DOMAIN: ${{ secrets.STOKENET_INGRESS_DOMAIN }}
           HELM_GH_USER: ${{ secrets.HELM_GH_USER }}
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
 
