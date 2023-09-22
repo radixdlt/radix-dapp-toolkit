@@ -13,6 +13,7 @@ repositories:
 environments:
   dev: {}
   pr: {}
+  stokenet: {}
   mainnet: {}
 releases:
   - name: radix-dapp-toolkit
@@ -31,6 +32,6 @@ releases:
   - name: alertmanager
     chart: rdx-works/alertmanager-configs
     version: 1.1.0
-    installed: {{ eq .Environment.Name "mainnet" }}
+    installed: {{ or (eq .Environment.Name "mainnet") (eq .Environment.Name "stokenet") }}
     values:
       - environments/{{ .Environment.Name }}/values.yaml.gotmpl
