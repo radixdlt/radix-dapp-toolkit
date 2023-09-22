@@ -6,7 +6,7 @@ on:
       ENVIRONMENT_NAME:
         description: 'Environment Name'
         required: true
-        default: stokenet
+        default: Stokenet
         type: choice
         options:
           - Stokenet
