@@ -70,6 +70,7 @@ export const Header = ({
           gap: 1.5,
         }}
       >
+        <radix-dapps-dropdown></radix-dapps-dropdown>
         <Select
           value={networkId}
           onChange={(_, value) => {
@@ -86,7 +87,6 @@ export const Header = ({
         </Select>
 
         <radix-connect-button></radix-connect-button>
-        <radix-dapps-dropdown></radix-dapps-dropdown>
       </Box>
     </Layout.Header>
   )
