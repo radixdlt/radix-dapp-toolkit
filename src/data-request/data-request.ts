@@ -14,6 +14,7 @@ import { DataRequestStateClient } from './data-request-state'
 import { WalletData } from '../state/types'
 import {
   AwaitedWalletDataRequestResult,
+  RequestInterceptorFactoryOutput,
   WalletDataRequestResult,
 } from '../_types'
 
@@ -25,12 +26,14 @@ export const DataRequestClient = ({
   walletClient,
   useCache,
   dataRequestStateClient,
+  requestInterceptor,
 }: {
   stateClient: StateClient
   requestItemClient: RequestItemClient
   walletClient: WalletClient
   dataRequestStateClient: DataRequestStateClient
   useCache: boolean
+  requestInterceptor: RequestInterceptorFactoryOutput
 }) => {
   let challengeGenerator:
     | (() => ResultAsync<string, { error: string; message: string }>)
@@ -121,50 +124,59 @@ export const DataRequestClient = ({
           !stateClient.getState().walletData.persona &&
           walletDataRequest.discriminator === 'authorizedRequest'
 
-        const { id } = requestItemClient.add(
-          isLoginRequest ? 'loginRequest' : 'dataRequest'
-        )
-        return walletClient
-          .request(walletDataRequest, id)
-          .mapErr(
-            ({ error, message }): { error: string; message?: string } => ({
-              error: error,
-              message: message,
-            })
-          )
-          .andThen(transformWalletResponseToRdtWalletData)
-          .andThen((response) => {
-            if (dataRequestControl)
-              return dataRequestControl(response)
-                .map(() => {
-                  requestItemClient.updateStatus({ id, status: 'success' })
-                  return response
-                })
-                .mapErr((error) => {
-                  requestItemClient.updateStatus({
-                    id,
-                    status: 'fail',
-                    error: error.error,
-                  })
-                  return error
-                })
-
-            requestItemClient.updateStatus({ id, status: 'success' })
-            return ok(response)
+        return requestInterceptor({
+          type: 'dataRequest',
+          payload: walletDataRequest,
+        })
+          .map((walletDataRequest) => {
+            const { id } = requestItemClient.add(
+              isLoginRequest ? 'loginRequest' : 'dataRequest'
+            )
+            return { walletDataRequest, id }
           })
-          .map((walletData) => {
-            if (!oneTime)
-              stateClient.setState({
-                loggedInTimestamp: Date.now().toString(),
-                walletData,
-                sharedData: transformWalletRequestToSharedData(
-                  walletDataRequest,
-                  stateClient.getState().sharedData
-                ),
+          .andThen(({ walletDataRequest, id }) =>
+            walletClient
+              .request(walletDataRequest, id)
+              .mapErr(
+                ({ error, message }): { error: string; message?: string } => ({
+                  error: error,
+                  message: message,
+                })
+              )
+              .andThen(transformWalletResponseToRdtWalletData)
+              .andThen((response) => {
+                if (dataRequestControl)
+                  return dataRequestControl(response)
+                    .map(() => {
+                      requestItemClient.updateStatus({ id, status: 'success' })
+                      return response
+                    })
+                    .mapErr((error) => {
+                      requestItemClient.updateStatus({
+                        id,
+                        status: 'fail',
+                        error: error.error,
+                      })
+                      return error
+                    })
+
+                requestItemClient.updateStatus({ id, status: 'success' })
+                return ok(response)
               })
+              .map((walletData) => {
+                if (!oneTime)
+                  stateClient.setState({
+                    loggedInTimestamp: Date.now().toString(),
+                    walletData,
+                    sharedData: transformWalletRequestToSharedData(
+                      walletDataRequest,
+                      stateClient.getState().sharedData
+                    ),
+                  })
 
-            return walletData
-          })
+                return walletData
+              })
+          )
       })
 
   const setState = (...items: DataRequestBuilderItem[]) => {
