@@ -82,16 +82,26 @@ export type ExplorerConfig = {
   accountsPath: string
 }
 
+type WalletDataRequest = Parameters<WalletSdk['request']>[0]
+
+export type WalletRequest =
+  | { type: 'sendTransaction'; payload: SendTransactionInput }
+  | { type: 'dataRequest'; payload: WalletDataRequest }
+
+export type RequestInterceptor = <T extends WalletRequest>(
+  input: T
+) => Promise<T['payload']>
+
 export type OptionalRadixDappToolkitOptions = {
   logger: AppLogger
   onDisconnect: () => void
-
   explorer: ExplorerConfig
   gatewayBaseUrl: string
   applicationName: string
   applicationVersion: string
   useCache: boolean
   providers: Partial<Providers>
+  requestInterceptor: RequestInterceptor
 }
 
 export type RadixDappToolkitOptions = {
@@ -106,6 +116,7 @@ export type SendTransactionResult = ResultAsync<
   },
   {
     error: string
+    jsError?: unknown
     message?: string
     transactionIntentHash?: string
     status?: TransactionStatus
@@ -132,14 +143,20 @@ export type ButtonApi = {
   status$: Observable<RadixButtonStatus>
 }
 
+export type WalletDataRequestError = {
+  error: string
+  message?: string
+  jsError?: unknown
+}
+
 export type WalletDataRequestResult = ResultAsync<
   WalletData,
-  { error: string; message?: string }
+  WalletDataRequestError
 >
 
 export type AwaitedWalletDataRequestResult = Result<
   WalletData,
-  { error: string; message?: string }
+  WalletDataRequestError
 >
 
 export type WalletApi = {
@@ -179,3 +196,17 @@ export type WalletDataState = {
   proofs: SignedChallenge[]
   persona?: Persona
 }
+
+export type RequestInterceptorFactoryOutput = ReturnType<
+  typeof requestInterceptorFactory
+>
+export const requestInterceptorFactory =
+  (requestInterceptor: RequestInterceptor) =>
+  <T extends WalletRequest>(walletRequest: T) =>
+    ResultAsync.fromPromise(
+      requestInterceptor<T>(walletRequest),
+      (jsError) => ({
+        error: 'requestInterceptorError',
+        jsError,
+      })
+    )

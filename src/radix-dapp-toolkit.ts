@@ -28,7 +28,11 @@ import {
   ButtonApi,
   GatewayApi,
   RadixDappToolkitOptions,
+  SendTransactionInput,
   WalletApi,
+  WalletRequest,
+  requestInterceptorFactory,
+  RequestInterceptor,
 } from './_types'
 import { mergeMap, withLatestFrom } from 'rxjs/operators'
 import { WalletData } from './state/types'
@@ -55,6 +59,8 @@ export const RadixDappToolkit = (
     applicationName,
     applicationVersion,
     useCache = true,
+    requestInterceptor = (async ({ payload }: WalletRequest) =>
+      payload) as RequestInterceptor,
   } = options || {}
 
   const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
@@ -119,6 +125,8 @@ export const RadixDappToolkit = (
   const dataRequestStateClient =
     providers?.dataRequestStateClient ?? DataRequestStateClient({})
 
+  const withInterceptor = requestInterceptorFactory(requestInterceptor)
+
   const dataRequestClient =
     providers?.dataRequestClient ??
     DataRequestClient({
@@ -127,6 +135,7 @@ export const RadixDappToolkit = (
       walletClient,
       useCache,
       dataRequestStateClient,
+      requestInterceptor: withInterceptor,
     })
 
   const disconnect = () => {
@@ -327,7 +336,11 @@ export const RadixDappToolkit = (
       dataRequestClient.provideConnectResponseCallback,
     updateSharedData: () => dataRequestClient.updateSharedData(),
     sendOneTimeRequest: dataRequestClient.sendOneTimeRequest,
-    sendTransaction: walletClient.sendTransaction,
+    sendTransaction: (input: SendTransactionInput) =>
+      withInterceptor({
+        type: 'sendTransaction',
+        payload: input,
+      }).andThen(walletClient.sendTransaction),
     walletData$: stateClient.walletData$,
     getWalletData: () => stateClient.getWalletData(),
   }

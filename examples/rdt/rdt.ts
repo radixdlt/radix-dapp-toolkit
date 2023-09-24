@@ -3,6 +3,7 @@ import {
   DataRequestBuilder,
   DataRequestStateClient,
   RadixDappToolkit,
+  RadixDappToolkitOptions,
 } from '../../src'
 import { appLogger } from '../logger/state'
 import {
@@ -98,7 +99,7 @@ const options = {
     dataRequestStateClient,
   },
   useCache: false,
-}
+} satisfies RadixDappToolkitOptions
 
 setTimeout(() => {
   appLogger.debug('RDT initialized with', options)
