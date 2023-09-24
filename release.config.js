@@ -4,8 +4,8 @@ module.exports = {
     'next',
     {
       name: 'develop',
-      channel: 'dev-rc3.1',
-      prerelease: 'dev-rc3.1',
+      channel: 'dev-stokenet',
+      prerelease: 'dev-stokenet',
     },
     {
       name: 'release/([a-z0-9-.]+)',
@@ -22,6 +22,10 @@ module.exports = {
           {
             type: 'refactor',
             release: 'patch',
+          },
+          {
+            type: 'major',
+            release: 'major',
           },
           {
             type: 'docs',
@@ -83,6 +87,10 @@ module.exports = {
               type: 'fix',
               section: ':bug: Fixes',
               hidden: false,
+            },
+            {
+              type: 'major',
+              release: 'major',
             },
             {
               type: 'docs',

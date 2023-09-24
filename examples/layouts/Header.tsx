@@ -1,6 +1,7 @@
 // @ts-ignore
 import radixLogo from '../assets/radix-icon_128x128.png'
 import * as React from 'react'
+import '@radixdlt/dapps-dropdown'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 import IconButton from '@mui/joy/IconButton'
@@ -15,6 +16,10 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       'radix-connect-button': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >
+      'radix-dapps-dropdown': React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLElement>,
         HTMLElement
       >
@@ -57,7 +62,15 @@ export const Header = ({
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1.5 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 1.5,
+        }}
+      >
+        <radix-dapps-dropdown></radix-dapps-dropdown>
         <Select
           value={networkId}
           onChange={(_, value) => {
