@@ -16,6 +16,7 @@ COPY . .
 
 # Build the project
 RUN npm run build examples
+RUN cp -r ./examples/assets/sandbox_icon.png ./examples/dist/assets/sandbox_icon.png
 
 FROM nginx:alpine as production-build
 
