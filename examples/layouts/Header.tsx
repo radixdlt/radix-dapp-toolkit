@@ -1,9 +1,8 @@
 // @ts-ignore
-import radixLogo from '../assets/radix-icon_128x128.png'
+import radixLogo from '../assets/logo.svg'
 import * as React from 'react'
 import '@radixdlt/dapps-dropdown'
 import Box from '@mui/joy/Box'
-import Typography from '@mui/joy/Typography'
 import IconButton from '@mui/joy/IconButton'
 import Layout from '../components/Layout'
 import MenuIcon from '@mui/icons-material/Menu'
@@ -52,14 +51,11 @@ export const Header = ({
           <MenuIcon />
         </IconButton>
         <img
-          style={{ width: 30 }}
           src={radixLogo}
           className="logo"
+          style={{ maxHeight: '50px' }}
           alt="Radix logo"
         />
-        <Typography component="h1" fontWeight="xl">
-          Radix dApp Sandbox
-        </Typography>
       </Box>
 
       <Box
