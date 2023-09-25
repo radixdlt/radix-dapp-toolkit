@@ -6,6 +6,7 @@ import {
   RadixNetwork,
   RadixNetworkConfigById,
 } from '@radixdlt/babylon-gateway-api-sdk'
+import { DEFAULT_NETWORK_ID } from '../helpers/get-network-id'
 
 export const bootstrapNetwork = (networkId: number) => {
   const gatewayApi = GatewayApiClient.initialize({
@@ -39,7 +40,7 @@ const getNetworkIdDefault = () => {
   const networkId = parseInt(
     urlParams.get('networkId') ||
       localStorage.getItem('networkId') ||
-      RadixNetwork.Stokenet.toString(),
+      DEFAULT_NETWORK_ID,
     10
   )
   return networkId

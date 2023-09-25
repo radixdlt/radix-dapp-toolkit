@@ -10,6 +10,7 @@ import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
 import { setNetworkId, useNetworkId } from '../network/state'
 import { RadixNetworkConfig } from '@radixdlt/babylon-gateway-api-sdk'
+import { IS_PUBLIC } from '../config'
 
 declare global {
   namespace JSX {
@@ -50,12 +51,14 @@ export const Header = ({
         >
           <MenuIcon />
         </IconButton>
-        <img
-          src={radixLogo}
-          className="logo"
-          style={{ maxHeight: '50px' }}
-          alt="Radix logo"
-        />
+        <a href="/">
+          <img
+            src={radixLogo}
+            className="logo"
+            style={{ maxHeight: '50px' }}
+            alt="Radix logo"
+          />
+        </a>
       </Box>
 
       <Box
@@ -73,11 +76,22 @@ export const Header = ({
             setNetworkId(value as number)
           }}
         >
-          {Object.values(RadixNetworkConfig).map(
-            ({ networkId, networkName }) => (
-              <Option key={networkName} value={networkId}>
-                {networkName} ({networkId})
+          {IS_PUBLIC ? (
+            <>
+              <Option key="Mainnet" value={1}>
+                Mainnet ({1})
               </Option>
+              <Option key="Stokenet" value={2}>
+                Stokenet ({2})
+              </Option>
+            </>
+          ) : (
+            Object.values(RadixNetworkConfig).map(
+              ({ networkId, networkName }) => (
+                <Option key={networkName} value={networkId}>
+                  {networkName} ({networkId})
+                </Option>
+              )
             )
           )}
         </Select>
