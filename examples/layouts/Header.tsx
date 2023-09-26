@@ -51,11 +51,11 @@ export const Header = ({
         >
           <MenuIcon />
         </IconButton>
-        <a href="/">
+        <a href="/" style={{ display: 'flex' }}>
           <img
             src={radixLogo}
             className="logo"
-            style={{ maxHeight: '50px' }}
+            style={{ maxHeight: '25px' }}
             alt="Radix logo"
           />
         </a>
