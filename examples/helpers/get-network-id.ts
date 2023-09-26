@@ -6,8 +6,9 @@ import { ENV_NETWORK_NAME } from '../config'
 
 const networkId = RadixNetworkConfig?.[ENV_NETWORK_NAME]?.networkId
 
-export const DEFAULT_NETWORK_ID =
-  String(networkId) || RadixNetwork.Stokenet.toString()
+export const DEFAULT_NETWORK_ID = networkId
+  ? String(networkId)
+  : RadixNetwork.Stokenet.toString()
 
 export const getNetworkId = () => {
   const urlParams = new URLSearchParams(window.location.search)
