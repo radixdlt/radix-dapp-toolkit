@@ -43,7 +43,10 @@
   ],
   "scripts": {
     "dev": "vite serve examples",
+    "dev:public": "vite serve examples --mode public",
     "build": "tsc && vite build",
+    "build:sandbox": "vite build examples",
+    "build:sandbox:public": "vite build examples --mode public",
     "prepare": "npx husky install",
     "test": "jest",
     "test:watch": "jest --watch"

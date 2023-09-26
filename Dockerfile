@@ -11,6 +11,15 @@ COPY package.json ./
 COPY package-lock.json ./
 RUN npm install
 
+ARG NETWORK_NAME
+ENV VITE_NETWORK_NAME=$NETWORK_NAME
+
+ARG IS_PUBLIC
+ENV VITE_IS_PUBLIC=$IS_PUBLIC
+
+RUN echo "The VITE_IS_PUBLIC variable value is $VITE_IS_PUBLIC"
+RUN echo "The VITE_NETWORK_NAME variable value is $VITE_NETWORK_NAME"
+
 # Copy rest of the files
 COPY . .
 

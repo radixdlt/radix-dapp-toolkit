@@ -103,11 +103,11 @@ jobs:
       tag: ${{ steps.setup_tags.outputs.tag }}
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      
+
       - name: Setup tags for docker image
         id: setup_tags
         run: echo "tag=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        
+
       - name: Use Node.js
         uses: actions/setup-node@7c29869aec4da703a571b27bcd84d4f15af0b56e
         with:
@@ -128,9 +128,36 @@ jobs:
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@v2
 
+  setup-build-args:
+    runs-on: ubuntu-latest
+    name: Setup build argument values for docker
+    outputs:
+      network: ${{ steps.network_name_step.outputs.network_name }}
+      is_public: ${{ steps.network_name_step.outputs.is_public }}
+    steps:
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v2
+      - name: Info
+        run: |
+          echo "This is triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+      - name: Define network name
+        id: network_name_step
+        run: |
+          if [ "${{ github.event_name}}" = 'release' -a ${{!github.event.release.prerelease}} ]; then
+            echo "is_public=true" >> $GITHUB_OUTPUT
+            echo "network_name=Mainnet" >> $GITHUB_OUTPUT
+          elif [ ${{github.event_name }} = 'workflow_dispatch' -a "${{github.event.inputs.ENVIRONMENT_NAME}}" = 'Stokenet' ]; then
+            echo "is_public=true" >> $GITHUB_OUTPUT
+            echo "network_name=Stokenet" >> $GITHUB_OUTPUT
+          else
+            echo "is_public=false" >> $GITHUB_OUTPUT
+            echo "network_name=" >> $GITHUB_OUTPUT
+          fi
+
   push-docker-image:
     name: (PRIVATE) Docker AMD
     needs:
+      - setup-build-args
       - build
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
     with:
@@ -146,6 +173,9 @@ jobs:
       platforms: "linux/amd64"
       scan_image: true
       snyk_target_ref: ${{ github.ref_name }}
+      build-args: |
+        NETWORK_NAME=${{needs.setup-build-args.outputs.network}}
+        IS_PUBLIC=${{needs.setup-build-args.outputs.is_public}}
 
   snyk-monitor:
     runs-on: ubuntu-latest

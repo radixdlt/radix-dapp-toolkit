@@ -1,6 +1,13 @@
-import { RadixNetwork } from '@radixdlt/babylon-gateway-api-sdk'
+import {
+  RadixNetwork,
+  RadixNetworkConfig,
+} from '@radixdlt/babylon-gateway-api-sdk'
+import { ENV_NETWORK_NAME } from '../config'
 
-export const DEFAULT_NETWORK_ID = RadixNetwork.RCnetV3.toString()
+const networkId = RadixNetworkConfig?.[ENV_NETWORK_NAME]?.networkId
+
+export const DEFAULT_NETWORK_ID =
+  String(networkId) || RadixNetwork.Stokenet.toString()
 
 export const getNetworkId = () => {
   const urlParams = new URLSearchParams(window.location.search)
