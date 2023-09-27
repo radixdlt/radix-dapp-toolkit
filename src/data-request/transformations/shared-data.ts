@@ -9,9 +9,21 @@ export const transformWalletRequestToSharedData = (
 ): SharedData => {
   if (walletDataRequest.discriminator === 'authorizedRequest')
     return produce({}, (draft: SharedData) => {
+      draft.persona = { proof: false }
+
+      draft.ongoingAccounts = {
+        proof: false,
+        numberOfAccounts: undefined,
+      }
+
+      if (walletDataRequest.auth.discriminator === 'loginWithChallenge')
+        draft.persona.proof = !!walletDataRequest.auth.challenge
+
       if (walletDataRequest.ongoingAccounts) {
-        draft.ongoingAccounts =
-          walletDataRequest.ongoingAccounts.numberOfAccounts
+        draft.ongoingAccounts = {
+          proof: !!walletDataRequest.ongoingAccounts.challenge,
+          numberOfAccounts: walletDataRequest.ongoingAccounts.numberOfAccounts,
+        }
       }
 
       if (walletDataRequest.ongoingPersonaData) {
@@ -28,8 +40,8 @@ export const transformSharedDataToDataRequestState = (
   produce({}, (draft: DataRequestState) => {
     if (sharedData.ongoingAccounts) {
       draft.accounts = {
-        numberOfAccounts: sharedData.ongoingAccounts,
-        withProof: false,
+        numberOfAccounts: sharedData.ongoingAccounts.numberOfAccounts!,
+        withProof: sharedData.ongoingAccounts.proof,
         reset: true,
       }
     }
@@ -43,5 +55,9 @@ export const transformSharedDataToDataRequestState = (
           sharedData.ongoingPersonaData.numberOfRequestedEmailAddresses,
         reset: true,
       }
+    }
+
+    if (sharedData.persona) {
+      draft.persona = { withProof: !!sharedData.persona.proof }
     }
   })
