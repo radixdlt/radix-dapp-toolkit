@@ -85,8 +85,9 @@ function SideNav(props: BoxProps) {
           borderColor: 'divider',
           display: {
             xs: 'none',
-            sm: 'initial',
+            sm: 'flex',
           },
+          flexDirection: 'column',
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
       ]}
@@ -155,6 +156,8 @@ function SideDrawer({
           height: '100%',
           p: 2,
           boxShadow: 'lg',
+          display: 'flex',
+          flexDirection: 'column',
           bgcolor: 'background.surface',
         }}
       >

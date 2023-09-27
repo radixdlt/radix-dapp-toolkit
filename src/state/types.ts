@@ -6,7 +6,15 @@ import {
   PersonaDataRequestItem,
   Proof,
 } from '@radixdlt/wallet-sdk'
-import { array, discriminatedUnion, literal, object, string, z } from 'zod'
+import {
+  array,
+  boolean,
+  discriminatedUnion,
+  literal,
+  object,
+  string,
+  z,
+} from 'zod'
 
 export const proofType = {
   persona: 'persona',
@@ -67,7 +75,11 @@ export const WalletData = object({
 
 export type SharedData = z.infer<typeof SharedData>
 export const SharedData = object({
-  ongoingAccounts: NumberOfValues.optional(),
+  persona: object({ proof: boolean() }).optional(),
+  ongoingAccounts: object({
+    numberOfAccounts: NumberOfValues.optional(),
+    proof: boolean(),
+  }).optional(),
   ongoingPersonaData: PersonaDataRequestItem.optional(),
 })
 

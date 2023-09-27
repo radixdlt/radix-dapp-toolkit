@@ -8,6 +8,7 @@ import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
 import { FormControl, FormLabel } from '@mui/joy'
 import { patchConnectButtonConfig, useConnectButtonConfig } from '../rdt/state'
+import { IS_PUBLIC } from '../config'
 export const SettingsPage = () => {
   const connectButtonConfig = useConnectButtonConfig()
   const dAppDefinitionAddress = useDAppDefinitionAddress()
@@ -26,28 +27,31 @@ export const SettingsPage = () => {
         gap: 2,
       }}
     >
-      <Card title="Set dApp Definition Address">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            setDAppDefinitionAddress(state.dAppDefinitionAddress)
-          }}
-        >
-          <Input
-            placeholder="Enter dApp Definition Address"
-            required
-            defaultValue={dAppDefinitionAddress}
-            sx={{ mb: 1, fontSize: 'var(--joy-fontSize-sm)' }}
-            onChange={(event) => {
-              setState((prev) => ({
-                ...prev,
-                dAppDefinitionAddress: event.target.value,
-              }))
+      {IS_PUBLIC ? null : (
+        <Card title="Set dApp Definition Address">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              setDAppDefinitionAddress(state.dAppDefinitionAddress)
             }}
-          />
-          <Button type="submit">Update</Button>
-        </form>
-      </Card>
+          >
+            <Input
+              placeholder="Enter dApp Definition Address"
+              required
+              defaultValue={dAppDefinitionAddress}
+              sx={{ mb: 1, fontSize: 'var(--joy-fontSize-sm)' }}
+              onChange={(event) => {
+                setState((prev) => ({
+                  ...prev,
+                  dAppDefinitionAddress: event.target.value,
+                }))
+              }}
+            />
+            <Button type="submit">Update</Button>
+          </form>
+        </Card>
+      )}
+
       <Card title="Connect Button">
         <FormControl>
           <FormLabel>Theme</FormLabel>

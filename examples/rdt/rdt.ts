@@ -3,6 +3,7 @@ import {
   DataRequestBuilder,
   DataRequestStateClient,
   RadixDappToolkit,
+  RadixDappToolkitOptions,
 } from '../../src'
 import { appLogger } from '../logger/state'
 import {
@@ -43,6 +44,10 @@ const getDAppDefinitionFromLocalStorage = (): Record<string, string> => {
           'account_tdx_e_12965dqmkmgs96s5cx7r52dg0shjvl7urwqy8eqeq2heym89ralzqdp',
         [RadixNetwork.Zabanet]:
           'account_tdx_e_12965dqmkmgs96s5cx7r52dg0shjvl7urwqy8eqeq2heym89ralzqdp',
+        [RadixNetwork.Mainnet]:
+          'account_rdx12y7md4spfq5qy7e3mfjpa52937uvkxf0nmydsu5wydkkxw3qx6nghn',
+        [RadixNetwork.Stokenet]:
+          'account_tdx_2_12yf9gd53yfep7a669fv2t3wm7nz9zeezwd04n02a433ker8vza6rhe',
       }
     }
 
@@ -94,7 +99,7 @@ const options = {
     dataRequestStateClient,
   },
   useCache: false,
-}
+} satisfies RadixDappToolkitOptions
 
 setTimeout(() => {
   appLogger.debug('RDT initialized with', options)

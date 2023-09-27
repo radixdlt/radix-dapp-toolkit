@@ -22,7 +22,7 @@
   },
   "bugs": "https://github.com/radixdlt/radix-dapp-toolkit/issues",
   "main": "dist/radix-dapp-toolkit.mjs",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN RADIX-SOFTWARE-EULA",
   "exports": {
     ".": {
       "import": {
@@ -37,12 +37,16 @@
   },
   "types": "./types/index.d.ts",
   "files": [
+    "RADIX-SOFTWARE-EULA",
     "dist",
     "types"
   ],
   "scripts": {
     "dev": "vite serve examples",
+    "dev:public": "vite serve examples --mode public",
     "build": "tsc && vite build",
+    "build:sandbox": "vite build examples",
+    "build:sandbox:public": "vite build examples --mode public",
     "prepare": "npx husky install",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -69,9 +73,9 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/joy": "^5.0.0-alpha.76",
     "@mui/material": "^5.12.1",
-    "@radixdlt/radix-engine-toolkit": "0.4.0",
-    "@radixdlt/dapps-dropdown": "^0.2.0",
-    "@radixdlt/rola": "^0.3.1-rcnet-v3.1.1",
+    "@radixdlt/radix-engine-toolkit": "1.0.0",
+    "@radixdlt/dapps-dropdown": "1.0.1",
+    "@radixdlt/rola": "1.0.0",
     "@types/elliptic": "^6.4.14",
     "@types/jest": "^29.4.0",
     "@types/lodash.isequal": "^4.5.6",

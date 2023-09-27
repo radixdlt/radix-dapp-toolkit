@@ -1,9 +1,8 @@
 // @ts-ignore
-import radixLogo from '../assets/radix-icon_128x128.png'
+import radixLogo from '../assets/logo.svg'
 import * as React from 'react'
 import '@radixdlt/dapps-dropdown'
 import Box from '@mui/joy/Box'
-import Typography from '@mui/joy/Typography'
 import IconButton from '@mui/joy/IconButton'
 import Layout from '../components/Layout'
 import MenuIcon from '@mui/icons-material/Menu'
@@ -11,6 +10,7 @@ import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
 import { setNetworkId, useNetworkId } from '../network/state'
 import { RadixNetworkConfig } from '@radixdlt/babylon-gateway-api-sdk'
+import { IS_PUBLIC } from '../config'
 
 declare global {
   namespace JSX {
@@ -51,15 +51,14 @@ export const Header = ({
         >
           <MenuIcon />
         </IconButton>
-        <img
-          style={{ width: 30 }}
-          src={radixLogo}
-          className="logo"
-          alt="Radix logo"
-        />
-        <Typography component="h1" fontWeight="xl">
-          Radix dApp Sandbox
-        </Typography>
+        <a href="/" style={{ display: 'flex' }}>
+          <img
+            src={radixLogo}
+            className="logo"
+            style={{ maxHeight: '25px' }}
+            alt="Radix logo"
+          />
+        </a>
       </Box>
 
       <Box
@@ -77,11 +76,22 @@ export const Header = ({
             setNetworkId(value as number)
           }}
         >
-          {Object.values(RadixNetworkConfig).map(
-            ({ networkId, networkName }) => (
-              <Option key={networkName} value={networkId}>
-                {networkName} ({networkId})
+          {IS_PUBLIC ? (
+            <>
+              <Option key="Mainnet" value={1}>
+                Mainnet ({1})
               </Option>
+              <Option key="Stokenet" value={2}>
+                Stokenet ({2})
+              </Option>
+            </>
+          ) : (
+            Object.values(RadixNetworkConfig).map(
+              ({ networkId, networkName }) => (
+                <Option key={networkName} value={networkId}>
+                  {networkName} ({networkId})
+                </Option>
+              )
             )
           )}
         </Select>

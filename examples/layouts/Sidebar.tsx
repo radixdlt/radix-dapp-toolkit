@@ -7,6 +7,7 @@ import ListItemButton from '@mui/joy/ListItemButton'
 import ListItemContent from '@mui/joy/ListItemContent'
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
 import { NavLink } from 'react-router-dom'
+import { IS_PUBLIC } from '../config'
 
 export const Sidebar = () => (
   <List size="sm" sx={{ '--ListItem-radius': '8px', '--List-gap': '4px' }}>
@@ -29,39 +30,52 @@ export const Sidebar = () => (
         }}
       >
         {[
-          { path: 'data-request', label: 'Data Requests' },
-          { path: 'one-time-data-request', label: 'One Time Data Requests' },
-          { path: 'create-token', label: 'Create Token' },
-          { path: 'pools', label: 'Pools' },
-          { path: 'standard-metadata', label: 'Standard Metadata' },
+          { path: 'data-request', label: 'Data Requests', hidePublic: false },
+          {
+            path: 'one-time-data-request',
+            label: 'One Time Data Requests',
+            hidePublic: false,
+          },
+          { path: 'create-token', label: 'Create Token', hidePublic: true },
+          { path: 'pools', label: 'Pools', hidePublic: true },
+          {
+            path: 'standard-metadata',
+            label: 'Standard Metadata',
+            hidePublic: true,
+          },
           {
             path: 'send-transaction',
             label: 'Send Transaction',
+            hidePublic: true,
           },
           {
             path: 'rola',
             label: 'ROLA',
+            hidePublic: true,
           },
           {
             path: 'integration-tests',
             label: 'Integration Tests',
+            hidePublic: true,
           },
 
-          { path: 'settings', label: 'Settings' },
-        ].map((item) => (
-          <NavLink key={item.path} to={item.path}>
-            {({ isActive }) => (
-              <ListItem>
-                <ListItemButton
-                  variant={isActive ? 'soft' : 'plain'}
-                  color="primary"
-                >
-                  <ListItemContent>{item.label}</ListItemContent>
-                </ListItemButton>
-              </ListItem>
-            )}
-          </NavLink>
-        ))}
+          { path: 'settings', label: 'Settings', hidePublic: false },
+        ]
+          .filter((item) => !item.hidePublic || !IS_PUBLIC)
+          .map((item) => (
+            <NavLink key={item.path} to={item.path}>
+              {({ isActive }) => (
+                <ListItem>
+                  <ListItemButton
+                    variant={isActive ? 'soft' : 'plain'}
+                    color="primary"
+                  >
+                    <ListItemContent>{item.label}</ListItemContent>
+                  </ListItemButton>
+                </ListItem>
+              )}
+            </NavLink>
+          ))}
       </List>
     </ListItem>
   </List>
