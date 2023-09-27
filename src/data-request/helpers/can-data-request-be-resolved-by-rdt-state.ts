@@ -30,8 +30,10 @@ export const canDataRequestBeResolvedByRdtState = (
       const { quantifier, quantity } =
         dataRequest.ongoingAccounts.numberOfAccounts
       rdtStateSatisfiesRequest =
-        state.sharedData?.ongoingAccounts?.quantifier === quantifier &&
-        state.sharedData?.ongoingAccounts?.quantity === quantity
+        state.sharedData?.ongoingAccounts?.numberOfAccounts?.quantifier ===
+          quantifier &&
+        state.sharedData?.ongoingAccounts?.numberOfAccounts?.quantity ===
+          quantity
     }
 
     if (dataRequest.ongoingPersonaData) {
