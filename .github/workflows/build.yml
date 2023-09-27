@@ -9,6 +9,7 @@ on:
         default: Stokenet
         type: choice
         options:
+          - Mainnet
           - Stokenet
 
   push:
@@ -143,7 +144,7 @@ jobs:
       - name: Define network name
         id: network_name_step
         run: |
-          if [ "${{ github.event_name}}" = 'release' -a ${{!github.event.release.prerelease}} ]; then
+          if [ "${{ github.event_name}}" = 'release' -a ${{!github.event.release.prerelease}} ] || [ ${{github.event_name }} = 'workflow_dispatch' -a "${{github.event.inputs.ENVIRONMENT_NAME}}" = 'Mainnet' ]; then
             echo "is_public=true" >> $GITHUB_OUTPUT
             echo "network_name=Mainnet" >> $GITHUB_OUTPUT
           elif [ ${{github.event_name }} = 'workflow_dispatch' -a "${{github.event.inputs.ENVIRONMENT_NAME}}" = 'Stokenet' ]; then
@@ -439,7 +440,7 @@ jobs:
           HELM_GH_PASS: ${{ secrets.HELM_GH_PASS }}
 
   deploy-mainnet:
-    if: github.event_name == 'release' && !github.event.release.prerelease
+    if: github.event_name == 'release' && !github.event.release.prerelease || ( github.event.inputs.ENVIRONMENT_NAME == 'Mainnet' && github.event_name == 'workflow_dispatch' )
     runs-on: ubuntu-latest
     needs:
       - push-docker-image
