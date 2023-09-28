@@ -32,6 +32,7 @@ ingress:
   annotations: {}
   hosts: []
   tls: []
+  basic_auth: false
 
 resources:
   limits:
