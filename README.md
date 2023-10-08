@@ -56,7 +56,7 @@ The current version only supports desktop browser webapps with requests made via
 
 ## Resources
 
-### [Building a dApp frontend](https://docs-babylon.radixdlt.com/main/getting-started-developers/dapp-frontend/start.html)
+### [Building a dApp frontend](https://docs.radixdlt.com/docs/building-a-frontend-dapp)
 
 # Installation
 
@@ -416,11 +416,11 @@ const walletData = rdt.walletApi.getWalletData()
 
 Your dApp can send transactions to the user's Radix Wallet for them to review, sign, and submit them to the Radix Network.
 
-Radix transactions are built using "transaction manifests", that use a simple syntax to describe desired behavior. See [documentation on transaction manifest commands here](https://docs-babylon.radixdlt.com/main/scrypto/transaction-manifest/intro.html).
+Radix transactions are built using "transaction manifests", that use a simple syntax to describe desired behavior. See [documentation on transaction manifest commands here](https://docs.radixdlt.com/docs/transaction-manifest).
 
 It is important to note that what your dApp sends to the Radix Wallet is actually a "transaction manifest stub". It is completed before submission by the Radix Wallet. For example, the Radix Wallet will automatically add a command to lock the necessary amount of network fees from one of the user's accounts. It may also add "assert" commands to the manifest according to user desires for expected returns.
 
-**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs-babylon.radixdlt.com/main/standards/comforming-transactions.html) that ensures clear presentation and handling in the Radix Wallet.
+**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs.radixdlt.com/docs/conforming-transaction-manifest-types) that ensures clear presentation and handling in the Radix Wallet.
 
 ### Build transaction manifest
 
@@ -475,7 +475,7 @@ The primary use for ROLA is to authenticate the user's Persona login with the us
 **Read more**
 
 - [ROLA example](https://github.com/radixdlt/rola-examples)
-- [Full-stack dApp](https://docs-babylon.radixdlt.com/main/getting-started-developers/dapp-backend/building-a-full-stack-dapp.html)
+- [Full-stack dApp](https://docs.radixdlt.com/docs/building-a-full-stack-dapp)
 
 # √ Connect Button
 
@@ -552,7 +552,7 @@ A dApp Definition account should be created after you’ve built your dApp’s c
 
 Creating a dApp Definition for your dApp will provide the necessary information for clients like the Radix Wallet to let users interact with your dApp in a way that is easy, safe, and informative. It also acts as a hub that connects all your dApp pieces together.
 
-You can read more about dApp Definitions [here](https://docs-babylon.radixdlt.com/main/standards/metadata-for-verification.html).
+You can read more about dApp Definitions [here](https://docs.radixdlt.com/docs/metadata-for-verification).
 
 ## Setting up a dApp Definition on the Radix Dashboard
 
