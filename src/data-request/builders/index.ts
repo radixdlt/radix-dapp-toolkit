@@ -42,8 +42,8 @@ export const config = (data: DataRequestState) => {
 
 export type DataRequestBuilder = {
   accounts: () => AccountsRequestBuilder
-  personaData: () => PersonaDataRequestBuilder
-  persona: () => PersonaRequestBuilder
+  personaData: (input?: PersonaDataRequest) => PersonaDataRequestBuilder
+  persona: (input?: PersonaRequest) => PersonaRequestBuilder
   config: (input: DataRequestState) => ConfigRequestBuilder
 }
 
@@ -56,7 +56,7 @@ export const DataRequestBuilder: DataRequestBuilder = {
 
 export type OneTimeDataRequestBuilder = {
   accounts: () => OneTimeAccountsRequestBuilder
-  personaData: () => OneTimePersonaDataRequestBuilder
+  personaData: (input?: PersonaDataRequest) => OneTimePersonaDataRequestBuilder
 }
 
 export const OneTimeDataRequestBuilder: OneTimeDataRequestBuilder = {
