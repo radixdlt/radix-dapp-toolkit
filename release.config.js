@@ -34,7 +34,7 @@ module.exports = {
           },
           {
             type: 'test',
-            release: 'patch',
+            release: false,
           },
           {
             type: 'style',

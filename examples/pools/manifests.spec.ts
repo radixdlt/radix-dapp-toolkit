@@ -9,7 +9,7 @@ describe('pools manifests', () => {
         kind: 'String',
         value: stringManifest,
       },
-      RadixNetwork.Ansharnet
+      RadixNetwork.Stokenet
     )
 
     if (manifest.kind === 'Invalid') {
@@ -20,24 +20,24 @@ describe('pools manifests', () => {
   }
 
   it('should create pools', () => {
-    ;[
+    ;;[
       createPoolManifest(
-        'package_tdx_d_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxa0ecqd',
+        'package_tdx_2_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxe4r780',
         'OneResourcePool',
-        'resource_tdx_d_1t4efp7jyqd5kk4c3v6atdnenklfymrv3prhqppeg2hpvd3nthwevda'
+        'resource_tdx_2_1t5h2mngzd20822qf4crt76pc52ms5ml4534va9cs7ddqagna7ye6jt'
       ),
       createPoolManifest(
-        'package_tdx_d_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxa0ecqd',
+        'package_tdx_2_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxe4r780',
         'TwoResourcePool',
-        'resource_tdx_d_1t4efp7jyqd5kk4c3v6atdnenklfymrv3prhqppeg2hpvd3nthwevda',
-        'resource_tdx_d_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxepwmma'
+        'resource_tdx_2_1t5h2mngzd20822qf4crt76pc52ms5ml4534va9cs7ddqagna7ye6jt',
+        'resource_tdx_2_1thfqzpm8rnf9c9c45n9t56h0h9lnr6d4d3htpp2j0clf7gek4v8ugw'
       ),
       createPoolManifest(
-        'package_tdx_d_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxa0ecqd',
+        'package_tdx_2_1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxe4r780',
         'MultiResourcePool',
-        'resource_tdx_d_1t4efp7jyqd5kk4c3v6atdnenklfymrv3prhqppeg2hpvd3nthwevda',
-        'resource_tdx_d_1tks6e8anwle200a78zt2393d9azxppyln3p4508a7j532mlzhu5d4y',
-        'resource_tdx_d_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxepwmma'
+        'resource_tdx_2_1t5h2mngzd20822qf4crt76pc52ms5ml4534va9cs7ddqagna7ye6jt',
+        'resource_tdx_2_1thfqzpm8rnf9c9c45n9t56h0h9lnr6d4d3htpp2j0clf7gek4v8ugw',
+        'resource_tdx_2_1thr2u25j2fw45lfrttrsawvwu0m5cdm0y2qtkr2nzd45m296wz4fke'
       ),
     ].reduce(async (prev, manifest) => {
       await prev
@@ -72,20 +72,20 @@ describe('pools manifests', () => {
   it('should contribute to pools', () => {
     ;[
       contributeToPoolManifest(
-        'account_tdx_d_1289fvg92eldy87sas4j0sqy5jnld4q7lavqhlu9sxf5cjcsj7hyx9u',
-        'pool_tdx_d_1chglnrgkkn4uqgfsea7t9h4lzcy9a2agsp5h24vnws0njs4n7ey95q',
+        'account_tdx_2_168qgdkgfqxpnswu38wy6fy5v0q0um52zd0umuely5t9xrf88x4wqmf',
+        'pool_tdx_2_1c5mplf9rxrht4rm9pq2dx3euqh4glccgfq6wldynl6t4ryjzg680pe',
         [
           {
             amount: '100',
             resourceAddress:
-              'resource_tdx_d_1tks6e8anwle200a78zt2393d9azxppyln3p4508a7j532mlzhu5d4y',
+              'resource_tdx_2_1thr2u25j2fw45lfrttrsawvwu0m5cdm0y2qtkr2nzd45m296wz4fke',
           },
           {
             amount: '200',
             accountToWithdrawFrom:
-              'account_tdx_d_1289fvg92eldy87sas4j0sqy5jnld4q7lavqhlu9sxf5cjcsj7hyx9u',
+              'account_tdx_2_12yvp2f66agxcqpe6l26cavhkvuel9x4l6cezc8k3exq6a6vh4ty3hq',
             resourceAddress:
-              'resource_tdx_d_1tks6e8anwle200a78zt2393d9azxppyln3p4508a7j532mlzhu5d4y',
+              'resource_tdx_2_1t45j74dexzlu6ugnm8eask498c47pmxlj4sptrrv7ve0re0tnlrgac',
           },
         ]
       ),
