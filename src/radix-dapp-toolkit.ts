@@ -215,9 +215,7 @@ export const RadixDappToolkit = (
 
             window.open(url)
           } else if (type === 'setupGuide')
-            window.open(
-              'https://docs-babylon.radixdlt.com/main/getting-started-developers/wallet/wallet-and-connector-installation.html'
-            )
+            window.open('https://wallet.radixdlt.com')
           else if (type === 'showQrCode') {
             walletSdk.openPopup()
           }
