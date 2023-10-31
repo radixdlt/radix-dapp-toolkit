@@ -22,6 +22,7 @@
       - [`DataRequestBuilder.config(input: DataRequestState)`](#datarequestbuilderconfiginput-datarequeststate)
     - [Handle connect responses](#handle-connect-responses)
     - [One Time Data Request](#one-time-data-request)
+    - [Data Requests Sandbox](#data-requests-sandbox)
   - [State changes](#state-changes)
   - [Transaction requests](#transaction-requests)
     - [Build transaction manifest](#build-transaction-manifest)
@@ -377,6 +378,12 @@ if (result.isErr()) return handleException()
 // }
 const walletData = result.value
 ```
+
+### Data Requests Sandbox
+
+Play around with the different data requests in
+* [Stokenet sandbox environment](https://stokenet-sandbox.radixdlt.com/)
+* [Mainnet sandbox environment](https://sandbox.radixdlt.com/)
 
 ## State changes
 
