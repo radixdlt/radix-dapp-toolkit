@@ -31,7 +31,7 @@
       },
       "require": {
         "types": "./types/index.d.ts",
-        "default": "./dist/radix-dapp-toolkit.js"
+        "default": "./dist/radix-dapp-toolkit.umd.js"
       }
     }
   },
