@@ -3,6 +3,7 @@ import {
   fromEvent,
   map,
   merge,
+  of,
   Subscription,
   switchMap,
   tap,
@@ -44,7 +45,10 @@ export const ConnectButtonClient = (input: {
   const subscriptions = new Subscription()
 
   subscriptions.add(
-    fromEvent(document, 'onRender')
+    merge(
+      fromEvent(document, 'onRender'),
+      of(getConnectButtonElement()).pipe(filter((e) => !!e))
+    )
       .pipe(
         map(() => getConnectButtonElement()),
         filter((element): element is ConnectButton => !!element),
