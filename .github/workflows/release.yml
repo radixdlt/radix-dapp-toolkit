@@ -49,7 +49,7 @@ jobs:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json --json-file-output sbom.json
           command: sbom
       - name: Upload SBOM
-        uses: RDXWorks-actions/upload-release-assets@master
+        uses: RDXWorks-actions/upload-release-assets@c94805dc72e4b20745f543da0f62eaee7722df7a
         with:
           files: sbom.json
           repo-token: ${{ secrets.GITHUB_TOKEN }}
