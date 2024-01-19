@@ -1,27 +1,9 @@
 name: Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      ENVIRONMENT_NAME:
-        description: 'Environment Name'
-        required: true
-        default: Stokenet
-        type: choice
-        options:
-          - Mainnet
-          - Stokenet
-
   push:
     branches:
-      - develop
-      - release/*
-  pull_request:
-    branches:
-      - develop
-      - release/**
-  release:
-    types: [published]
+      - '**'
 
 jobs:
   snyk-scan-deps-licences:
