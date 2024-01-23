@@ -95,7 +95,12 @@ export const createMockContext = (): MockContext => {
     connectButtonSubjects.onLinkClick.asObservable() as any
 
   gatewayApiClientMock.getEntityDetails.mockReturnValue(
-    okAsync(undefined) as any
+    okAsync({
+      address: 'test',
+      metadata: {
+        items: [],
+      },
+    }) as any
   )
 
   return {

@@ -9,6 +9,7 @@ import { GatewayApiClient } from './gateway/gateway-api'
 import { GatewayClient, MetadataValue } from './gateway/gateway'
 import {
   BehaviorSubject,
+  Observable,
   Subscription,
   filter,
   merge,
@@ -23,7 +24,10 @@ import { LocalStorageClient } from './storage/local-storage-client'
 import { DataRequestClient } from './data-request/data-request'
 import { transformWalletDataToConnectButton } from './data-request/transformations/wallet-data-to-connect-button'
 import { DataRequestStateClient } from './data-request/data-request-state'
-import { RadixNetworkConfigById } from '@radixdlt/babylon-gateway-api-sdk'
+import {
+  RadixNetworkConfigById,
+  StateEntityDetailsVaultResponseItem,
+} from '@radixdlt/babylon-gateway-api-sdk'
 import {
   ButtonApi,
   GatewayApi,
@@ -38,6 +42,10 @@ import { mergeMap, withLatestFrom } from 'rxjs/operators'
 import { WalletData } from './state/types'
 
 export type RadixDappToolkit = {
+  dAppDefinitionAccount: {
+    entityDetails$: Observable<StateEntityDetailsVaultResponseItem>
+    entityDetails: StateEntityDetailsVaultResponseItem | undefined
+  }
   walletApi: WalletApi
   gatewayApi: GatewayApi
   buttonApi: ButtonApi
@@ -67,6 +75,9 @@ export const RadixDappToolkit = (
   const dAppDefinitionAddressSubject = new BehaviorSubject<string>(
     dAppDefinitionAddress
   )
+  const stateEntityDetailsSubject = new BehaviorSubject<
+    StateEntityDetailsVaultResponseItem | undefined
+  >(undefined)
   const subscriptions = new Subscription()
 
   const connectButtonClient =
@@ -155,12 +166,12 @@ export const RadixDappToolkit = (
         switchMap((address) =>
           gatewayClient.gatewayApi
             .getEntityDetails(address)
-            .map(
-              (details) =>
-                MetadataValue(
-                  details?.metadata.items.find((item) => item.key === 'name')
-                ).stringified
-            )
+            .map((details) => {
+              stateEntityDetailsSubject.next(details)
+              return MetadataValue(
+                details?.metadata.items.find((item) => item.key === 'name')
+              ).stringified
+            })
             .map((dAppName) => {
               connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')
             })
@@ -357,6 +368,19 @@ export const RadixDappToolkit = (
   }
 
   return {
+    dAppDefinitionAccount: {
+      entityDetails$: stateEntityDetailsSubject
+        .asObservable()
+        .pipe(
+          filter(
+            (details): details is StateEntityDetailsVaultResponseItem =>
+              !!details
+          )
+        ),
+      get entityDetails() {
+        return stateEntityDetailsSubject.value
+      },
+    },
     walletApi,
     gatewayApi,
     buttonApi,
