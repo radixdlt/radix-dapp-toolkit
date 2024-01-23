@@ -41,4 +41,19 @@ describe('RadixDappToolkit', () => {
       'Unnamed dApp'
     )
   })
+
+  it('should emit stateEntityDetails response', async () => {
+    const rdt = createRdt()
+    const spy = jest.fn()
+    rdt.stateEntityDetails$.subscribe(spy)
+
+    await delayAsync(0)
+
+    expect(spy).toHaveBeenCalledWith({
+      address: 'test',
+      metadata: {
+        items: [],
+      },
+    })
+  })
 })

@@ -27,6 +27,7 @@
   - [Transaction requests](#transaction-requests)
     - [Build transaction manifest](#build-transaction-manifest)
     - [sendTransaction](#sendtransaction)
+  - [State Entity Details - dApp account](#state-entity-details---dapp-account)
 - [ROLA (Radix Off-Ledger Authentication)](#rola-radix-off-ledger-authentication)
 - [√ Connect Button](#-connect-button)
   - [Styling](#styling)
@@ -34,9 +35,8 @@
     - [Modes](#modes)
     - [CSS variables](#css-variables)
     - [Compact mode](#compact-mode)
-    - [Sandbox](#sandbox)
+    - [Storybook - Connect Button Playground](#storybook---connect-button-playground)
 - [Setting up your dApp Definition](#setting-up-your-dapp-definition)
-  - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
 - [Data storage](#data-storage)
 - [Examples](#examples)
 - [License](#license)
@@ -471,6 +471,18 @@ const transactionIntentHash = result.value.transactionIntentHash
 
 </details>
 
+## State Entity Details - dApp account
+
+Right after RDT is instantiated it'll trigger Gateway request to find information about provided dApp definition account. Response of that request is available through `stateEntityDetails$` observable.
+
+<summary>stateEntityDetails$ usage example</summary>
+
+```typescript
+rdt.stateEntityDetails$.subscribe((details) => console.log(details))
+```
+
+</details>
+
 # ROLA (Radix Off-Ledger Authentication)
 
 ROLA is method of authenticating something claimed by the user connected to your dApp with the Radix Wallet. It uses the capabilities of the Radix Network to make this possible in a way that is decentralized and flexible for the user.
@@ -542,10 +554,10 @@ body {
 
 Setting `--radix-connect-button-width` below `138px` will enable compact mode.
 
-### Sandbox
+### Storybook - Connect Button Playground
 
 Play around with the different configurations on the
-[sandbox environment](https://connect-button-storybook.radixdlt.com/)
+[storybook environment](https://connect-button-storybook.radixdlt.com/)
 
 # Setting up your dApp Definition
 
@@ -561,19 +573,7 @@ Creating a dApp Definition for your dApp will provide the necessary information 
 
 You can read more about dApp Definitions [here](https://docs.radixdlt.com/docs/metadata-for-verification).
 
-## Setting up a dApp Definition on the Radix Dashboard
-
-1. **Create a new account in the Radix Wallet.** This is the account which we will convert to a dApp Definition account.
-
-2. **Head to the Radix Dashboard’s Manage dApp Definitions page**. This page provides a simple interface to set the metadata on an account to make it a dApp Definition.
-
-3. **Connect your Radix Wallet to the Dashboard** and make sure you share the account that you just created to be a dApp Definition. Select that account on the Dashboard page.
-
-4. **Now check the box for “Set this account as a dApp Definition”, and fill in the name and description you want to use for your dApp.** Later you’ll also be able to specify an icon image, but that’s not ready just yet.
-
-5. **Click “Update”** and an approve transaction should appear in your Radix Wallet. Done!
-
-Provide account address as the the dApp Definition address that you just created, and it will be sent to the Radix Wallet whenever a user connects or receives a transaction from your dApp. The Wallet will then look up that dApp Definition address on the Radix Network, pull the latest metadata, and show it to the user. When a user logins to your dApp, an entry in the wallet’s preferences for your dApp will appear too. Try it out for yourself!
+You can read more about how to set proper metadata on dApp definition account [here](https://docs.radixdlt.com/docs/dapp-definition-setup).
 
 # Data storage
 
