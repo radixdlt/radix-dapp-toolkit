@@ -41,4 +41,32 @@ describe('RadixDappToolkit', () => {
       'Unnamed dApp'
     )
   })
+
+  it('should emit stateEntityDetails response', async () => {
+    const rdt = createRdt()
+    const spy = jest.fn()
+    rdt.dAppDefinitionAccount.entityDetails$.subscribe(spy)
+
+    await delayAsync(0)
+
+    expect(spy).toHaveBeenCalledWith({
+      address: 'test',
+      metadata: {
+        items: [],
+      },
+    })
+  })
+
+  it('should set dAppDefinitionAccount.entityDetails ', async () => {
+    const rdt = createRdt()
+
+    expect(rdt.dAppDefinitionAccount.entityDetails).toBe(undefined)
+    await delayAsync(0)
+    expect(rdt.dAppDefinitionAccount.entityDetails).toEqual({
+      address: 'test',
+      metadata: {
+        items: [],
+      },
+    })
+  })
 })
