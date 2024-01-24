@@ -130,6 +130,7 @@ export const StateClient = (
     return {
       walletData: subjects.walletData.value,
       sharedData: subjects.sharedData.value,
+      sessionId: subjects.sessionId.value,
       loggedInTimestamp: subjects.loggedInTimestamp.value,
     }
   }

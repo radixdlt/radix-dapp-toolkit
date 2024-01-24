@@ -349,7 +349,11 @@ export const RadixDappToolkit = (
       withInterceptor({
         type: 'sendTransaction',
         payload: input,
-      }).andThen(walletClient.sendTransaction),
+      }).andThen((data) => {
+        return walletClient.sendTransaction(data, {
+          sessionId: stateClient.getState().sessionId,
+        })
+      }),
     walletData$: stateClient.walletData$,
     getWalletData: () => stateClient.getWalletData(),
   }
