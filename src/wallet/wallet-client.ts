@@ -158,6 +158,7 @@ export const WalletClient = (input: {
   return {
     request: sendWalletRequest,
     sendTransaction,
+    removeSessionId: walletSdk.removeSessionId,
     extensionStatus$: walletSdk.extensionStatus$,
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,
