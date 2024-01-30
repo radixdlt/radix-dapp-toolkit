@@ -6,5 +6,6 @@ export const StateSubjects = () => ({
   walletData: new BehaviorSubject<WalletData>(walletDataDefault),
   sharedData: new BehaviorSubject<SharedData>({}),
   loggedInTimestamp: new BehaviorSubject<string>(''),
+  sessionId: new BehaviorSubject<string | undefined>(undefined),
   initialized: new BehaviorSubject<boolean>(false),
 })

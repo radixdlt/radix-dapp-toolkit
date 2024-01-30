@@ -51,7 +51,7 @@
   "dependencies": {
     "@radixdlt/babylon-gateway-api-sdk": "^1.2.7",
     "@radixdlt/connect-button": "^1.0.4",
-    "@radixdlt/wallet-sdk": "1.0.1",
+    "@radixdlt/wallet-sdk": "1.0.0-cap36.3",
     "immer": "^10.0.2",
     "lodash.isequal": "^4.5.0",
     "neverthrow": "^6.0.0",
