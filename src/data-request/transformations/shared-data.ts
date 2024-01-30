@@ -53,11 +53,13 @@ export const transformSharedDataToDataRequestState = (
           sharedData.ongoingPersonaData.numberOfRequestedPhoneNumbers,
         emailAddresses:
           sharedData.ongoingPersonaData.numberOfRequestedEmailAddresses,
-        reset: true,
+        reset: false,
       }
     }
 
     if (sharedData.persona) {
-      draft.persona = { withProof: !!sharedData.persona.proof }
+      draft.persona = {
+        withProof: false,
+      }
     }
   })
