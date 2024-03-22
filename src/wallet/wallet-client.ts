@@ -1,5 +1,6 @@
 import {
   MessageLifeCycleEvent,
+  WalletInteractionArbitraryData,
   WalletSdk as WalletSdkType,
 } from '@radixdlt/wallet-sdk'
 import {
@@ -74,10 +75,11 @@ export const WalletClient = (input: {
 
   const sendWalletRequest = (
     input: Parameters<WalletSdkType['request']>[0],
-    requestItemId: string
+    requestItemId: string,
+    arbitraryData?: WalletInteractionArbitraryData
   ) => {
     return walletSdk
-      .request(input, cancelRequestControl(requestItemId))
+      .request(input, cancelRequestControl(requestItemId), arbitraryData)
       .map((response) => {
         logger?.debug(`⬇️walletSuccessResponse`, response)
 
@@ -96,13 +98,17 @@ export const WalletClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const sendTransaction = ({
-    onTransactionId,
-    ...rest
-  }: SendTransactionInput) => {
+  const sendTransaction = (
+    { onTransactionId, ...rest }: SendTransactionInput,
+    arbitraryData: WalletInteractionArbitraryData
+  ) => {
     const { id } = requestItemClient.add('sendTransaction')
     return walletSdk
-      .sendTransaction({ version: 1, ...rest }, cancelRequestControl(id))
+      .sendTransaction(
+        { version: 1, ...rest },
+        cancelRequestControl(id),
+        arbitraryData
+      )
       .mapErr((response) => {
         requestItemClient.updateStatus({
           id,
@@ -152,6 +158,7 @@ export const WalletClient = (input: {
   return {
     request: sendWalletRequest,
     sendTransaction,
+    removeSessionId: walletSdk.removeSessionId,
     extensionStatus$: walletSdk.extensionStatus$,
     requestItems$: requestItemClient.items$,
     resetRequestItems: requestItemClient.reset,

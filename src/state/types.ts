@@ -86,6 +86,7 @@ export const SharedData = object({
 export type RdtState = z.infer<typeof RdtState>
 export const RdtState = object({
   loggedInTimestamp: string(),
+  sessionId: string().optional(), // TODO: if we want to force logout on RDT update this should not be optional
   walletData: WalletData,
   sharedData: SharedData,
 })

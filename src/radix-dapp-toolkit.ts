@@ -153,7 +153,13 @@ export const RadixDappToolkit = (
     requestItemClient.items$.value.forEach((item) => {
       if (item.showCancel) walletClient.cancelRequest(item.id)
     })
+    const sessionId = stateClient.getState().sessionId
+    if (sessionId) {
+      walletClient.removeSessionId(sessionId)
+    }
+
     stateClient.reset()
+
     walletClient.resetRequestItems()
     connectButtonClient.disconnect()
     if (onDisconnect) onDisconnect()
@@ -349,7 +355,11 @@ export const RadixDappToolkit = (
       withInterceptor({
         type: 'sendTransaction',
         payload: input,
-      }).andThen(walletClient.sendTransaction),
+      }).andThen((data) => {
+        return walletClient.sendTransaction(data, {
+          sessionId: stateClient.getState().sessionId,
+        })
+      }),
     walletData$: stateClient.walletData$,
     getWalletData: () => stateClient.getWalletData(),
   }

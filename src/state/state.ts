@@ -35,11 +35,13 @@ export const StateClient = (
   const state = combineLatest([
     subjects.walletData,
     subjects.sharedData,
+    subjects.sessionId,
     subjects.loggedInTimestamp,
   ]).pipe(
-    map(([walletData, sharedData, loggedInTimestamp]) => ({
+    map(([walletData, sharedData, sessionId, loggedInTimestamp]) => ({
       walletData,
       sharedData,
+      sessionId,
       loggedInTimestamp,
     }))
   )
@@ -64,7 +66,7 @@ export const StateClient = (
   }
 
   const setState = (state: Partial<RdtState>) => {
-    const { walletData, sharedData, loggedInTimestamp } = state
+    const { walletData, sharedData, loggedInTimestamp, sessionId } = state
     if (walletData && !isEqual(subjects.walletData.value, walletData)) {
       subjects.walletData.next(walletData)
     }
@@ -72,6 +74,7 @@ export const StateClient = (
     if (sharedData) subjects.sharedData.next(sharedData)
     if (loggedInTimestamp !== undefined)
       subjects.loggedInTimestamp.next(loggedInTimestamp)
+    if (sessionId) subjects.sessionId.next(sessionId)
   }
 
   const resetState = () => {
@@ -81,6 +84,7 @@ export const StateClient = (
 
     subjects.sharedData.next({})
     subjects.loggedInTimestamp.next('')
+    subjects.sessionId.next(undefined)
   }
 
   const initializeState = () =>
@@ -130,6 +134,7 @@ export const StateClient = (
     return {
       walletData: subjects.walletData.value,
       sharedData: subjects.sharedData.value,
+      sessionId: subjects.sessionId.value,
       loggedInTimestamp: subjects.loggedInTimestamp.value,
     }
   }

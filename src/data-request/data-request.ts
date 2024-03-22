@@ -114,6 +114,8 @@ export const DataRequestClient = ({
       )
       .andThen((walletDataRequest) => {
         const state = stateClient.getState()
+        let sessionId = state.sessionId
+
         if (
           canDataRequestBeResolvedByRdtState(walletDataRequest, state) &&
           useCache
@@ -123,6 +125,10 @@ export const DataRequestClient = ({
         const isLoginRequest =
           !stateClient.getState().walletData.persona &&
           walletDataRequest.discriminator === 'authorizedRequest'
+
+        if (isLoginRequest) {
+          sessionId = crypto.randomUUID()
+        }
 
         return requestInterceptor({
           type: 'dataRequest',
@@ -136,7 +142,7 @@ export const DataRequestClient = ({
           })
           .andThen(({ walletDataRequest, id }) =>
             walletClient
-              .request(walletDataRequest, id)
+              .request(walletDataRequest, id, { sessionId })
               .mapErr(
                 ({ error, message }): { error: string; message?: string } => ({
                   error: error,
@@ -167,6 +173,7 @@ export const DataRequestClient = ({
                 if (!oneTime)
                   stateClient.setState({
                     loggedInTimestamp: Date.now().toString(),
+                    sessionId,
                     walletData,
                     sharedData: transformWalletRequestToSharedData(
                       walletDataRequest,
