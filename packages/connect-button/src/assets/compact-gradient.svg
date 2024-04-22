@@ -1,0 +1,39 @@
+<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <path filter="url(#top-left-teal)"
+            d="M-5.02323 -15.1265C3.6018 -19.5413 14.1028 -14.3597 18.4315 -3.55299C22.7601 7.25368 19.2772 19.5931 10.6522 24.0079C2.02713 28.4227 -26.8846 7.37587 -31.2133 -3.4308C-35.5419 -14.2375 -13.6483 -10.7117 -5.02323 -15.1265Z"
+            fill="#21FFBE" />
+        <filter id="top-left-teal" x="-51.7737" y="-36.7019" width="92.0654" height="81.3096"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+    </g>
+    <g>
+        <path filter="url(#bottom-right-azure)"
+            d="M26.6079 29.467C34.382 23.0869 44.4302 23.7477 49.0512 30.943C53.6721 38.1382 51.116 49.1432 43.342 55.5233C35.5679 61.9034 7.52836 54.6703 2.9074 47.4751C-1.71357 40.2798 18.8339 35.8471 26.6079 29.467Z"
+            fill="#20E4FF" />
+        <filter id="bottom-right-azure" x="-17.7618" y="5.08276" width="89.1145" height="72.9"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+    </g>
+    <g>
+        <path filter="url(#bottom-left-blue)"
+            d="M14.2796 29.509C23.8197 34.0427 28.7602 45.2292 25.3145 54.4949C21.8688 63.7605 11.3417 67.5966 1.80158 63.063C-7.73855 58.5293 -17.0537 24.0904 -13.608 14.8247C-10.1623 5.55904 4.73945 24.9754 14.2796 29.509Z"
+            fill="#060F8F" />
+        <filter id="bottom-left-blue" x="-34.3402" y="-7.64941" width="80.7519" height="92.6172"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+    </g>
+    <g>
+        <path filter="url(#top-right-purple)"
+            d="M54.2498 27.4001C39.5091 28.4659 26.9865 19.204 26.2798 6.71296C25.573 -5.77804 36.9497 -16.768 51.6903 -17.8338C66.431 -18.8997 97.4246 13.3831 98.1314 25.8741C98.8381 38.3651 68.9904 26.3342 54.2498 27.4001Z"
+            fill="#FF43CA" />
+        <filter id="top-right-purple" x="6.24852" y="-37.8596" width="111.895" height="89.4506"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+    </g>
+</svg>
+    

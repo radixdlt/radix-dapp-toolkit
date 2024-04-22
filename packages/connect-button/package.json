@@ -1,0 +1,84 @@
+{
+  "name": "@radixdlt/connect-button",
+  "description": "Radix Connect button repository",
+  "version": "0.0.0",
+  "homepage": "https://developers.radixdlt.com",
+  "keywords": [
+    "radix",
+    "connect",
+    "button",
+    "dlt",
+    "web3",
+    "dApp",
+    "crypto",
+    "DeFi"
+  ],
+  "authors": [
+    "Alex Stelea <alex.stelea@rdx.works>",
+    "Dawid Sowa <dawid.sowa@rdx.works>"
+  ],
+  "bugs": "https://github.com/radixdlt/connect-button/issues",
+  "license": "SEE LICENSE IN RADIX-SOFTWARE-EULA",
+  "type": "module",
+  "main": "./dist/connect-button.js",
+  "module": "./dist/connect-button.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/connect-button.js"
+      },
+      "require": {
+        "types": "./types/index.d.cts",
+        "default": "./dist/connect-button.umd.cjs"
+      }
+    }
+  },
+  "files": [
+    "RADIX-SOFTWARE-EULA",
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "dev": "npm run build -- --watch",
+    "build": "tsc && vite build",
+    "dev:example": "vite serve examples",
+    "storybook": "storybook dev -p 6006",
+    "build:storybook": "storybook build",
+    "prettier": "prettier --cache --check src",
+    "pre-push": "npm run prettier && npm run build && npm run build:storybook"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "lit": "3.1.2",
+    "radix-connect-common": "*"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@babel/preset-typescript": "^7.22.5",
+    "@commitlint/cli": "^17.6.6",
+    "@commitlint/config-conventional": "^17.6.6",
+    "@playwright/test": "^1.35.1",
+    "@storybook/addon-actions": "^7.0.24",
+    "@storybook/addon-essentials": "^7.0.24",
+    "@storybook/addon-links": "^7.0.24",
+    "@storybook/web-components": "^7.0.24",
+    "@storybook/web-components-vite": "^7.0.24",
+    "babel-loader": "^9.1.2",
+    "babel-preset-vite": "^1.1.0",
+    "husky": "^8.0.3",
+    "rollup-plugin-minify-html-literals": "^1.2.6",
+    "storybook": "^7.0.24",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6",
+    "vite": "^4.3.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/connect-button.git"
+  }
+}

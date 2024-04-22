@@ -1,0 +1,17 @@
+.wrapper {
+  display: flex;
+}
+
+.column.dark {
+  background: #7a7676;
+}
+
+.row {
+  margin: 1rem;
+  white-space: nowrap;
+  display: flex;
+}
+
+radix-button {
+  margin-right: 0.3rem;
+}
