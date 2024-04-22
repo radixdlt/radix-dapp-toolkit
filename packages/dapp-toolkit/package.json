@@ -56,14 +56,14 @@
     "neverthrow": "6.1.0",
     "rxjs": "7.8.1",
     "tslog": "4.8.2",
-    "valibot": "0.30.0",
-    "radix-connect-common": "*"
+    "valibot": "0.30.0"
   },
   "devDependencies": {
     "@radixdlt/connect-button": "*",
     "semantic-release": "^23.0.0",
     "@saithodev/semantic-release-backmerge": "^3.2.1",
     "@semantic-release/exec": "^6.0.3",
+    "radix-connect-common": "*",
     "semantic-release-replace-plugin": "^1.2.7",
     "tsup": "^8.0.2",
     "typescript": "^5.4.4",
