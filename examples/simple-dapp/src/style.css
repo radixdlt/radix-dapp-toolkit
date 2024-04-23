@@ -102,3 +102,7 @@ pre {
   text-align: left;
   overflow: auto;
 }
+
+.mt-25 {
+  margin-top: 10px;
+}

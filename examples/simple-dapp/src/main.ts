@@ -7,6 +7,8 @@ import {
   RequestItemClient,
   ConnectorExtensionClient,
   DataRequestBuilder,
+  RadixConnectRelayClient,
+  OneTimeDataRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
@@ -22,7 +24,12 @@ const stateStore = storageClient.getPartition('state')
 const content = document.getElementById('app')!
 
 content.innerHTML = `
+  <button id="continue">Continue login request</button>
+  
   <button id="reset">Reset</button>
+
+  <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
+
   <pre id="sessions"></pre>
   <pre id="keyPairs"></pre>
   <pre id="walletResponse"></pre>
@@ -39,6 +46,8 @@ const walletResponse = document.getElementById('walletResponse')!
 const device = document.getElementById('device')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
+const continueButton = document.getElementById('continue')!
+const oneTimeRequest = document.getElementById('one-time-request')!
 
 const logger = Logger()
 
@@ -55,6 +64,16 @@ const requestItemClient = RequestItemClient({
   providers: { storageClient: storageClient.getPartition('requests') },
 })
 
+const rcr = RadixConnectRelayClient({
+  logger,
+  walletUrl: 'https://d1rxdfxrfmemlj.cloudfront.net',
+  baseUrl: 'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
+  providers: {
+    requestItemClient,
+    storageClient,
+  },
+})
+
 const dAppToolkit = RadixDappToolkit({
   dAppDefinitionAddress,
   networkId,
@@ -64,6 +83,16 @@ const dAppToolkit = RadixDappToolkit({
     requestItemClient,
     transports: [
       ConnectorExtensionClient({ logger, providers: { requestItemClient } }),
+      RadixConnectRelayClient({
+        logger,
+        walletUrl: 'https://d1rxdfxrfmemlj.cloudfront.net',
+        baseUrl:
+          'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
+        providers: {
+          requestItemClient,
+          storageClient,
+        },
+      }),
     ],
   },
   logger,
@@ -84,6 +113,18 @@ resetButton.onclick = () => {
   identityStore.clear()
   window.location.hash = ``
   window.location.replace(window.location.origin)
+}
+
+continueButton.onclick = () => {
+  requestItemClient.getPendingItems().map((items) => {
+    if (items[0]) rcr.resume(items[0].interactionId)
+  })
+}
+
+oneTimeRequest.onclick = () => {
+  dAppToolkit.walletApi.sendOneTimeRequest(
+    OneTimeDataRequestBuilder.accounts().exactly(1),
+  )
 }
 
 setInterval(() => {
