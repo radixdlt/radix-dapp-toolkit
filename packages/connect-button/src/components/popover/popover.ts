@@ -75,7 +75,8 @@ export class RadixPopover extends LitElement {
         max-height: 100vh;
         border-radius: 12px;
         padding: 12px;
-        box-shadow: 0px 16px 35px 0px #00000047;
+        border: 1px solid var(--radix-popover-border-color);
+        box-shadow: 0px 11px 35px 0px #00000047;
       }
 
       :host([isMobile]) {

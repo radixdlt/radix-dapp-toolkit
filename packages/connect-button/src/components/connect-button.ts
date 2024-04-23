@@ -114,8 +114,12 @@ export class ConnectButton extends LitElement {
     }
   }
 
+  private readonly fontGoogleApiHref =
+    'https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,600'
+
   constructor() {
     super()
+    this.injectFontCSS()
     this.windowClickEventHandler = (event) => {
       if (!this.showPopoverMenu) return
       if (this.contains(event.target as HTMLElement)) return
@@ -141,6 +145,25 @@ export class ConnectButton extends LitElement {
         bubbles: true,
         composed: true,
       }),
+    )
+  }
+
+  private injectFontCSS() {
+    if (this.shouldSkipFontInjection()) {
+      return
+    }
+
+    const link = document.createElement('link')
+    link.setAttribute('rel', 'stylesheet')
+    link.setAttribute('href', this.fontGoogleApiHref)
+    document.head.append(link)
+  }
+
+  private shouldSkipFontInjection(): boolean {
+    return (
+      !!document.head.querySelector(
+        `link[href|="${this.fontGoogleApiHref}"]`,
+      ) || document.fonts.check('16px IBM Plex Sans')
     )
   }
 
@@ -293,8 +316,6 @@ export class ConnectButton extends LitElement {
     variablesCSS,
     themeCSS,
     css`
-      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap');
-
       :root {
         font-family: 'IBM Plex Sans';
         margin: 0;
