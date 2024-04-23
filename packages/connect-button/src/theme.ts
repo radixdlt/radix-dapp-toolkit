@@ -48,6 +48,7 @@ export const themeCSS = css`
 
   :host([mode='light']) {
     --radix-popover-background: color-mix(in srgb, #efefef 50%, transparent);
+    --radix-popover-border-color: var(--color-grey-3);
     --radix-popover-text-color: var(--color-grey-1);
 
     --radix-popover-tabs-background: color-mix(
@@ -93,6 +94,7 @@ export const themeCSS = css`
 
   :host([mode='dark']) {
     --radix-popover-background: color-mix(in srgb, #000000 50%, transparent);
+    --radix-popover-border-color: var(--color-dark);
     --radix-popover-text-color: var(--color-light);
 
     --radix-popover-tabs-background: color-mix(
