@@ -287,30 +287,6 @@ export const RadixConnectRelayClient = (input: {
       ),
     )
 
-  const resumeRequest = (
-    session: ActiveSession,
-    walletInteraction: WalletInteraction,
-  ) => {
-    const { sessionId } = session
-    const { interactionId } = walletInteraction
-
-    return requestItemClient
-      .patch(interactionId, { sentToWallet: true })
-      .mapErr(() => SdkError('FailedToUpdateRequestItem', interactionId))
-      .andThen(() => sendEncryptedRequest(session, walletInteraction))
-      .andThen(() =>
-        deepLinkClient.deepLinkToWallet({
-          sessionId,
-          interactionId,
-        }),
-      )
-      .andThen(() =>
-        waitForWalletResponse(walletInteraction.interactionId).map(
-          (item) => item.walletResponse!,
-        ),
-      )
-  }
-
   const send = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
@@ -323,7 +299,7 @@ export const RadixConnectRelayClient = (input: {
       .andThen((session) => {
         return session.status === 'Pending'
           ? handleLinkingRequest(session, walletInteraction)
-          : resumeRequest(session, walletInteraction)
+          : resume(walletInteraction.interactionId)
       })
 
   const handleWalletCallback = (values: Record<string, string>) => {
@@ -389,44 +365,49 @@ export const RadixConnectRelayClient = (input: {
 
   deepLinkClient.handleWalletCallback()
 
+  const resume = (interactionId: string) => {
+    sessionClient.findActiveSession().andThen((session) => {
+      if (session) {
+        const url = new URL(origin)
+        url.hash = 'connect'
+        url.searchParams.set('sessionId', session.sessionId)
+        url.searchParams.set('interactionId', interactionId)
+        const childWindow = window.open(url.toString())!
+
+        return requestItemClient.getPendingItems().andThen((pendingItems) => {
+          const pendingItem = pendingItems.find(
+            (item) => item.interactionId === interactionId,
+          )
+          if (pendingItem) {
+            return requestItemClient
+              .patch(interactionId, { sentToWallet: true })
+              .andThen(() =>
+                sendEncryptedRequest(session, pendingItem.walletInteraction),
+              )
+              .andThen(() =>
+                deepLinkClient.deepLinkToWallet(
+                  {
+                    sessionId: session.sessionId,
+                    interactionId: pendingItem.interactionId,
+                  },
+                  childWindow,
+                ),
+              )
+          }
+          return errAsync(SdkError('PendingItemNotFound', ''))
+        })
+      }
+      return okAsync(undefined)
+    })
+    return waitForWalletResponse(interactionId).map(
+      (item) => item.walletResponse!,
+    )
+  }
+
   return {
     isSupported: () => isMobile(),
     send,
-    resume: (interactionId: string) => {
-      sessionClient.findActiveSession().andThen((session) => {
-        if (session) {
-          const url = new URL(origin)
-          url.hash = 'connect'
-          url.searchParams.set('sessionId', session.sessionId)
-          url.searchParams.set('interactionId', interactionId)
-          const childWindow = window.open(url.toString())!
-
-          return requestItemClient.getPendingItems().andThen((pendingItems) => {
-            const pendingItem = pendingItems.find(
-              (item) => item.interactionId === interactionId,
-            )
-            if (pendingItem) {
-              return requestItemClient
-                .patch(interactionId, { sentToWallet: true })
-                .andThen(() =>
-                  sendEncryptedRequest(session, pendingItem.walletInteraction),
-                )
-                .andThen(() =>
-                  deepLinkClient.deepLinkToWallet(
-                    {
-                      sessionId: session.sessionId,
-                      interactionId: pendingItem.interactionId,
-                    },
-                    childWindow,
-                  ),
-                )
-            }
-            return errAsync(SdkError('PendingItemNotFound', ''))
-          })
-        }
-        return okAsync(undefined)
-      })
-    },
+    resume,
     disconnect: () => {},
     destroy: () => {
       subscriptions.unsubscribe()
