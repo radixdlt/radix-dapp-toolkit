@@ -473,6 +473,7 @@ export const WalletRequestClient = (input: {
           status: 'fail',
           error: response.error,
         })
+        interactionStatusChangeSubject.next('fail')
         logger?.debug({ method: 'sendTransaction.errorResponse', response })
         return response
       })
