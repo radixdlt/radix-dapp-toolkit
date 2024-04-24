@@ -216,10 +216,7 @@ export const WalletRequestClient = (input: {
       })
     }
 
-    return requestItemClient.updateStatus({
-      id: walletInteractionResponse.interactionId,
-      status: 'fail',
-    })
+    return okAsync(undefined)
   }
 
   const sendDataRequest = (walletInteraction: WalletInteraction) => {
