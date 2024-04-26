@@ -24,9 +24,7 @@ const stateStore = storageClient.getPartition('state')
 
 const content = document.getElementById('app')!
 
-content.innerHTML = `
-  <button id="continue">Continue login request</button>
-  
+content.innerHTML = `  
   <button id="reset">Reset</button>
 
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
@@ -128,11 +126,11 @@ resetButton.onclick = () => {
   window.location.replace(window.location.origin)
 }
 
-continueButton.onclick = () => {
-  requestItemClient.getPendingItems().map((items) => {
-    if (items[0]) rcr.resume(items[0].interactionId)
-  })
-}
+// continueButton.onclick = () => {
+//   requestItemClient.getPendingItems().map((items) => {
+//     if (items[0]) rcr.resume(items[0].interactionId)
+//   })
+// }
 
 oneTimeRequest.onclick = () => {
   dAppToolkit.walletApi.sendOneTimeRequest(

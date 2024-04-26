@@ -1,11 +1,11 @@
 import type { RequestItem, RequestStatusTypes } from 'radix-connect-common'
-import { Subscription } from 'rxjs'
+import { Subscription, filter, firstValueFrom, merge, mergeMap, of } from 'rxjs'
 import { RequestItemSubjects } from './subjects'
 import { Logger } from '../../helpers'
-import { ErrorType } from '../../error'
+import { ErrorType, SdkError } from '../../error'
 import { WalletInteraction } from '../../schemas'
 import { StorageProvider } from '../../storage'
-import { ResultAsync, errAsync } from 'neverthrow'
+import { Result, ResultAsync, errAsync } from 'neverthrow'
 export type RequestItemClientInput = {
   logger?: Logger
   subjects?: RequestItemSubjects
@@ -15,13 +15,11 @@ export type RequestItemClient = ReturnType<typeof RequestItemClient>
 export const RequestItemClient = (input: RequestItemClientInput) => {
   const logger = input?.logger?.getSubLogger({ name: 'RequestItemClient' })
   const subscriptions = new Subscription()
-  const subjects = input.subjects || RequestItemSubjects()
   const storageClient = input.providers.storageClient
 
- storageClient.getItemList().map((items) => {
-   logger?.debug({ method: 'initRequestItems', items })
-   subjects.items.next(items)
- })
+  storageClient.getItemList().map((items) => {
+    logger?.debug({ method: 'initRequestItems', items })
+  })
 
   const createItem = ({
     type,
@@ -114,6 +112,31 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
         Object.values(items).filter((item) => !item.walletResponse),
       )
 
+  const storeChange$ = merge(storageClient.storage$, of(null))
+
+  const waitForWalletResponse = (
+    interactionId: string,
+  ): ResultAsync<RequestItem, SdkError> =>
+    ResultAsync.fromPromise(
+      firstValueFrom(
+        storeChange$.pipe(
+          mergeMap(() =>
+            storageClient
+              .getItemById(interactionId)
+              .mapErr(() => SdkError('FailedToGetRequestItem', interactionId)),
+          ),
+          filter((result): result is Result<RequestItem, SdkError> => {
+            if (result.isErr()) return false
+            return (
+              result.value?.interactionId === interactionId &&
+              ['success', 'fail'].includes(result.value.status)
+            )
+          }),
+        ),
+      ),
+      () => SdkError('FailedToListenForWalletResponse', interactionId),
+    ).andThen((result) => result)
+
   return {
     add,
     cancel,
@@ -122,6 +145,8 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     getById: (id: string) => storageClient.getItemById(id),
     getPendingItems,
     store: storageClient,
+    waitForWalletResponse,
+    storeChange$,
     destroy: () => {
       subscriptions.unsubscribe()
     },
