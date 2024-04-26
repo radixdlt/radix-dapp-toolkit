@@ -74,6 +74,7 @@ export const RadixDappToolkit = (
         storageClient,
         gatewayClient,
         transports: options.providers?.transports,
+        requestItemClient: options.providers?.requestItemClient,
       },
     })
 

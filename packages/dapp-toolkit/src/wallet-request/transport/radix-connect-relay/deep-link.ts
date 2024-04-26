@@ -17,7 +17,7 @@ export const DeepLinkClient = (input: {
 
   const walletResponseSubject = new BehaviorSubject<Record<string, string>>({})
 
-  const isCallbackUrl = () => window.location.hash.includes(callBackPath)
+  const isCallbackUrl = () => window.location.href.includes(callBackPath)
 
   const shouldHandleWalletCallback = () =>
     platform.type === 'mobile' && isCallbackUrl()
