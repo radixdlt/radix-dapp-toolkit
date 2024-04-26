@@ -22,8 +22,9 @@ export type RadixDappToolkit = {
 export const RadixDappToolkit = (
   options: RadixDappToolkitOptions,
 ): RadixDappToolkit => {
+  const dAppDefinitionAddress =
+    options.dAppDefinitionAddress ?? options.applicationDappDefinitionAddress
   const {
-    dAppDefinitionAddress,
     networkId,
     providers,
     logger,
