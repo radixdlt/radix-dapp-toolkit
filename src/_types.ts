@@ -104,10 +104,21 @@ export type OptionalRadixDappToolkitOptions = {
   requestInterceptor: RequestInterceptor
 }
 
-export type RadixDappToolkitOptions = {
+type RequiredRadixDappToolkitOptions = {
   networkId: number
-  dAppDefinitionAddress: string
-} & Partial<OptionalRadixDappToolkitOptions>
+} & (
+  | {
+      dAppDefinitionAddress: string
+      applicationDappDefinitionAddress?: never
+    }
+  | {
+      dAppDefinitionAddress?: never
+      applicationDappDefinitionAddress: string
+    }
+)
+
+export type RadixDappToolkitOptions = Partial<OptionalRadixDappToolkitOptions> &
+  RequiredRadixDappToolkitOptions
 
 export type SendTransactionResult = ResultAsync<
   {
