@@ -46,10 +46,11 @@ export type RadixDappToolkit = {
 }
 
 export const RadixDappToolkit = (
-  options: RadixDappToolkitOptions
+  options: RadixDappToolkitOptions,
 ): RadixDappToolkit => {
+  const dAppDefinitionAddress =
+    options.dAppDefinitionAddress ?? options.applicationDappDefinitionAddress
   const {
-    dAppDefinitionAddress,
     networkId,
     providers,
     logger,
@@ -65,7 +66,7 @@ export const RadixDappToolkit = (
 
   const storageKey = `rdt:${dAppDefinitionAddress}:${networkId}`
   const dAppDefinitionAddressSubject = new BehaviorSubject<string>(
-    dAppDefinitionAddress
+    dAppDefinitionAddress,
   )
   const subscriptions = new Subscription()
 
@@ -158,15 +159,15 @@ export const RadixDappToolkit = (
             .map(
               (details) =>
                 MetadataValue(
-                  details?.metadata.items.find((item) => item.key === 'name')
-                ).stringified
+                  details?.metadata.items.find((item) => item.key === 'name'),
+                ).stringified,
             )
             .map((dAppName) => {
               connectButtonClient.setDappName(dAppName ?? 'Unnamed dApp')
-            })
-        )
+            }),
+        ),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
@@ -174,13 +175,13 @@ export const RadixDappToolkit = (
       .pipe(
         tap((result) => {
           connectButtonClient.setIsExtensionAvailable(
-            result.isExtensionAvailable
+            result.isExtensionAvailable,
           )
           connectButtonClient.setIsWalletLinked(result.isWalletLinked)
-        })
+        }),
       )
 
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
@@ -192,9 +193,9 @@ export const RadixDappToolkit = (
             isConnect: true,
             oneTime: false,
           })
-        })
+        }),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
@@ -219,9 +220,9 @@ export const RadixDappToolkit = (
           else if (type === 'showQrCode') {
             walletSdk.openPopup()
           }
-        })
+        }),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
@@ -232,13 +233,13 @@ export const RadixDappToolkit = (
           if (items.filter((item) => item.status === 'pending').length > 0) {
             connectButtonClient.setActiveTab('requests')
           }
-        })
+        }),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
-    connectButtonClient.onDisconnect$.pipe(tap(disconnect)).subscribe()
+    connectButtonClient.onDisconnect$.pipe(tap(disconnect)).subscribe(),
   )
 
   subscriptions.add(
@@ -252,15 +253,15 @@ export const RadixDappToolkit = (
           connectButtonClient.setPersonaData(personaData)
           connectButtonClient.setPersonaLabel(personaLabel)
           connectButtonClient.setConnected(connected)
-        })
+        }),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
     walletClient.requestItems$
       .pipe(tap((items) => connectButtonClient.setRequestItems(items)))
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
@@ -283,32 +284,32 @@ export const RadixDappToolkit = (
             (newStatus === 'success' || newStatus === 'fail')
           ) {
             connectButtonClient.setStatus(
-              newStatus === 'success' ? 'success' : 'error'
+              newStatus === 'success' ? 'success' : 'error',
             )
 
             return timer(2000).pipe(
               withLatestFrom(walletClient.requestItems$),
               tap(([_, items]) => {
                 const pendingItem = items.find(
-                  (item) => item.status === 'pending'
+                  (item) => item.status === 'pending',
                 )
                 connectButtonClient.setStatus(
-                  pendingItem ? 'pending' : 'default'
+                  pendingItem ? 'pending' : 'default',
                 )
-              })
+              }),
             )
           }
 
           return of()
-        })
+        }),
       )
-      .subscribe()
+      .subscribe(),
   )
 
   subscriptions.add(
     merge(connectButtonClient.onUpdateSharedData$)
       .pipe(switchMap(() => dataRequestClient.updateSharedData()))
-      .subscribe()
+      .subscribe(),
   )
 
   const gatewayApi = {
@@ -325,7 +326,7 @@ export const RadixDappToolkit = (
         oneTime: false,
       }),
     provideChallengeGenerator: (
-      input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0]
+      input: Parameters<typeof dataRequestClient.provideChallengeGenerator>[0],
     ) => dataRequestClient.provideChallengeGenerator(input),
     dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
       dataRequestClient.provideDataRequestControl(fn)
