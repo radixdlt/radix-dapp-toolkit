@@ -40,8 +40,10 @@ export const DeepLinkClient = (input: {
 
     logger?.debug({
       method: 'deepLinkToWallet',
+      hasChildWindow: !!childWindow,
       childWindowUrl: childWindowUrl.toString(),
       outboundUrl: outboundUrl.toString(),
+      browser,
     })
 
     if (childWindow && os.name === 'iOS' && browser.name === 'Safari') {
