@@ -1,6 +1,7 @@
 import { ConnectButtonClient } from './connect-button/connect-button-client'
 import {
   ButtonApi,
+  GatewayApiClientConfig,
   RadixDappToolkitOptions,
   SendTransactionInput,
   WalletApi,
@@ -10,11 +11,14 @@ import { GatewayClient } from './gateway/gateway'
 import { GatewayApiClient } from './gateway/gateway-api'
 import { WalletRequestClient } from './wallet-request'
 import { StateClient, WalletData } from './state'
-import { RadixNetworkConfigById } from './gateway/types'
+import { generateGatewayApiClientConfig } from './helpers/generate-gateway-api-config'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
   buttonApi: ButtonApi
+  gatewayApi: {
+    clientConfig: GatewayApiClientConfig
+  }
   disconnect: () => void
   destroy: () => void
 }
@@ -49,17 +53,19 @@ export const RadixDappToolkit = (
       },
     })
 
+  const gatewayApiClientConfig = generateGatewayApiClientConfig({
+    networkId,
+    dAppDefinitionAddress,
+    gatewayBaseUrl,
+    applicationName,
+    applicationVersion,
+  })
+
   const gatewayClient =
     providers?.gatewayClient ??
     GatewayClient({
       logger,
-      gatewayApi: GatewayApiClient({
-        basePath:
-          gatewayBaseUrl ?? RadixNetworkConfigById[networkId].gatewayUrl,
-        dAppDefinitionAddress,
-        applicationName,
-        applicationVersion,
-      }),
+      gatewayApi: GatewayApiClient(gatewayApiClientConfig),
     })
 
   const walletRequestClient =
@@ -122,6 +128,9 @@ export const RadixDappToolkit = (
       setTheme: connectButtonClient.setTheme,
       setMode: connectButtonClient.setMode,
       status$: connectButtonClient.status$,
+    },
+    gatewayApi: {
+      clientConfig: gatewayApiClientConfig,
     },
     disconnect: () => {
       walletRequestClient.disconnect()

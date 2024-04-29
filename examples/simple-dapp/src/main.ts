@@ -1,3 +1,4 @@
+import { GatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk'
 import './style.css'
 import {
   RadixDappToolkit,
@@ -28,6 +29,8 @@ content.innerHTML = `
   <pre id="walletResponse"></pre>
   <pre id="requests"></pre>
   <pre id="state"></pre>
+  <pre id="gatewayConfig"></pre>
+  <pre id="gatewayStatus"></pre>
   <pre id="device"></pre>
   <pre id="logs"></pre>
 `
@@ -39,6 +42,8 @@ const walletResponse = document.getElementById('walletResponse')!
 const device = document.getElementById('device')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
+const gatewayConfig = document.getElementById('gatewayConfig')!
+const gatewayStatus = document.getElementById('gatewayStatus')!
 
 const logger = Logger()
 
@@ -56,7 +61,7 @@ const requestItemClient = RequestItemClient({
 })
 
 const dAppToolkit = RadixDappToolkit({
-  dAppDefinitionAddress,
+  applicationDappDefinitionAddress: dAppDefinitionAddress,
   networkId,
   enableMobile: true,
   providers: {
@@ -69,6 +74,10 @@ const dAppToolkit = RadixDappToolkit({
   logger,
 })
 
+const gatewayApi = GatewayApiClient.initialize(
+  dAppToolkit.gatewayApi.clientConfig,
+)
+
 dAppToolkit.walletApi.provideChallengeGenerator(async () =>
   [...window.crypto.getRandomValues(new Uint8Array(32))]
     .map((x) => x.toString(16).padStart(2, '0'))
@@ -76,6 +85,10 @@ dAppToolkit.walletApi.provideChallengeGenerator(async () =>
 )
 
 dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
+
+gatewayConfig.innerHTML = `
+[Gateway]
+${JSON.stringify(dAppToolkit.gatewayApi.clientConfig, null, 2)}`
 
 resetButton.onclick = () => {
   sessionStore.clear()
@@ -96,9 +109,13 @@ setInterval(() => {
   sessionStore.getItemList().map((value: any) => {
     sessions.innerHTML = JSON.stringify({ sessions: value }, null, 2)
   })
-  // storageClient.getPartition('identities')
+  gatewayApi.status
+    .getCurrent()
+    .then(
+      (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
+    ) // storageClient.getPartition('identities')
   // .getState((state) => {
-  //   keyPairs.innerHTML = JSON.stringify(state, null, 2)
+  // keyPairs.innerHTML = JSON.stringify(state, null, 2)
   //   debugger
   // })
   // .map((items) => {

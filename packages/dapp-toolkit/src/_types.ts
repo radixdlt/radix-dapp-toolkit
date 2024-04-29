@@ -205,3 +205,10 @@ export type TransportProvider = {
   disconnect: () => void
   destroy: () => void
 }
+
+export type GatewayApiClientConfig = {
+  basePath: string
+  applicationName: string
+  applicationVersion: string
+  applicationDappDefinitionAddress: string
+}
