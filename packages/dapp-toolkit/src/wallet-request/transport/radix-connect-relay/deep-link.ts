@@ -1,21 +1,22 @@
 import type { Result, ResultAsync } from 'neverthrow'
 import { errAsync, ok, okAsync } from 'neverthrow'
 import { Logger } from '../../../helpers'
-import { BehaviorSubject } from 'rxjs'
+import { BehaviorSubject, ReplaySubject } from 'rxjs'
+import Bowser from 'bowser'
+import { SdkError } from '../../../error'
 
 export type DeepLinkClient = ReturnType<typeof DeepLinkClient>
 export const DeepLinkClient = (input: {
   logger?: Logger
   callBackPath: string
   walletUrl: string
-  origin: string
-  userAgent: Bowser.Parser.ParsedResult
 }) => {
-  const { callBackPath, walletUrl, origin, userAgent } = input
+  const { callBackPath, walletUrl } = input
+  const userAgent = Bowser.parse(window.navigator.userAgent)
   const { platform, os, browser } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkClient' })
 
-  const walletResponseSubject = new BehaviorSubject<Record<string, string>>({})
+  const walletResponseSubject = new ReplaySubject<Record<string, string>>(1)
 
   const isCallbackUrl = () => window.location.href.includes(callBackPath)
 
@@ -24,37 +25,30 @@ export const DeepLinkClient = (input: {
 
   const deepLinkToWallet = (
     values: Record<string, string>,
-    childWindow?: Window,
-  ): ResultAsync<undefined, never> => {
+  ): ResultAsync<undefined, SdkError> => {
     const outboundUrl = new URL(walletUrl)
-    const childWindowUrl = new URL(origin)
     const currentUrl = new URL(window.origin)
     currentUrl.hash = callBackPath
 
-    if (childWindow) childWindowUrl.hash = callBackPath
-
     Object.entries(values).forEach(([key, value]) => {
       outboundUrl.searchParams.append(key, value)
-      if (childWindow) childWindowUrl.searchParams.append(key, value)
     })
+
+    outboundUrl.searchParams.append('browser', browser.name ?? 'unknown')
 
     logger?.debug({
       method: 'deepLinkToWallet',
-      hasChildWindow: !!childWindow,
-      childWindowUrl: childWindowUrl.toString(),
-      outboundUrl: outboundUrl.toString(),
-      browser,
+      queryParams: outboundUrl.searchParams.toString(),
+      browser: browser.name ?? 'unknown',
     })
 
-    if (childWindow && os.name === 'iOS' && browser.name === 'Safari') {
-      childWindow.location.href = outboundUrl.toString()
-      return okAsync(undefined)
-    } else if (os.name === 'iOS' && browser.name === 'Safari') {
+    if (os.name === 'iOS') {
       window.location.href = outboundUrl.toString()
+
       return okAsync(undefined)
     }
 
-    return okAsync(undefined)
+    return errAsync(SdkError('UnhandledOs', ''))
   }
 
   const getWalletResponseFromUrl = (): Result<
@@ -63,6 +57,10 @@ export const DeepLinkClient = (input: {
   > => {
     const url = new URL(window.location.href)
     const values = Object.fromEntries([...url.searchParams.entries()])
+    logger?.debug({
+      method: 'getWalletResponseFromUrl',
+      values,
+    })
     return ok(values)
   }
 
