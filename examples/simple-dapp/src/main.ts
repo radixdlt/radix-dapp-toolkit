@@ -56,25 +56,22 @@ const logger = Logger()
 
 logger.attachTransport((logObj) => {
   const { _meta, ...rest } = logObj
-  logs.innerHTML = `${logs.innerHTML}
 
-[${_meta.name}]
-${JSON.stringify(rest, null, 2)}`
+  const storedLogs = localStorage.getItem('logs') ?? ''
+
+  const logEntry = `[${_meta.name}]
+${JSON.stringify(rest, null, 2)}  
+
+${logs.innerHTML}`
+
+  localStorage.setItem('logs', logEntry)
+
+  logs.innerHTML = logEntry
 })
 
 const requestItemClient = RequestItemClient({
   logger,
   providers: { storageClient: storageClient.getPartition('requests') },
-})
-
-const rcr = RadixConnectRelayClient({
-  logger,
-  walletUrl: 'https://d1rxdfxrfmemlj.cloudfront.net',
-  baseUrl: 'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
-  providers: {
-    requestItemClient,
-    storageClient,
-  },
 })
 
 const dAppToolkit = RadixDappToolkit({
@@ -105,11 +102,12 @@ const gatewayApi = GatewayApiClient.initialize(
   dAppToolkit.gatewayApi.clientConfig,
 )
 
-dAppToolkit.walletApi.provideChallengeGenerator(async () =>
-  [...window.crypto.getRandomValues(new Uint8Array(32))]
+dAppToolkit.walletApi.provideChallengeGenerator(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  return [...window.crypto.getRandomValues(new Uint8Array(32))]
     .map((x) => x.toString(16).padStart(2, '0'))
-    .join(''),
-)
+    .join('')
+})
 
 dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
 
@@ -122,6 +120,7 @@ resetButton.onclick = () => {
   requestsStore.clear()
   stateStore.clear()
   identityStore.clear()
+  localStorage.removeItem('logs')
   window.location.hash = ``
   window.location.replace(window.location.origin)
 }

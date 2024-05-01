@@ -57,14 +57,13 @@ export const RadixConnectRelayApi = (input: {
       .map((sealedBoxProps) => sealedBoxProps.combined.toString('hex'))
 
   const sendRequest = (
-    sessionId: string,
-    secretHex: string,
+    { sessionId, sharedSecret }: ActiveSession,
     walletInteraction: WalletInteraction,
   ): ResultAsync<void, SdkError> => {
     logger?.debug({ method: 'sendRequest', sessionId, walletInteraction })
     return encryptWalletInteraction(
       walletInteraction,
-      Buffer.from(secretHex, 'hex'),
+      Buffer.from(sharedSecret, 'hex'),
     ).andThen((encryptedWalletInteraction) =>
       fetchWrapper(
         fetch(baseUrl, {
