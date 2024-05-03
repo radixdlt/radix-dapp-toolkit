@@ -35,6 +35,12 @@ const argTypes = {
   isMobile: {
     control: 'boolean',
   },
+  enableMobile: {
+    control: 'boolean',
+  },
+  showLinking: {
+    control: 'boolean',
+  },
 }
 
 const defaultArgs = {
@@ -82,6 +88,8 @@ const Button = (args: any, { globals }: any) => {
           loggedInTimestamp=${args.loggedInTimestamp}
           ?connected=${args.connected}
           ?isMobile=${args.isMobile}
+          ?enableMobile=${args.enableMobile}
+          ?showLinking=${args.showLinking}
           ?isWalletLinked=${args.isWalletLinked}
           ?isExtensionAvailable=${args.isExtensionAvailable}
           ?showPopoverMenu=${args.showPopoverMenu}
@@ -222,9 +230,20 @@ export const mobileView = Template.bind({})
 mobileView.args = {
   ...defaultArgs,
   width: 120,
+  modal: true,
   isMobile: true,
 }
 mobileView.argTypes = argTypes
+
+export const linking = Template.bind({})
+linking.args = {
+  ...defaultArgs,
+  width: 120,
+  showLinking: true,
+  isMobile: true,
+  enableMobile: true,
+}
+linking.argTypes = argTypes
 
 export const sharing = Template.bind({})
 sharing.args = {

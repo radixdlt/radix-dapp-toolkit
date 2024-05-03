@@ -194,6 +194,7 @@ export type WalletDataState = {
 }
 
 export type TransportProvider = {
+  id: string
   isLinked$?: Observable<boolean>
   isAvailable$?: Observable<boolean>
   showQrCode?: () => void

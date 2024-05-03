@@ -1,9 +1,10 @@
-import { ResultAsync, err, errAsync, ok, okAsync } from 'neverthrow'
-import { Subscription, filter, switchMap, tap } from 'rxjs'
+import { ResultAsync, err, ok } from 'neverthrow'
+import { Subscription, filter, switchMap } from 'rxjs'
 import { EncryptionClient } from '../../encryption'
 import {
   ActiveSession,
   PendingSession,
+  Session,
   SessionClient,
 } from '../../session/session'
 import type {
@@ -20,6 +21,8 @@ import { StorageProvider } from '../../../storage'
 import { Curve25519 } from '../../crypto'
 import { RadixConnectRelayApi } from './api'
 import { RequestItem } from 'radix-connect-common'
+
+type SessionChangeEvent = (session: Session) => void
 
 export type RadixConnectRelayClient = ReturnType<typeof RadixConnectRelayClient>
 export const RadixConnectRelayClient = (input: {
@@ -40,6 +43,16 @@ export const RadixConnectRelayClient = (input: {
   const { requestItemClient, storageClient } = providers
 
   const encryptionClient = providers?.encryptionClient ?? EncryptionClient()
+
+  const sessionChangeListeners: SessionChangeEvent[] = []
+
+  const addSessionChangeListener = (listener: SessionChangeEvent) => {
+    sessionChangeListeners.push(listener)
+  }
+
+  const emitChangesToListeners = (session: Session) => {
+    sessionChangeListeners.forEach((listener) => listener(session))
+  }
 
   const deepLinkClient =
     providers?.deepLinkClient ??
@@ -173,8 +186,9 @@ export const RadixConnectRelayClient = (input: {
               .convertToActiveSession(sessionId, walletPublicKey)
               .mapErr(() => SdkError('FailedToUpdateSession', '')),
       )
-      .andThen((activeSession) =>
-        requestItemClient
+      .andThen((activeSession) => {
+        emitChangesToListeners(activeSession)
+        return requestItemClient
           .getPendingItems()
           .mapErr(() => SdkError('FailedToReadPendingItems', ''))
           .map((items) => {
@@ -182,8 +196,8 @@ export const RadixConnectRelayClient = (input: {
             return item
           })
 
-          .map((item) => ({ activeSession, pendingItem: item })),
-      )
+          .map((item) => ({ activeSession, pendingItem: item }))
+      })
       .andThen(
         ({
           activeSession,
@@ -327,8 +341,10 @@ export const RadixConnectRelayClient = (input: {
   deepLinkClient.handleWalletCallback()
 
   return {
+    id: 'radix-connect-relay' as const,
     isSupported: () => isMobile(),
     send: sendToWallet,
+    addSessionChangeListener,
     disconnect: () => {},
     destroy: () => {
       subscriptions.unsubscribe()
