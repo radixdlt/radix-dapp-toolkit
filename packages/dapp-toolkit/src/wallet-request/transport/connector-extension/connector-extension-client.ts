@@ -255,6 +255,7 @@ export const ConnectorExtensionClient = (input: {
   )
 
   return {
+    id: 'connector-extension' as const,
     isSupported: () => !isMobile(),
     send: sendWalletInteraction,
     isAvailable$: extensionStatus$.pipe(

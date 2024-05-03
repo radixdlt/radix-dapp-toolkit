@@ -22,6 +22,7 @@ import { ConnectButtonSubjects } from './subjects'
 import { type Logger } from '../helpers'
 import { ConnectButtonProvider, ExplorerConfig } from '../_types'
 import {
+  RadixConnectRelayClient,
   transformWalletDataToConnectButton,
   WalletRequestClient,
 } from '../wallet-request'
@@ -94,6 +95,17 @@ export const ConnectButtonClient = (input: {
           logger?.debug({ event: `connectButtonDiscovered` })
 
           connectButtonElement.enableMobile = enableMobile
+
+          if (transport?.id === 'radix-connect-relay') {
+            const radixConnectRelayClient = transport as RadixConnectRelayClient
+            radixConnectRelayClient.addSessionChangeListener((session) => {
+              setTimeout(() => {
+                connectButtonElement.showPopoverMenu = true
+                connectButtonElement.showLinking = true
+                connectButtonElement.pristine = false
+              }, 1000)
+            })
+          }
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
