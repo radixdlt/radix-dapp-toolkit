@@ -355,15 +355,20 @@ export const WalletRequestClient = (input: {
                 .map((transformedWalletResponse) => {
                   interactionStatusChangeSubject.next('success')
 
-                  if (!oneTime)
-                    stateClient.setState({
-                      loggedInTimestamp: Date.now().toString(),
-                      walletData: transformedWalletResponse,
-                      sharedData: transformWalletRequestToSharedData(
-                        walletInteraction,
-                        state.sharedData,
-                      ),
-                    })
+                  if (!oneTime) {
+                    stateClient
+                      .setState({
+                        loggedInTimestamp: Date.now().toString(),
+                        walletData: transformedWalletResponse,
+                        sharedData: transformWalletRequestToSharedData(
+                          walletInteraction,
+                          state.sharedData,
+                        ),
+                      })
+                      .map(() => {
+                        stateClient.emitWalletData()
+                      })
+                  }
 
                   return transformedWalletResponse
                 })
