@@ -55,8 +55,9 @@ export const StateClient = (input: {
           module: 'StateClient',
           method: `initializeState.loadedCorruptedStateFromStorage`,
         })
-        resetState()
-        emitWalletData()
+        resetState().map(() => {
+          emitWalletData()
+        })
       })
       .map(() => {
         emitWalletData()

@@ -19,7 +19,7 @@ import { IdentityClient } from '../../identity/identity'
 import { RequestItemClient } from '../../request-items/request-item-client'
 import { StorageProvider } from '../../../storage'
 import { Curve25519 } from '../../crypto'
-import { RadixConnectRelayApi } from './api'
+import { RadixConnectRelayApiClient } from './rcr-api-client'
 import { RequestItem } from 'radix-connect-common'
 import { TransportProvider } from '../../../_types'
 
@@ -71,7 +71,7 @@ export const RadixConnectRelayClient = (input: {
       },
     })
 
-  const radixConnectRelayApi = RadixConnectRelayApi({
+  const radixConnectRelayApiClient = RadixConnectRelayApiClient({
     baseUrl: `${baseUrl}/api/v1`,
     logger,
     providers: { encryptionClient },
@@ -116,7 +116,7 @@ export const RadixConnectRelayClient = (input: {
         requestItemClient
           .patch(walletInteraction.interactionId, { sentToWallet: true })
           .andThen(() =>
-            radixConnectRelayApi.sendRequest(
+            radixConnectRelayApiClient.sendRequest(
               session,
               pendingItem.walletInteraction,
             ),
@@ -200,7 +200,7 @@ export const RadixConnectRelayClient = (input: {
           pendingItem?: RequestItem
         }) =>
           pendingItem
-            ? radixConnectRelayApi
+            ? radixConnectRelayApiClient
                 .sendRequest(activeSession, pendingItem.walletInteraction)
                 .andThen(() =>
                   requestItemClient
@@ -258,7 +258,7 @@ export const RadixConnectRelayClient = (input: {
           const session = sessionResult.value
 
           if (session.status === 'Active') {
-            await radixConnectRelayApi
+            await radixConnectRelayApiClient
               .getResponses(session)
               .andThen((walletResponses) =>
                 ResultAsync.combine(

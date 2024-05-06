@@ -22,7 +22,6 @@ import { ConnectButtonSubjects } from './subjects'
 import { type Logger } from '../helpers'
 import { ConnectButtonProvider, ExplorerConfig } from '../_types'
 import {
-  RadixConnectRelayClient,
   transformWalletDataToConnectButton,
   WalletRequestClient,
 } from '../wallet-request'

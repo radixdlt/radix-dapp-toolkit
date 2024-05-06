@@ -416,10 +416,8 @@ export const WalletRequestClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const requestItemStore$ = merge(requestItemClient.store.storage$, of(null))
-
-  const requestItems$ = requestItemStore$.pipe(
-    switchMap(() => requestItemClient.store.getItemList()),
+  const requestItems$ = requestItemClient.store$.pipe(
+    switchMap(() => requestItemClient.getItems()),
     map((result) => {
       if (result.isOk()) return result.value
     }),
@@ -560,10 +558,7 @@ export const WalletRequestClient = (input: {
   const getTransport = (): TransportProvider | undefined =>
     transports.find((transport) => transport.isSupported())
 
-  const getPendingRequests = () =>
-    requestItemClient.store
-      .getItemList()
-      .map((items) => items.filter((item) => item.status === 'pending'))
+  const getPendingRequests = () => requestItemClient.getPendingRequests()
 
   const cancelRequest = (id: string) => {
     cancelRequestSubject.next(id)
@@ -576,14 +571,14 @@ export const WalletRequestClient = (input: {
   }
 
   const disconnect = () => {
-    requestItemClient.store.getItemList().map((items) => {
+    requestItemClient.getItems().map((items) => {
       items.forEach((item) => {
         if (item.showCancel) cancelRequestSubject.next(item.interactionId)
       })
     })
 
     stateClient.reset()
-    requestItemClient.store.clear()
+    requestItemClient.clear()
   }
 
   const destroy = () => {
