@@ -96,16 +96,16 @@ export const ConnectButtonClient = (input: {
 
           connectButtonElement.enableMobile = enableMobile
 
-          if (transport?.id === 'radix-connect-relay') {
-            const radixConnectRelayClient = transport as RadixConnectRelayClient
-            radixConnectRelayClient.addSessionChangeListener((session) => {
-              setTimeout(() => {
-                connectButtonElement.showPopoverMenu = true
-                connectButtonElement.showLinking = true
-                connectButtonElement.pristine = false
-              }, 1000)
-            })
-          }
+          if (transport?.sessionChange$)
+            subscriptions.add(
+              transport.sessionChange$.subscribe(() => {
+                setTimeout(() => {
+                  connectButtonElement.showPopoverMenu = true
+                  connectButtonElement.showLinking = true
+                  connectButtonElement.pristine = false
+                }, 1000)
+              }),
+            )
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {

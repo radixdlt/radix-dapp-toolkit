@@ -30,6 +30,7 @@ import {
 } from '../../../schemas'
 import { SdkError } from '../../../error'
 import { RequestItemClient } from '../../request-items'
+import { TransportProvider } from '../../../../dist'
 
 export type ConnectorExtensionClient = ReturnType<
   typeof ConnectorExtensionClient
@@ -276,5 +277,5 @@ export const ConnectorExtensionClient = (input: {
       subscription.unsubscribe()
       removeEventListener(eventType.incomingMessage, handleIncomingMessage)
     },
-  }
+  } satisfies TransportProvider
 }

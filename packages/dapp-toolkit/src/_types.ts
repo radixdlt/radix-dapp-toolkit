@@ -25,7 +25,7 @@ import { StateClient } from './state/state'
 import { WalletData, SignedChallenge } from './state/types'
 import type { Logger } from './helpers'
 import { SdkError } from './error'
-import { WalletRequestSdk } from './wallet-request'
+import { Session, WalletRequestSdk } from './wallet-request'
 import { TransactionStatus } from './gateway/types'
 import { StorageProvider } from './storage/local-storage-client'
 
@@ -197,6 +197,7 @@ export type TransportProvider = {
   id: string
   isLinked$?: Observable<boolean>
   isAvailable$?: Observable<boolean>
+  sessionChange$?: Observable<Session>
   showQrCode?: () => void
   isSupported: () => boolean
   send: (
