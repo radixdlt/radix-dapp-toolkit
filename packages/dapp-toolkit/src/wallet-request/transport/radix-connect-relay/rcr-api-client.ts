@@ -15,8 +15,10 @@ import {
 } from 'rxjs'
 import { Buffer } from 'buffer'
 
-export type RadixConnectRelayApi = ReturnType<typeof RadixConnectRelayApi>
-export const RadixConnectRelayApi = (input: {
+export type RadixConnectRelayApiClient = ReturnType<
+  typeof RadixConnectRelayApiClient
+>
+export const RadixConnectRelayApiClient = (input: {
   baseUrl: string
   logger?: Logger
   providers: { encryptionClient: EncryptionClient }
