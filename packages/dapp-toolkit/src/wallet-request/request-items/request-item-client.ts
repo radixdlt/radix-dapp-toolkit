@@ -108,29 +108,6 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
 
   const storeChange$ = merge(storageClient.storage$, of(null))
 
-  const waitForWalletResponse = (
-    interactionId: string,
-  ): ResultAsync<RequestItem, SdkError> =>
-    ResultAsync.fromPromise(
-      firstValueFrom(
-        storeChange$.pipe(
-          mergeMap(() =>
-            storageClient
-              .getItemById(interactionId)
-              .mapErr(() => SdkError('FailedToGetRequestItem', interactionId)),
-          ),
-          filter((result): result is Result<RequestItem, SdkError> => {
-            if (result.isErr()) return false
-            return (
-              result.value?.interactionId === interactionId &&
-              ['success', 'fail'].includes(result.value.status)
-            )
-          }),
-        ),
-      ),
-      () => SdkError('FailedToListenForWalletResponse', interactionId),
-    ).andThen((result) => result)
-
   return {
     add,
     cancel,
@@ -139,7 +116,6 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     getById: (id: string) => storageClient.getItemById(id),
     getPendingRequests,
     store: storageClient,
-    waitForWalletResponse,
     storeChange$,
     destroy: () => {
       subscriptions.unsubscribe()
