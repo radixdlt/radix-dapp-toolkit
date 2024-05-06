@@ -557,7 +557,7 @@ export const WalletRequestClient = (input: {
       })
   }
 
-  const getTransport = () =>
+  const getTransport = (): TransportProvider | undefined =>
     transports.find((transport) => transport.isSupported())
 
   const getPendingRequests = () =>

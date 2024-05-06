@@ -13,7 +13,7 @@ export const DeepLinkClient = (input: {
 }) => {
   const { callBackPath, walletUrl } = input
   const userAgent = Bowser.parse(window.navigator.userAgent)
-  const { platform, os, browser } = userAgent
+  const { platform, browser } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkClient' })
 
   const walletResponseSubject = new ReplaySubject<Record<string, string>>(1)
@@ -42,7 +42,7 @@ export const DeepLinkClient = (input: {
       browser: browser.name ?? 'unknown',
     })
 
-    if (os.name === 'iOS') {
+    if (platform.type === 'mobile') {
       window.location.href = outboundUrl.toString()
 
       return okAsync(undefined)
