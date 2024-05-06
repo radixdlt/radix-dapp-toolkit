@@ -30,7 +30,7 @@ import {
 } from '../../../schemas'
 import { SdkError } from '../../../error'
 import { RequestItemClient } from '../../request-items'
-import { TransportProvider } from '../../../../dist'
+import { TransportProvider } from '../../../_types'
 
 export type ConnectorExtensionClient = ReturnType<
   typeof ConnectorExtensionClient
