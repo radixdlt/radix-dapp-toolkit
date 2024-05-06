@@ -189,10 +189,12 @@ export const RadixConnectRelayClient = (input: {
       .andThen((activeSession) => {
         emitChangesToListeners(activeSession)
         return requestItemClient
-          .getPendingItems()
+          .getPendingRequests()
           .mapErr(() => SdkError('FailedToReadPendingItems', ''))
           .map((items) => {
-            const [item] = items.filter((item) => !item.sentToWallet)
+            const [item] = items.filter(
+              (item) => !item.walletResponse && !item.sentToWallet,
+            )
             return item
           })
 
