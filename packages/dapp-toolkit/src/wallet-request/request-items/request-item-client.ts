@@ -1,6 +1,5 @@
 import type { RequestItem, RequestStatusTypes } from 'radix-connect-common'
 import { Subscription, filter, firstValueFrom, merge, mergeMap, of } from 'rxjs'
-import { RequestItemSubjects } from './subjects'
 import { Logger } from '../../helpers'
 import { ErrorType, SdkError } from '../../error'
 import { WalletInteraction } from '../../schemas'
@@ -8,7 +7,6 @@ import { StorageProvider } from '../../storage'
 import { Result, ResultAsync, errAsync } from 'neverthrow'
 export type RequestItemClientInput = {
   logger?: Logger
-  subjects?: RequestItemSubjects
   providers: { storageClient: StorageProvider<RequestItem> }
 }
 export type RequestItemClient = ReturnType<typeof RequestItemClient>
@@ -16,10 +14,6 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
   const logger = input?.logger?.getSubLogger({ name: 'RequestItemClient' })
   const subscriptions = new Subscription()
   const storageClient = input.providers.storageClient
-
-  storageClient.getItemList().map((items) => {
-    logger?.debug({ method: 'initRequestItems', items })
-  })
 
   const createItem = ({
     type,
@@ -105,11 +99,11 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
       })
   }
 
-  const getPendingItems = () =>
+  const getPendingRequests = () =>
     storageClient
       .getItems()
       .map((items) =>
-        Object.values(items).filter((item) => !item.walletResponse),
+        Object.values(items).filter((item) => item.status === 'pending'),
       )
 
   const storeChange$ = merge(storageClient.storage$, of(null))
@@ -143,7 +137,7 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     updateStatus,
     patch,
     getById: (id: string) => storageClient.getItemById(id),
-    getPendingItems,
+    getPendingRequests,
     store: storageClient,
     waitForWalletResponse,
     storeChange$,
