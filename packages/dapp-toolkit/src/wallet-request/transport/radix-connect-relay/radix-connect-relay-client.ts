@@ -1,5 +1,5 @@
 import { ResultAsync, err, ok } from 'neverthrow'
-import { Subscription, filter, switchMap } from 'rxjs'
+import { Subject, Subscription, filter, switchMap } from 'rxjs'
 import { EncryptionClient } from '../../encryption'
 import {
   ActiveSession,
@@ -21,8 +21,7 @@ import { StorageProvider } from '../../../storage'
 import { Curve25519 } from '../../crypto'
 import { RadixConnectRelayApi } from './api'
 import { RequestItem } from 'radix-connect-common'
-
-type SessionChangeEvent = (session: Session) => void
+import { TransportProvider } from '../../../_types'
 
 export type RadixConnectRelayClient = ReturnType<typeof RadixConnectRelayClient>
 export const RadixConnectRelayClient = (input: {
@@ -44,15 +43,7 @@ export const RadixConnectRelayClient = (input: {
 
   const encryptionClient = providers?.encryptionClient ?? EncryptionClient()
 
-  const sessionChangeListeners: SessionChangeEvent[] = []
-
-  const addSessionChangeListener = (listener: SessionChangeEvent) => {
-    sessionChangeListeners.push(listener)
-  }
-
-  const emitChangesToListeners = (session: Session) => {
-    sessionChangeListeners.forEach((listener) => listener(session))
-  }
+  const sessionChangeSubject = new Subject<Session>()
 
   const deepLinkClient =
     providers?.deepLinkClient ??
@@ -187,7 +178,7 @@ export const RadixConnectRelayClient = (input: {
               .mapErr(() => SdkError('FailedToUpdateSession', '')),
       )
       .andThen((activeSession) => {
-        emitChangesToListeners(activeSession)
+        sessionChangeSubject.next(activeSession)
         return requestItemClient
           .getPendingRequests()
           .mapErr(() => SdkError('FailedToReadPendingItems', ''))
@@ -278,18 +269,18 @@ export const RadixConnectRelayClient = (input: {
                   ),
                 ).map(() => walletResponses),
               )
-              .map((walletResponses) => {
-                if (walletResponses.length)
+              .andThen(() => requestItemClient.getById(interactionId))
+              .map((walletInteraction) => {
+                if (walletInteraction) {
                   logger?.debug({
                     method: 'waitForWalletResponse.success',
                     retry,
                     sessionId,
                     interactionId,
-                    walletResponses,
+                    walletResponse: walletInteraction.walletResponse,
                   })
-                response = walletResponses.find(
-                  (response) => response.interactionId === interactionId,
-                )
+                  response = walletInteraction.walletResponse
+                }
               })
               .mapErr((error) => {
                 logger?.debug({
@@ -346,10 +337,10 @@ export const RadixConnectRelayClient = (input: {
     id: 'radix-connect-relay' as const,
     isSupported: () => isMobile(),
     send: sendToWallet,
-    addSessionChangeListener,
+    sessionChange$: sessionChangeSubject.asObservable(),
     disconnect: () => {},
     destroy: () => {
       subscriptions.unsubscribe()
     },
-  }
+  } satisfies TransportProvider
 }
