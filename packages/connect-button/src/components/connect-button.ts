@@ -253,10 +253,6 @@ export class ConnectButton extends LitElement {
     ></radix-requests-page>`
   }
 
-  private get isModal() {
-    return this.isMobile || this.showLinking
-  }
-
   private get showComingSoonTemplate() {
     return this.isMobile && !this.enableMobile
   }
@@ -275,7 +271,6 @@ export class ConnectButton extends LitElement {
     return html` <radix-popover
       ?connected=${this.connected}
       ?compact=${this.compact}
-      ?modal=${this.isModal}
       ?showCloseButton=${this.showPopoverCloseButton}
       @onClosePopover=${() => {
         this.closePopover()

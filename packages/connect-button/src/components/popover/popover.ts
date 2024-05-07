@@ -21,12 +21,6 @@ export class RadixPopover extends LitElement {
     type: Boolean,
     reflect: true,
   })
-  modal = false
-
-  @property({
-    type: Boolean,
-    reflect: true,
-  })
   showCloseButton = false
 
   closePopover() {
