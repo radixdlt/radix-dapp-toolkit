@@ -11,7 +11,7 @@
     - [Handle user authentication](#handle-user-authentication)
     - [User authentication management](#user-authentication-management)
   - [Wallet data requests](#wallet-data-requests)
-      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
+    - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
     - [Change requested data](#change-requested-data)
     - [Data request builder](#data-request-builder)
       - [`DataRequestBuilder.persona()`](#datarequestbuilderpersona)
@@ -166,7 +166,7 @@ rdt.walletApi.setRequestData(DataRequestBuilder.persona.withProof())
 // handle the wallet response
 rdt.walletApi.dataRequestControl(async (walletData) => {
   const personaProof = walletData.proofs.find(
-    (proof) => proof.type === 'persona'
+    (proof) => proof.type === 'persona',
   )
   if (personaProof) await handleLogin(personaProof)
 })
@@ -181,7 +181,7 @@ Use `walletApi.dataRequestControl` to provide a callback function that intercept
 ```typescript
 rdt.walletApi.dataRequestControl(async (walletData) => {
   const personaProof = walletData.proofs.find(
-    (proof) => proof.type === 'persona'
+    (proof) => proof.type === 'persona',
   )
   if (personaProof) await handleLogin(personaProof)
 })
@@ -246,7 +246,7 @@ Use `walletApi.setRequestData` together with `DataRequestBuilder` to change the 
 rdt.walletApi.setRequestData(
   DataRequestBuilder.persona().withProof(),
   DataRequestBuilder.accounts().exactly(1),
-  DataRequestBuilder.personaData().fullName().emailAddresses()
+  DataRequestBuilder.personaData().fullName().emailAddresses(),
 )
 ```
 
@@ -279,7 +279,7 @@ Example: Request at least 1 account with proof of ownership
 
 ```typescript
 rdt.walletApi.setRequestData(
-  DataRequestBuilder.accounts().atLeast(1).withProof()
+  DataRequestBuilder.accounts().atLeast(1).withProof(),
 )
 ```
 
@@ -295,7 +295,7 @@ Example: Exactly 2 accounts
 
 ```typescript
 rdt.walletApi.sendOneTimeRequest(
-  OneTimeDataRequestBuilder.accounts().exactly(2)
+  OneTimeDataRequestBuilder.accounts().exactly(2),
 )
 ```
 
@@ -312,7 +312,7 @@ Example: Request full name and email address
 
 ```typescript
 rdt.walletApi.setRequestData(
-  DataRequestBuilder.personaData().fullName().emailAddresses()
+  DataRequestBuilder.personaData().fullName().emailAddresses(),
 )
 ```
 
@@ -328,7 +328,7 @@ Example: Request phone number
 
 ```typescript
 rdt.walletApi.sendOneTimeRequest(
-  OneTimeDataRequestBuilder.personaData().phoneNumbers()
+  OneTimeDataRequestBuilder.personaData().phoneNumbers(),
 )
 ```
 
@@ -343,7 +343,7 @@ rdt.walletApi.setRequestData(
   DataRequestBuilder.config({
     personaData: { fullName: true },
     accounts: { numberOfAccounts: { quantifier: 'atLeast', quantity: 1 } },
-  })
+  }),
 )
 ```
 
@@ -366,7 +366,7 @@ One-time data requests do not have a Persona context, and so will always result 
 ```typescript
 const result = rdt.walletApi.sendOneTimeRequest(
   OneTimeDataRequestBuilder.accounts().exactly(1),
-  OneTimeDataRequestBuilder.personaData().fullName()
+  OneTimeDataRequestBuilder.personaData().fullName(),
 )
 
 if (result.isErr()) return handleException()
@@ -382,8 +382,9 @@ const walletData = result.value
 ### Data Requests Sandbox
 
 Play around with the different data requests in
-* [Stokenet sandbox environment](https://stokenet-sandbox.radixdlt.com/)
-* [Mainnet sandbox environment](https://sandbox.radixdlt.com/)
+
+- [Stokenet sandbox environment](https://stokenet-sandbox.radixdlt.com/)
+- [Mainnet sandbox environment](https://sandbox.radixdlt.com/)
 
 ## State changes
 
@@ -478,7 +479,9 @@ Right after RDT is instantiated it'll trigger Gateway request to find informatio
 <summary>dAppDefinitionAccount usage example</summary>
 
 ```typescript
-rdt.dAppDefinitionAccount.entityDetails$.subscribe((details) => console.log(details))
+rdt.dAppDefinitionAccount.entityDetails$.subscribe((details) =>
+  console.log(details),
+)
 // OR
 console.log(rdt.dAppDefinitionAccount.entityDetails)
 ```
@@ -597,7 +600,7 @@ The `examples` directory contains a react dApp that consumes RDT. Its main purpo
 
 The Radix Dapp Toolkit binaries are licensed under the [Radix Software EULA](http://www.radixdlt.com/terms/genericEULA).
 
-The Radix Dapp Toolkit code is released under [Apache 2.0 license](LICENSE). 
+The Radix Dapp Toolkit code is released under [Apache 2.0 license](LICENSE).
 
       Copyright 2023 Radix Publishing Ltd
 
