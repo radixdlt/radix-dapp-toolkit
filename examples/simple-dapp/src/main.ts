@@ -3,24 +3,21 @@ import './style.css'
 import {
   RadixDappToolkit,
   RadixNetwork,
-  LocalStorageClient,
   Logger,
-  RequestItemClient,
-  ConnectorExtensionClient,
   DataRequestBuilder,
-  RadixConnectRelayClient,
   OneTimeDataRequestBuilder,
+  LocalStorageModule,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
 const networkId = RadixNetwork.Stokenet
-const storageClient = LocalStorageClient(
+const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
 )
-const requestsStore = storageClient.getPartition('requests')
-const sessionStore = storageClient.getPartition('sessions')
-const identityStore = storageClient.getPartition('identities')
-const stateStore = storageClient.getPartition('state')
+const requestsStore = storageModule.getPartition('requests')
+const sessionStore = storageModule.getPartition('sessions')
+const identityStore = storageModule.getPartition('identities')
+const stateStore = storageModule.getPartition('state')
 
 const content = document.getElementById('app')!
 
@@ -30,8 +27,6 @@ content.innerHTML = `
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
 
   <pre id="sessions"></pre>
-  <pre id="keyPairs"></pre>
-  <pre id="walletResponse"></pre>
   <pre id="requests"></pre>
   <pre id="state"></pre>
   <pre id="gatewayConfig"></pre>
@@ -41,15 +36,11 @@ content.innerHTML = `
 `
 const resetButton = document.getElementById('reset')!
 const sessions = document.getElementById('sessions')!
-const keyPairs = document.getElementById('keyPairs')!
 const requests = document.getElementById('requests')!
-const walletResponse = document.getElementById('walletResponse')!
-const device = document.getElementById('device')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
 const gatewayConfig = document.getElementById('gatewayConfig')!
 const gatewayStatus = document.getElementById('gatewayStatus')!
-const continueButton = document.getElementById('continue')!
 const oneTimeRequest = document.getElementById('one-time-request')!
 
 const logger = Logger()
@@ -69,32 +60,10 @@ ${logs.innerHTML}`
   logs.innerHTML = logEntry
 })
 
-const requestItemClient = RequestItemClient({
-  logger,
-  providers: { storageClient: storageClient.getPartition('requests') },
-})
-
 const dAppToolkit = RadixDappToolkit({
   applicationDappDefinitionAddress: dAppDefinitionAddress,
   networkId,
-  enableMobile: true,
-  providers: {
-    storageClient,
-    requestItemClient,
-    transports: [
-      ConnectorExtensionClient({ logger, providers: { requestItemClient } }),
-      RadixConnectRelayClient({
-        logger,
-        walletUrl: 'https://d1rxdfxrfmemlj.cloudfront.net',
-        baseUrl:
-          'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
-        providers: {
-          requestItemClient,
-          storageClient,
-        },
-      }),
-    ],
-  },
+  featureFlags: ['ExperimentalMobileSupport'],
   logger,
 })
 
@@ -124,12 +93,6 @@ resetButton.onclick = () => {
   window.location.hash = ``
   window.location.replace(window.location.origin)
 }
-
-// continueButton.onclick = () => {
-//   requestItemClient.getPendingItems().map((items) => {
-//     if (items[0]) rcr.resume(items[0].interactionId)
-//   })
-// }
 
 oneTimeRequest.onclick = () => {
   dAppToolkit.walletApi.sendOneTimeRequest(
