@@ -1,17 +1,19 @@
-import { ConnectButtonClient } from './connect-button/connect-button-client'
-import {
+import type {
   ButtonApi,
   GatewayApiClientConfig,
   RadixDappToolkitOptions,
   SendTransactionInput,
   WalletApi,
 } from './_types'
-import { LocalStorageClient } from './storage'
-import { GatewayClient } from './gateway/gateway'
-import { GatewayApiClient } from './gateway/gateway-api'
-import { WalletRequestClient } from './wallet-request'
-import { StateClient, WalletData } from './state'
-import { generateGatewayApiClientConfig } from './helpers/generate-gateway-api-config'
+import {
+  type WalletData,
+  LocalStorageModule,
+  WalletRequestModule,
+  StateModule,
+  GatewayModule,
+  ConnectButtonModule,
+  generateGatewayApiConfig,
+} from './modules'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
@@ -37,111 +39,111 @@ export const RadixDappToolkit = (
     applicationName,
     applicationVersion,
     useCache = true,
-    enableMobile = false,
+    featureFlags = [],
   } = options || {}
 
-  const storageClient =
-    providers?.storageClient ??
-    LocalStorageClient(`rdt:${dAppDefinitionAddress}:${networkId}`)
+  const enableExperimentalMobileSupport = featureFlags.includes(
+    'ExperimentalMobileSupport',
+  )
 
-  const stateClient =
-    providers?.stateClient ??
-    StateClient({
+  const storageModule =
+    providers?.storageModule ??
+    LocalStorageModule(`rdt:${dAppDefinitionAddress}:${networkId}`)
+
+  const stateModule =
+    providers?.stateModule ??
+    StateModule({
       logger,
       providers: {
-        storageClient: storageClient.getPartition('state'),
+        storageModule: storageModule.getPartition('state'),
       },
     })
 
-  const gatewayApiClientConfig = generateGatewayApiClientConfig({
-    networkId,
-    dAppDefinitionAddress,
-    gatewayBaseUrl,
-    applicationName,
-    applicationVersion,
-  })
-
-  const gatewayClient =
-    providers?.gatewayClient ??
-    GatewayClient({
+  const gatewayModule =
+    providers?.gatewayModule ??
+    GatewayModule({
       logger,
-      gatewayApi: GatewayApiClient(gatewayApiClientConfig),
+      clientConfig: generateGatewayApiConfig({
+        networkId,
+        dAppDefinitionAddress,
+        gatewayBaseUrl,
+        applicationName,
+        applicationVersion,
+      }),
     })
 
-  const walletRequestClient =
-    providers?.walletRequestClient ??
-    WalletRequestClient({
+  const walletRequestModule =
+    providers?.walletRequestModule ??
+    WalletRequestModule({
       logger,
       useCache,
       networkId,
       dAppDefinitionAddress,
       requestInterceptor: options.requestInterceptor,
+      enableMobile: enableExperimentalMobileSupport,
       providers: {
-        stateClient,
-        storageClient,
-        gatewayClient,
-        transports: options.providers?.transports,
-        requestItemClient: options.providers?.requestItemClient,
+        stateModule,
+        storageModule,
+        gatewayModule,
       },
     })
 
-  const connectButtonClient =
-    providers?.connectButton ??
-    ConnectButtonClient({
+  const connectButtonModule =
+    providers?.connectButtonModule ??
+    ConnectButtonModule({
       logger,
       networkId,
       explorer: options.explorer,
-      enableMobile,
+      enableMobile: enableExperimentalMobileSupport,
       onDisconnect,
       dAppDefinitionAddress,
       providers: {
-        stateClient,
-        walletRequestClient,
-        gatewayClient,
-        storageClient: options.providers?.storageClient,
+        stateModule,
+        walletRequestModule,
+        gatewayModule,
+        storageModule: storageModule.getPartition('connectButton'),
       },
     })
 
   return {
     walletApi: {
-      setRequestData: walletRequestClient.setRequestDataState,
+      setRequestData: walletRequestModule.setRequestDataState,
       sendRequest: () =>
-        walletRequestClient.sendRequest({
+        walletRequestModule.sendRequest({
           isConnect: false,
           oneTime: false,
         }),
-
       provideChallengeGenerator: (fn: () => Promise<string>) =>
-        walletRequestClient.provideChallengeGenerator(fn),
+        walletRequestModule.provideChallengeGenerator(fn),
       dataRequestControl: (fn: (walletData: WalletData) => Promise<any>) => {
-        walletRequestClient.provideDataRequestControl(fn)
+        walletRequestModule.provideDataRequestControl(fn)
       },
       provideConnectResponseCallback:
-        walletRequestClient.provideConnectResponseCallback,
-      updateSharedData: () => walletRequestClient.updateSharedData(),
-      sendOneTimeRequest: walletRequestClient.sendOneTimeRequest,
+        walletRequestModule.provideConnectResponseCallback,
+      updateSharedData: () => walletRequestModule.updateSharedData(),
+      sendOneTimeRequest: walletRequestModule.sendOneTimeRequest,
       sendTransaction: (input: SendTransactionInput) =>
-        walletRequestClient.sendTransaction(input),
-      walletData$: stateClient.walletData$,
-      getWalletData: stateClient.getWalletData,
+        walletRequestModule.sendTransaction(input),
+      walletData$: stateModule.walletData$,
+      getWalletData: stateModule.getWalletData,
     } satisfies WalletApi,
     buttonApi: {
-      setTheme: connectButtonClient.setTheme,
-      setMode: connectButtonClient.setMode,
-      status$: connectButtonClient.status$,
+      setTheme: connectButtonModule.setTheme,
+      setMode: connectButtonModule.setMode,
+      status$: connectButtonModule.status$,
     },
     gatewayApi: {
-      clientConfig: gatewayApiClientConfig,
+      clientConfig: gatewayModule.configuration,
     },
     disconnect: () => {
-      walletRequestClient.disconnect()
-      connectButtonClient.disconnect()
+      walletRequestModule.disconnect()
+      connectButtonModule.disconnect()
       if (onDisconnect) onDisconnect()
     },
     destroy: () => {
-      stateClient.destroy()
-      walletRequestClient.destroy()
-      connectButtonClient.destroy()
+      stateModule.destroy()
+      walletRequestModule.destroy()
+      connectButtonModule.destroy()
     },
   }
 }
