@@ -1,4 +1,4 @@
-import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { Result, ResultAsync, err, ok } from 'neverthrow'
 import { TransportProvider } from '../_types'
 import { Logger, validateWalletResponse } from '../helpers'
 import {
@@ -65,14 +65,14 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const getTransportClient = (
     interactionId: string,
-  ): ResultAsync<TransportProvider, SdkError> => {
+  ): Result<TransportProvider, SdkError> => {
     const transportClient = availableTransports.find((transportClient) =>
       transportClient.isSupported(),
     )
 
     return transportClient
-      ? okAsync(transportClient)
-      : errAsync({
+      ? ok(transportClient)
+      : err({
           error: 'SupportedTransportNotFound',
           interactionId,
           message: 'No supported transport found',
@@ -91,7 +91,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       interactionId,
       metadata,
     }).andThen((walletInteraction) =>
-      getTransportClient(walletInteraction.interactionId).andThen(
+      getTransportClient(walletInteraction.interactionId).asyncAndThen(
         (transportClient) =>
           transportClient
             .send(walletInteraction, callbackFns)
@@ -111,7 +111,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       items,
       metadata,
     }).andThen((walletInteraction) =>
-      getTransportClient(interactionId).andThen((transportClient) =>
+      getTransportClient(interactionId).asyncAndThen((transportClient) =>
         transportClient
           .send(walletInteraction, callbackFns)
           .andThen(validateWalletResponse),
@@ -122,5 +122,6 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
     request,
     sendTransaction,
     createWalletInteraction,
+    getTransport: getTransportClient,
   }
 }

@@ -98,6 +98,11 @@ header {
 }
 
 pre {
+  width: 300px;
   text-align: left;
   overflow: auto;
+}
+
+.mt-25 {
+  margin-top: 10px;
 }

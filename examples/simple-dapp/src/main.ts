@@ -8,6 +8,8 @@ import {
   RequestItemClient,
   ConnectorExtensionClient,
   DataRequestBuilder,
+  RadixConnectRelayClient,
+  OneTimeDataRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
@@ -22,8 +24,11 @@ const stateStore = storageClient.getPartition('state')
 
 const content = document.getElementById('app')!
 
-content.innerHTML = `
+content.innerHTML = `  
   <button id="reset">Reset</button>
+
+  <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
+
   <pre id="sessions"></pre>
   <pre id="keyPairs"></pre>
   <pre id="walletResponse"></pre>
@@ -44,15 +49,24 @@ const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
 const gatewayConfig = document.getElementById('gatewayConfig')!
 const gatewayStatus = document.getElementById('gatewayStatus')!
+const continueButton = document.getElementById('continue')!
+const oneTimeRequest = document.getElementById('one-time-request')!
 
 const logger = Logger()
 
 logger.attachTransport((logObj) => {
   const { _meta, ...rest } = logObj
-  logs.innerHTML = `${logs.innerHTML}
 
-[${_meta.name}]
-${JSON.stringify(rest, null, 2)}`
+  const storedLogs = localStorage.getItem('logs') ?? ''
+
+  const logEntry = `[${_meta.name}]
+${JSON.stringify(rest, null, 2)}  
+
+${logs.innerHTML}`
+
+  localStorage.setItem('logs', logEntry)
+
+  logs.innerHTML = logEntry
 })
 
 const requestItemClient = RequestItemClient({
@@ -69,6 +83,16 @@ const dAppToolkit = RadixDappToolkit({
     requestItemClient,
     transports: [
       ConnectorExtensionClient({ logger, providers: { requestItemClient } }),
+      RadixConnectRelayClient({
+        logger,
+        walletUrl: 'https://d1rxdfxrfmemlj.cloudfront.net',
+        baseUrl:
+          'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
+        providers: {
+          requestItemClient,
+          storageClient,
+        },
+      }),
     ],
   },
   logger,
@@ -78,11 +102,12 @@ const gatewayApi = GatewayApiClient.initialize(
   dAppToolkit.gatewayApi.clientConfig,
 )
 
-dAppToolkit.walletApi.provideChallengeGenerator(async () =>
-  [...window.crypto.getRandomValues(new Uint8Array(32))]
+dAppToolkit.walletApi.provideChallengeGenerator(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  return [...window.crypto.getRandomValues(new Uint8Array(32))]
     .map((x) => x.toString(16).padStart(2, '0'))
-    .join(''),
-)
+    .join('')
+})
 
 dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
 
@@ -95,8 +120,21 @@ resetButton.onclick = () => {
   requestsStore.clear()
   stateStore.clear()
   identityStore.clear()
+  localStorage.removeItem('logs')
   window.location.hash = ``
   window.location.replace(window.location.origin)
+}
+
+// continueButton.onclick = () => {
+//   requestItemClient.getPendingItems().map((items) => {
+//     if (items[0]) rcr.resume(items[0].interactionId)
+//   })
+// }
+
+oneTimeRequest.onclick = () => {
+  dAppToolkit.walletApi.sendOneTimeRequest(
+    OneTimeDataRequestBuilder.accounts().exactly(1),
+  )
 }
 
 setInterval(() => {

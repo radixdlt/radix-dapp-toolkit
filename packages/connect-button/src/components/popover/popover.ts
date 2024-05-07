@@ -21,7 +21,7 @@ export class RadixPopover extends LitElement {
     type: Boolean,
     reflect: true,
   })
-  isMobile = false
+  showCloseButton = false
 
   closePopover() {
     this.dispatchEvent(
@@ -52,7 +52,7 @@ export class RadixPopover extends LitElement {
         }
       </style>
       <div id="radix-popover-content">
-        ${this.isMobile ? this.closeButton() : ''}
+        ${this.showCloseButton ? this.closeButton() : ''}
         <slot></slot>
       </div>
     `

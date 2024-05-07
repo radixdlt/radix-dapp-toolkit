@@ -352,15 +352,20 @@ export const WalletRequestClient = (input: {
                 .map((transformedWalletResponse) => {
                   interactionStatusChangeSubject.next('success')
 
-                  if (!oneTime)
-                    stateClient.setState({
-                      loggedInTimestamp: Date.now().toString(),
-                      walletData: transformedWalletResponse,
-                      sharedData: transformWalletRequestToSharedData(
-                        walletInteraction,
-                        state.sharedData,
-                      ),
-                    })
+                  if (!oneTime) {
+                    stateClient
+                      .setState({
+                        loggedInTimestamp: Date.now().toString(),
+                        walletData: transformedWalletResponse,
+                        sharedData: transformWalletRequestToSharedData(
+                          walletInteraction,
+                          state.sharedData,
+                        ),
+                      })
+                      .map(() => {
+                        stateClient.emitWalletData()
+                      })
+                  }
 
                   return transformedWalletResponse
                 })
@@ -408,18 +413,8 @@ export const WalletRequestClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const requestItemStore$ = merge(requestItemClient.store.storage$, of(null))
-
-  const requestItems$ = requestItemStore$.pipe(
-    switchMap(() => requestItemClient.store.getItemList()),
-    map((result) => {
-      if (result.isOk()) return result.value
-    }),
-    filter((items): items is RequestItem[] => !!items),
-  )
-
   subscriptions.add(
-    requestItems$
+    requestItemClient.requests$
       .pipe(
         mergeMap((items) => {
           const unresolvedItems = items
@@ -550,13 +545,10 @@ export const WalletRequestClient = (input: {
       })
   }
 
-  const getTransport = () =>
+  const getTransport = (): TransportProvider | undefined =>
     transports.find((transport) => transport.isSupported())
 
-  const getPendingRequests = () =>
-    requestItemClient.store
-      .getItemList()
-      .map((items) => items.filter((item) => item.status === 'pending'))
+  const getPendingRequests = () => requestItemClient.getPending()
 
   const cancelRequest = (id: string) => {
     cancelRequestSubject.next(id)
@@ -569,14 +561,14 @@ export const WalletRequestClient = (input: {
   }
 
   const disconnect = () => {
-    requestItemClient.store.getItemList().map((items) => {
+    requestItemClient.getPending().map((items) => {
       items.forEach((item) => {
         if (item.showCancel) cancelRequestSubject.next(item.interactionId)
       })
     })
 
     stateClient.reset()
-    requestItemClient.store.clear()
+    requestItemClient.clear()
   }
 
   const destroy = () => {
@@ -618,7 +610,7 @@ export const WalletRequestClient = (input: {
     getTransport,
     updateSharedData,
     interactionStatusChange$: interactionStatusChangeSubject.asObservable(),
-    requestItems$,
+    requestItems$: requestItemClient.requests$,
     disconnect,
     destroy,
   }

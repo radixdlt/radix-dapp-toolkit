@@ -1,6 +1,5 @@
 import type { RequestItem, RequestStatusTypes } from 'radix-connect-common'
-import { Subscription } from 'rxjs'
-import { RequestItemSubjects } from './subjects'
+import { Subscription, filter, map, switchMap } from 'rxjs'
 import { Logger } from '../../helpers'
 import { ErrorType } from '../../error'
 import { WalletInteraction } from '../../schemas'
@@ -8,20 +7,13 @@ import { StorageProvider } from '../../storage'
 import { ResultAsync, errAsync } from 'neverthrow'
 export type RequestItemClientInput = {
   logger?: Logger
-  subjects?: RequestItemSubjects
   providers: { storageClient: StorageProvider<RequestItem> }
 }
 export type RequestItemClient = ReturnType<typeof RequestItemClient>
 export const RequestItemClient = (input: RequestItemClientInput) => {
   const logger = input?.logger?.getSubLogger({ name: 'RequestItemClient' })
   const subscriptions = new Subscription()
-  const subjects = input.subjects || RequestItemSubjects()
   const storageClient = input.providers.storageClient
-
- storageClient.getItemList().map((items) => {
-   logger?.debug({ method: 'initRequestItems', items })
-   subjects.items.next(items)
- })
 
   const createItem = ({
     type,
@@ -107,12 +99,18 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
       })
   }
 
-  const getPendingItems = () =>
+  const getPending = () =>
     storageClient
-      .getItems()
-      .map((items) =>
-        Object.values(items).filter((item) => !item.walletResponse),
-      )
+      .getItemList()
+      .map((items) => items.filter((item) => item.status === 'pending'))
+
+  const requests$ = storageClient.storage$.pipe(
+    switchMap(() => storageClient.getItemList()),
+    map((result) => {
+      if (result.isOk()) return result.value
+    }),
+    filter((items): items is RequestItem[] => !!items),
+  )
 
   return {
     add,
@@ -120,8 +118,9 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     updateStatus,
     patch,
     getById: (id: string) => storageClient.getItemById(id),
-    getPendingItems,
-    store: storageClient,
+    getPending,
+    requests$,
+    clear: storageClient.clear,
     destroy: () => {
       subscriptions.unsubscribe()
     },

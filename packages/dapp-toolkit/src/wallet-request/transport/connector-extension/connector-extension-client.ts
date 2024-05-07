@@ -30,6 +30,7 @@ import {
 } from '../../../schemas'
 import { SdkError } from '../../../error'
 import { RequestItemClient } from '../../request-items'
+import { TransportProvider } from '../../../_types'
 
 export type ConnectorExtensionClient = ReturnType<
   typeof ConnectorExtensionClient
@@ -255,6 +256,7 @@ export const ConnectorExtensionClient = (input: {
   )
 
   return {
+    id: 'connector-extension' as const,
     isSupported: () => !isMobile(),
     send: sendWalletInteraction,
     isAvailable$: extensionStatus$.pipe(
@@ -275,5 +277,5 @@ export const ConnectorExtensionClient = (input: {
       subscription.unsubscribe()
       removeEventListener(eventType.incomingMessage, handleIncomingMessage)
     },
-  }
+  } satisfies TransportProvider
 }

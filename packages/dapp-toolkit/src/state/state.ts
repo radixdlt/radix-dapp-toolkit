@@ -43,16 +43,25 @@ export const StateClient = (input: {
     sharedData: {},
   } satisfies RdtState
 
-  const resetState = () => storageClient.setState(defaultState)
+  const resetState = () =>
+    storageClient.setState(defaultState).map(() => {
+      emitWalletData()
+    })
 
   const initializeState = () =>
-    getState().mapErr(() => {
-      logger?.debug({
-        module: 'StateClient',
-        method: `initializeState.loadedCorruptedStateFromStorage`,
+    getState()
+      .mapErr(() => {
+        logger?.debug({
+          module: 'StateClient',
+          method: `initializeState.loadedCorruptedStateFromStorage`,
+        })
+        resetState().map(() => {
+          emitWalletData()
+        })
       })
-      resetState()
-    })
+      .map(() => {
+        emitWalletData()
+      })
 
   initializeState()
 
@@ -60,17 +69,11 @@ export const StateClient = (input: {
     undefined,
   )
 
-  subscriptions.add(
-    merge(storageClient.storage$, of(null))
-      .pipe(
-        switchMap(() =>
-          getState().map((state) => {
-            walletDataSubject.next(state.walletData)
-          }),
-        ),
-      )
-      .subscribe(),
-  )
+  const emitWalletData = () => {
+    storageClient.getState().map((state) => {
+      walletDataSubject.next(state?.walletData)
+    })
+  }
 
   const walletData$ = walletDataSubject
     .asObservable()
@@ -81,6 +84,7 @@ export const StateClient = (input: {
     patchState,
     getState,
     walletData$,
+    emitWalletData,
     getWalletData: () => walletDataSubject.value,
     reset: resetState,
     destroy: () => {

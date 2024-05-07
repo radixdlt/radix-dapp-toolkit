@@ -33,4 +33,5 @@ export const ConnectButtonSubjects = () => ({
     type: 'account' | 'transaction' | 'setupGuide' | 'showQrCode'
     data: string
   }>(),
+  showLinking: new BehaviorSubject<boolean>(false),
 })

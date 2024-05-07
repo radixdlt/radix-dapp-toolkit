@@ -1,4 +1,5 @@
 import {
+  delay,
   filter,
   first,
   fromEvent,
@@ -205,6 +206,15 @@ export const ConnectButtonClient = (input: {
             tap((value) => (connectButtonElement.theme = value)),
           )
 
+          const showLinking$ = subjects.showLinking.pipe(
+            delay(1000),
+            tap((value) => {
+              connectButtonElement.showPopoverMenu = value
+              connectButtonElement.showLinking = value
+              connectButtonElement.pristine = false
+            }),
+          )
+
           return merge(
             onConnect$,
             status$,
@@ -227,6 +237,7 @@ export const ConnectButtonClient = (input: {
             onShowPopover$,
             dAppName$,
             onLinkClick$,
+            showLinking$,
           )
         }),
       )
@@ -265,6 +276,15 @@ export const ConnectButtonClient = (input: {
       )
       .subscribe(),
   )
+
+  if (transport?.sessionChange$)
+    subscriptions.add(
+      transport.sessionChange$
+        .pipe(filter((session) => session.status === 'Active'))
+        .subscribe(() => {
+          subjects.showLinking.next(true)
+        }),
+    )
 
   const connectButtonApi = {
     status$: subjects.status.asObservable(),
@@ -316,7 +336,7 @@ export const ConnectButtonClient = (input: {
     })
 
   subscriptions.add(
-    merge(stateClient.store.storage$, of(null))
+    stateClient.store.storage$
       .pipe(switchMap(() => setPropsFromState()))
       .subscribe(),
   )
