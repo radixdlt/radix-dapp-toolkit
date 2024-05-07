@@ -27,6 +27,33 @@ export const RadixConnectRelayApiClient = (input: {
   const logger = input.logger?.getSubLogger({ name: 'RadixConnectRelayApi' })
   const encryptionClient = input.providers.encryptionClient
 
+  const callApi = <T = any>(
+    body: Record<string, string> & { method: string },
+  ) => {
+    logger?.debug({ method: `callApi.${body.method}`, body })
+    return fetchWrapper<T>(
+      fetch(baseUrl, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    )
+      .map((response) => {
+        logger?.debug({
+          method: `callApi.${body.method}.success`,
+        })
+        return response
+      })
+      .mapErr(() => {
+        logger?.debug({
+          method: `callApi.${body.method}.error`,
+        })
+        return SdkError(
+          'RadixConnectRelayRequestFailed',
+          body.interactionId ?? '',
+        )
+      })
+  }
+
   const decryptResponse = (
     secretHex: string,
     value: string,
@@ -61,73 +88,39 @@ export const RadixConnectRelayApiClient = (input: {
   const sendRequest = (
     { sessionId, sharedSecret }: ActiveSession,
     walletInteraction: WalletInteraction,
-  ): ResultAsync<void, SdkError> => {
-    logger?.debug({ method: 'sendRequest', sessionId, walletInteraction })
-    return encryptWalletInteraction(
+  ): ResultAsync<void, SdkError> =>
+    encryptWalletInteraction(
       walletInteraction,
       Buffer.from(sharedSecret, 'hex'),
     ).andThen((encryptedWalletInteraction) =>
-      fetchWrapper(
-        fetch(baseUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            method: 'sendRequest',
-            sessionId,
-            data: encryptedWalletInteraction,
-          }),
-        }),
-      )
-        .map(() => undefined)
-        .mapErr(() => SdkError('FailedToSendRequestToRadixConnectRelay', '')),
+      callApi({
+        method: 'sendRequest',
+        sessionId,
+        data: encryptedWalletInteraction,
+      }).map(() => undefined),
     )
-  }
 
   const getResponses = (session: ActiveSession) =>
-    fetchWrapper<string[]>(
-      fetch(baseUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          method: 'getResponses',
-          sessionId: session.sessionId,
-        }),
-      }),
-    )
-      .mapErr(() => SdkError('FailedToGetRequestsFromRadixConnectRelay', ''))
-      .andThen((value) =>
-        ResultAsync.combine(
-          value.data.map((encryptedWalletInteraction) =>
-            decryptResponse(session.sharedSecret, encryptedWalletInteraction),
-          ),
+    callApi<string[]>({
+      method: 'getResponses',
+      sessionId: session.sessionId,
+    }).andThen((value) =>
+      ResultAsync.combine(
+        value.data.map((encryptedWalletInteraction) =>
+          decryptResponse(session.sharedSecret, encryptedWalletInteraction),
         ),
-      )
+      ),
+    )
 
   const sendHandshakeRequest = (
     sessionId: string,
     publicKeyHex: string,
-  ): ResultAsync<void, SdkError> => {
-    logger?.debug({ method: 'sendHandshakeRequest', sessionId, publicKeyHex })
-    return fetchWrapper(
-      fetch(baseUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          method: 'sendHandshakeRequest',
-          sessionId,
-          data: publicKeyHex,
-        }),
-      }),
-    )
-      .map(() => {
-        logger?.debug({
-          method: 'sendHandshakeRequestToRadixConnectRelay.success',
-        })
-      })
-      .mapErr(() => {
-        logger?.debug({
-          method: 'sendHandshakeRequestToRadixConnectRelay.error',
-        })
-        return SdkError('FailedToSendHandshakeRequestToRadixConnectRelay', '')
-      })
-  }
+  ): ResultAsync<void, SdkError> =>
+    callApi({
+      method: 'sendHandshakeRequest',
+      sessionId,
+      data: publicKeyHex,
+    }).map(() => undefined)
 
   const getHandshakeResponse = (
     sessionId: string,
@@ -151,18 +144,11 @@ export const RadixConnectRelayApiClient = (input: {
         })
     }
 
-    const sendApiRequest = (retry: number) => {
-      logger?.debug({ method: 'getHandshakeResponse', sessionId, retry })
-      return fetchWrapper<{ publicKey: string }>(
-        fetch(baseUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            method: 'getHandshakeResponse',
-            sessionId,
-          }),
-        }),
-      ).andThen(({ data }) => getPublicKeyFromData(data))
-    }
+    const sendApiRequest = () =>
+      callApi<{ publicKey: string }>({
+        method: 'getHandshakeResponse',
+        sessionId,
+      }).andThen(({ data }) => getPublicKeyFromData(data))
 
     return ResultAsync.fromPromise(
       firstValueFrom(
@@ -171,7 +157,7 @@ export const RadixConnectRelayApiClient = (input: {
             const trigger = new Subject<number>()
             return merge(trigger, of(0)).pipe(
               switchMap((retry) =>
-                sendApiRequest(retry).mapErr((err) => {
+                sendApiRequest().mapErr((err) => {
                   trigger.next(retry + 1)
                   return err
                 }),
@@ -184,7 +170,7 @@ export const RadixConnectRelayApiClient = (input: {
           }),
         ),
       ),
-      (error) => {
+      () => {
         return SdkError('FailedToGetHandshakeResponseToRadixConnectRelay', '')
       },
     ).andThen((result) => result)
