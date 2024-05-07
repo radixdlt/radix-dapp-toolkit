@@ -1,7 +1,7 @@
 import { err, Ok, ok, Result, ResultAsync } from 'neverthrow'
 import { typedError } from '../helpers/typed-error'
 import { parseJSON } from '../helpers/parse-json'
-import { filter, fromEvent, map, mergeMap } from 'rxjs'
+import { filter, fromEvent, map, merge, mergeMap, of } from 'rxjs'
 import { stringify } from '../helpers'
 
 type NetworkId = number
@@ -136,7 +136,10 @@ export const LocalStorageClient = <T extends object = any>(
   const getPartition = (partitionKey: PartitionKey) =>
     LocalStorageClient<T>(key, partitionKey)
 
-  const storage$ = fromEvent<StorageEvent>(window, 'storage').pipe(
+  const storage$ = merge(
+    fromEvent<StorageEvent>(window, 'storage'),
+    of({ key: storageKey, newValue: null, oldValue: null }),
+  ).pipe(
     filter((item) => item.key === storageKey),
     mergeMap((event) => {
       const { key, newValue, oldValue } = event
