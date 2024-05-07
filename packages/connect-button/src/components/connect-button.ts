@@ -100,6 +100,7 @@ export class ConnectButton extends LitElement {
   }
 
   pristine = true
+  initialBodyOverflow: string
 
   windowClickEventHandler: (event: MouseEvent) => void
 
@@ -119,6 +120,7 @@ export class ConnectButton extends LitElement {
 
   constructor() {
     super()
+    this.initialBodyOverflow = document.body.style.overflow
     this.injectFontCSS()
     this.windowClickEventHandler = (event) => {
       if (!this.showPopoverMenu) return
@@ -170,13 +172,23 @@ export class ConnectButton extends LitElement {
   private togglePopoverMenu() {
     this.pristine = false
     this.showPopoverMenu = !this.showPopoverMenu
-    if (this.showPopoverMenu)
+    this.toggleBodyOverflow()
+    if (this.showPopoverMenu) {
       this.dispatchEvent(
         new CustomEvent('onShowPopover', {
           bubbles: true,
           composed: true,
         }),
       )
+    }
+  }
+
+  private toggleBodyOverflow() {
+    if (!this.isMobile) return
+    document.body.style.overflow =
+      this.showPopoverMenu && this.isMobile
+        ? 'hidden'
+        : this.initialBodyOverflow
   }
 
   private closePopover() {

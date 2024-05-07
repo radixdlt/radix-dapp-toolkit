@@ -216,10 +216,7 @@ export const WalletRequestClient = (input: {
       })
     }
 
-    return requestItemClient.updateStatus({
-      id: walletInteractionResponse.interactionId,
-      status: 'fail',
-    })
+    return okAsync(undefined)
   }
 
   const sendDataRequest = (walletInteraction: WalletInteraction) => {
@@ -476,6 +473,7 @@ export const WalletRequestClient = (input: {
           status: 'fail',
           error: response.error,
         })
+        interactionStatusChangeSubject.next('fail')
         logger?.debug({ method: 'sendTransaction.errorResponse', response })
         return response
       })

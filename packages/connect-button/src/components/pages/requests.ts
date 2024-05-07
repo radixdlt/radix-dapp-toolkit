@@ -67,7 +67,7 @@ export class RadixRequestsPage extends LitElement {
 
       .content {
         padding-bottom: 25px;
-        max-height: calc(100vh - 180px);
+        max-height: calc(100vh - 270px);
       }
 
       @media (min-height: 580px) {

@@ -81,6 +81,7 @@ export class RadixPopover extends LitElement {
 
       :host([isMobile]) {
         max-width: 100%;
+        max-height: calc(100% - 5px);
       }
 
       #radix-popover-content {
