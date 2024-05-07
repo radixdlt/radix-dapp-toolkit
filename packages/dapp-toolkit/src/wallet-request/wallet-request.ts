@@ -413,16 +413,8 @@ export const WalletRequestClient = (input: {
 
   const subscriptions = new Subscription()
 
-  const requestItems$ = requestItemClient.store$.pipe(
-    switchMap(() => requestItemClient.getItems()),
-    map((result) => {
-      if (result.isOk()) return result.value
-    }),
-    filter((items): items is RequestItem[] => !!items),
-  )
-
   subscriptions.add(
-    requestItems$
+    requestItemClient.requests$
       .pipe(
         mergeMap((items) => {
           const unresolvedItems = items
@@ -556,7 +548,7 @@ export const WalletRequestClient = (input: {
   const getTransport = (): TransportProvider | undefined =>
     transports.find((transport) => transport.isSupported())
 
-  const getPendingRequests = () => requestItemClient.getPendingRequests()
+  const getPendingRequests = () => requestItemClient.getPending()
 
   const cancelRequest = (id: string) => {
     cancelRequestSubject.next(id)
@@ -569,7 +561,7 @@ export const WalletRequestClient = (input: {
   }
 
   const disconnect = () => {
-    requestItemClient.getItems().map((items) => {
+    requestItemClient.getPending().map((items) => {
       items.forEach((item) => {
         if (item.showCancel) cancelRequestSubject.next(item.interactionId)
       })
@@ -618,7 +610,7 @@ export const WalletRequestClient = (input: {
     getTransport,
     updateSharedData,
     interactionStatusChange$: interactionStatusChangeSubject.asObservable(),
-    requestItems$,
+    requestItems$: requestItemClient.requests$,
     disconnect,
     destroy,
   }
