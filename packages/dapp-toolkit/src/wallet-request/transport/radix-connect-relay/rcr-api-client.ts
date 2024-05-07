@@ -188,20 +188,6 @@ export const RadixConnectRelayApiClient = (input: {
         return SdkError('FailedToGetHandshakeResponseToRadixConnectRelay', '')
       },
     ).andThen((result) => result)
-
-    // return fetchWrapper<{ publicKey: string }>(
-    //   fetch(baseUrl, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       method: 'getHandshakeResponse',
-    //       sessionId,
-    //     }),
-    //   }),
-    // )
-    //   .andThen(({ data }) => getPublicKeyFromData(data))
-    //   .mapErr((err) =>
-    //     SdkError('FailedToGetHandshakeResponseToRadixConnectRelay', ''),
-    //   )
   }
 
   return {
