@@ -43,9 +43,10 @@ export const RadixConnectRelayApiClient = (input: {
         })
         return response
       })
-      .mapErr(() => {
+      .mapErr((error) => {
         logger?.debug({
           method: `callApi.${body.method}.error`,
+          error,
         })
         return SdkError(
           'RadixConnectRelayRequestFailed',
