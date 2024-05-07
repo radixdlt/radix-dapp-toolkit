@@ -112,7 +112,7 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     getById: (id: string) => storageClient.getItemById(id),
     getPendingRequests,
     getItems: storageClient.getItemList,
-    store$: merge(storageClient.storage$, of(null)),
+    store$: storageClient.storage$,
     clear: storageClient.clear,
     destroy: () => {
       subscriptions.unsubscribe()

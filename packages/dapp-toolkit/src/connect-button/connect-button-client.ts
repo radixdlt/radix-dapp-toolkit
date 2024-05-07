@@ -336,7 +336,7 @@ export const ConnectButtonClient = (input: {
     })
 
   subscriptions.add(
-    merge(stateClient.store.storage$, of(null))
+    stateClient.store.storage$
       .pipe(switchMap(() => setPropsFromState()))
       .subscribe(),
   )
