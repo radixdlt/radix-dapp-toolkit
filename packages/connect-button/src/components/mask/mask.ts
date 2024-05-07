@@ -23,6 +23,7 @@ export class RadixMask extends LitElement {
         justify-content: center;
         transition: opacity 200ms;
         background: var(--radix-mask-background);
+        z-index: 2147483647;
       }
 
       :host(.hide) {
