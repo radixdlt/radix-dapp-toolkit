@@ -7,6 +7,7 @@ import {
   DataRequestBuilder,
   OneTimeDataRequestBuilder,
   LocalStorageModule,
+  generateRolaChallenge,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
@@ -48,8 +49,6 @@ const logger = Logger()
 logger.attachTransport((logObj) => {
   const { _meta, ...rest } = logObj
 
-  const storedLogs = localStorage.getItem('logs') ?? ''
-
   const logEntry = `[${_meta.name}]
 ${JSON.stringify(rest, null, 2)}  
 
@@ -61,7 +60,7 @@ ${logs.innerHTML}`
 })
 
 const dAppToolkit = RadixDappToolkit({
-  applicationDappDefinitionAddress: dAppDefinitionAddress,
+  dAppDefinitionAddress,
   networkId,
   featureFlags: ['ExperimentalMobileSupport'],
   logger,
@@ -73,9 +72,7 @@ const gatewayApi = GatewayApiClient.initialize(
 
 dAppToolkit.walletApi.provideChallengeGenerator(async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000))
-  return [...window.crypto.getRandomValues(new Uint8Array(32))]
-    .map((x) => x.toString(16).padStart(2, '0'))
-    .join('')
+  return generateRolaChallenge()
 })
 
 dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
@@ -114,27 +111,5 @@ setInterval(() => {
     .getCurrent()
     .then(
       (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
-    ) // storageClient.getPartition('identities')
-  // .getState((state) => {
-  // keyPairs.innerHTML = JSON.stringify(state, null, 2)
-  //   debugger
-  // })
-  // .map((items) => {
-  //   keyPairs.innerHTML = JSON.stringify(items, null, 2)
-  // })
-  // storageClient
-  //   .getData<
-  //     Record<string, { createdAt: number; status: string }>
-  //   >(`rdt:${dAppDefinitionAddress}:${networkId}:sessions`)
-  //   .map((items) => {
-  //     sessions.innerHTML = JSON.stringify({ sessions: items }, null, 2)
-  //   })
-  // const url = new URL(window.location.href)
-  // const entries = Object.fromEntries([...url.searchParams.entries()])
-  // walletResponse.innerHTML = JSON.stringify({ walletResponse: entries }, null, 2)
-  // device.innerHTML = JSON.stringify(
-  //   { device: navigator.userAgent, isAndroid: navigator.userAgent.includes('Android') },
-  //   null,
-  //   2
-  // )
+    )
 }, 1000)
