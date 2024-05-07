@@ -1,5 +1,5 @@
 import type { RequestItem, RequestStatusTypes } from 'radix-connect-common'
-import { Subscription, merge, of } from 'rxjs'
+import { Subscription, filter, map, switchMap } from 'rxjs'
 import { Logger } from '../../helpers'
 import { ErrorType } from '../../error'
 import { WalletInteraction } from '../../schemas'
@@ -99,10 +99,18 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
       })
   }
 
-  const getPendingRequests = () =>
+  const getPending = () =>
     storageClient
       .getItemList()
       .map((items) => items.filter((item) => item.status === 'pending'))
+
+  const requests$ = storageClient.storage$.pipe(
+    switchMap(() => storageClient.getItemList()),
+    map((result) => {
+      if (result.isOk()) return result.value
+    }),
+    filter((items): items is RequestItem[] => !!items),
+  )
 
   return {
     add,
@@ -110,9 +118,8 @@ export const RequestItemClient = (input: RequestItemClientInput) => {
     updateStatus,
     patch,
     getById: (id: string) => storageClient.getItemById(id),
-    getPendingRequests,
-    getItems: storageClient.getItemList,
-    store$: storageClient.storage$,
+    getPending,
+    requests$,
     clear: storageClient.clear,
     destroy: () => {
       subscriptions.unsubscribe()
