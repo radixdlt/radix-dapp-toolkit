@@ -92,7 +92,7 @@ export const WalletRequestModule = (input: {
   const transports: TransportProvider[] = input.providers.transports ?? [
     ConnectorExtensionModule({
       logger,
-      providers: { requestItemModule },
+      providers: { requestItemModule, storageModule },
     }),
   ]
 
@@ -581,6 +581,7 @@ export const WalletRequestModule = (input: {
 
     stateModule.reset()
     requestItemModule.clear()
+    transports.forEach((transport) => transport?.disconnect())
   }
 
   const destroy = () => {
