@@ -25,6 +25,7 @@ const content = document.getElementById('app')!
 
 content.innerHTML = `  
   <button id="reset">Reset</button>
+  <button id="sendTx">Send Tx</button>
 
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
 
@@ -39,6 +40,7 @@ content.innerHTML = `
   <pre id="logs"></pre>
 `
 const resetButton = document.getElementById('reset')!
+const sendTxButton = document.getElementById('sendTx')!
 const sessions = document.getElementById('sessions')!
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
@@ -92,6 +94,21 @@ resetButton.onclick = () => {
   localStorage.removeItem('logs')
   window.location.hash = ``
   window.location.replace(window.location.origin)
+}
+
+sendTxButton.onclick = () => {
+  dAppToolkit.walletApi.sendTransaction({
+    transactionManifest: `CALL_METHOD
+    Address("component_tdx_2_1cptxxxxxxxxxfaucetxxxxxxxxx000527798379xxxxxxxxxyulkzl")
+    "free"
+;
+CALL_METHOD
+    Address("account_tdx_2_12yfw30hdc445j4lnepw7dmrkjcqcswsrxlff5r07mrjq9f8mnnn2r5")
+    "try_deposit_batch_or_abort"
+    Expression("ENTIRE_WORKTOP")
+    Enum<0u8>()
+;`,
+  })
 }
 
 oneTimeRequest.onclick = () => {

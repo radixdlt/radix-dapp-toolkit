@@ -8,11 +8,7 @@ import {
   ExponentialBackoff,
 } from '../../helpers'
 import { SdkError } from '../../error'
-import {
-  RadixNetworkConfigById,
-  TransactionStatus,
-  TransactionStatusResponse,
-} from './types'
+import { TransactionStatus, TransactionStatusResponse } from './types'
 import { GatewayApiClientConfig } from '../../_types'
 
 export type GatewayModule = ReturnType<typeof GatewayModule>
