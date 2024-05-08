@@ -9,6 +9,7 @@ type PartitionKey =
   | 'requests'
   | 'state'
   | 'connectButton'
+  | 'connectorExtension'
 type dAppDefinitionAddress = string
 
 export type StorageChange<T> = {

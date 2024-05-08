@@ -381,9 +381,32 @@ export type OpenPopupExtensionInteraction = Output<
   typeof OpenPopupExtensionInteraction
 >
 
+export type WalletInteractionExtensionInteraction = Output<
+  typeof WalletInteractionExtensionInteraction
+>
+
+export const WalletInteractionExtensionInteraction = object({
+  interactionId: string(),
+  discriminator: literal('walletInteraction'),
+  interaction: WalletInteraction,
+  sessionId: optional(string()),
+})
+
+export type CancelWalletInteractionExtensionInteraction = Output<
+  typeof CancelWalletInteractionExtensionInteraction
+>
+
+export const CancelWalletInteractionExtensionInteraction = object({
+  interactionId: string(),
+  discriminator: literal('cancelWalletInteraction'),
+  metadata: Metadata,
+})
+
 export const ExtensionInteraction = union([
   StatusExtensionInteraction,
   OpenPopupExtensionInteraction,
+  WalletInteractionExtensionInteraction,
+  CancelWalletInteractionExtensionInteraction,
 ])
 
 export type ExtensionInteraction = Output<typeof ExtensionInteraction>
@@ -401,6 +424,7 @@ export const MessageLifeCycleExtensionStatusEvent = object({
   interactionId: string(),
   isWalletLinked: boolean(),
   isExtensionAvailable: boolean(),
+  canHandleSessions: optional(boolean()),
 })
 
 export type MessageLifeCycleExtensionStatusEvent = Output<

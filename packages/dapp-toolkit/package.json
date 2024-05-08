@@ -25,14 +25,26 @@
   "license": "SEE LICENSE IN RADIX-SOFTWARE-EULA",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  ".": {
-    "import": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
-    "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
+    "./connect-button": {
+      "import": {
+        "types": "./dist/connect-button.d.ts",
+        "default": "./dist/connect-button.js"
+      },
+      "require": {
+        "types": "./dist/connect-button.d.cts",
+        "default": "./dist/connect-button.cjs"
+      }
     }
   },
   "files": [
@@ -42,7 +54,7 @@
   ],
   "scripts": {
     "dev": "npm run build -- --watch",
-    "build": "tsup src/index.ts",
+    "build": "tsup",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },

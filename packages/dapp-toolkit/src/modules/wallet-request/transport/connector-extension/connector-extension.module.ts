@@ -1,6 +1,6 @@
 import { ConnectorExtensionSubjects } from './subjects'
 
-import { Err, Result, ResultAsync, err, ok } from 'neverthrow'
+import { Err, Result, ResultAsync, err, ok, okAsync } from 'neverthrow'
 import {
   Subject,
   Subscription,
@@ -25,11 +25,13 @@ import {
   IncomingMessage,
   MessageLifeCycleExtensionStatusEvent,
   WalletInteraction,
+  WalletInteractionExtensionInteraction,
   WalletInteractionResponse,
   eventType,
 } from '../../../../schemas'
-import { SdkError } from '../../../../error'
 import { RequestItemModule } from '../../request-items'
+import { StorageModule } from '../../../storage'
+import { SdkError } from '../../../../error'
 import { TransportProvider } from '../../../../_types'
 
 export type ConnectorExtensionModule = ReturnType<
@@ -42,15 +44,20 @@ export const ConnectorExtensionModule = (input: {
   extensionDetectionTime?: number
   providers: {
     requestItemModule: RequestItemModule
+    storageModule: StorageModule<{ sessionId?: string }>
   }
 }) => {
+  let isExtensionHandlingSessions = false
   const logger = input?.logger?.getSubLogger({
     name: 'ConnectorExtensionModule',
   })
+
   const subjects = input?.subjects ?? ConnectorExtensionSubjects()
   const subscription = new Subscription()
   const extensionDetectionTime = input?.extensionDetectionTime ?? 100
   const requestItemModule = input.providers.requestItemModule
+  const storage =
+    input.providers.storageModule.getPartition('connectorExtension')
 
   subscription.add(
     subjects.incomingMessageSubject
@@ -86,6 +93,35 @@ export const ConnectorExtensionModule = (input: {
       )
       .subscribe(),
   )
+
+  const wrapOutgoingInteraction = (
+    interaction: WalletInteraction,
+  ): ResultAsync<
+    WalletInteractionExtensionInteraction | WalletInteraction,
+    Error
+  > => {
+    if (!isExtensionHandlingSessions) {
+      return okAsync(interaction)
+    }
+    return storage.getState().andThen((state) => {
+      const isAuthorizedRequest =
+        interaction.items.discriminator === 'authorizedRequest'
+
+      const sessionId = isAuthorizedRequest
+        ? state?.sessionId || crypto.randomUUID()
+        : state?.sessionId
+
+      const wrappedRequest = {
+        interactionId: interaction.interactionId,
+        interaction,
+        sessionId,
+        discriminator: 'walletInteraction' as const,
+      }
+      return isAuthorizedRequest
+        ? storage.setState({ sessionId }).map(() => wrappedRequest)
+        : okAsync(wrappedRequest)
+    })
+  }
 
   const handleIncomingMessage = (event: Event) => {
     const message = (event as CustomEvent<IncomingMessage>).detail
@@ -134,8 +170,10 @@ export const ConnectorExtensionModule = (input: {
     const sendCancelRequest = () => {
       subjects.outgoingMessageSubject.next({
         interactionId: walletInteraction.interactionId,
-        items: { discriminator: 'cancelRequest' },
         metadata: walletInteraction.metadata,
+        ...(isExtensionHandlingSessions
+          ? { discriminator: 'cancelWalletInteraction' }
+          : { items: { discriminator: 'cancelRequest' } }),
       })
 
       setTimeout(() => {
@@ -200,9 +238,13 @@ export const ConnectorExtensionModule = (input: {
       filter((value): value is Err<never, SdkError> => !('eventType' in value)),
     )
 
-    const sendWalletRequest$ = of(walletInteraction).pipe(
-      tap((message) => {
-        subjects.outgoingMessageSubject.next(message)
+    const sendWalletRequest$ = of(
+      wrapOutgoingInteraction(walletInteraction),
+    ).pipe(
+      tap((result) => {
+        result.map((message) => {
+          subjects.outgoingMessageSubject.next(message)
+        })
       }),
       filter((_): _ is never => false),
     )
@@ -246,12 +288,16 @@ export const ConnectorExtensionModule = (input: {
                   eventType: 'extensionStatus',
                   isWalletLinked: false,
                   isExtensionAvailable: false,
+                  canHandleSessions: false,
                 }) as MessageLifeCycleExtensionStatusEvent,
             ),
           ),
         ),
       ),
     ),
+    tap((event) => {
+      isExtensionHandlingSessions = event.canHandleSessions || false
+    }),
     shareReplay(1),
   )
 
@@ -272,7 +318,9 @@ export const ConnectorExtensionModule = (input: {
         }),
       )
     },
-    disconnect: () => {},
+    disconnect: () => {
+      storage.clear()
+    },
     destroy: () => {
       subscription.unsubscribe()
       removeEventListener(eventType.incomingMessage, handleIncomingMessage)
