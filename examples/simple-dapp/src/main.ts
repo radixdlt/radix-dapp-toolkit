@@ -49,18 +49,18 @@ const oneTimeRequest = document.getElementById('one-time-request')!
 
 const logger = Logger()
 
-// logger.attachTransport((logObj) => {
-//   const { _meta, ...rest } = logObj
+logger.attachTransport((logObj) => {
+  const { _meta, ...rest } = logObj
 
-//   const logEntry = `[${_meta.name}]
-// ${JSON.stringify(rest, null, 2)}
+  const logEntry = `[${_meta.name}]
+${JSON.stringify(rest, null, 2)}
 
-// ${logs.innerHTML}`
+${logs.innerHTML}`
 
-//   localStorage.setItem('logs', logEntry)
+  localStorage.setItem('logs', logEntry)
 
-//   logs.innerHTML = logEntry
-// })
+  logs.innerHTML = logEntry
+})
 
 const dAppToolkit = RadixDappToolkit({
   dAppDefinitionAddress,
@@ -101,18 +101,18 @@ oneTimeRequest.onclick = () => {
 }
 
 setInterval(() => {
-  // requestsStore.getState().map((value: any) => {
-  //   requests.innerHTML = JSON.stringify({ requests: value ?? {} }, null, 2)
-  // })
-  // stateStore.getState().map((value: any) => {
-  //   state.innerHTML = JSON.stringify({ state: value ?? {} }, null, 2)
-  // })
-  // sessionStore.getItemList().map((value: any) => {
-  //   sessions.innerHTML = JSON.stringify({ sessions: value }, null, 2)
-  // })
-  // gatewayApi.status
-  //   .getCurrent()
-  //   .then(
-  //     (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
-  //   )
+  requestsStore.getState().map((value: any) => {
+    requests.innerHTML = JSON.stringify({ requests: value ?? {} }, null, 2)
+  })
+  stateStore.getState().map((value: any) => {
+    state.innerHTML = JSON.stringify({ state: value ?? {} }, null, 2)
+  })
+  sessionStore.getItemList().map((value: any) => {
+    sessions.innerHTML = JSON.stringify({ sessions: value }, null, 2)
+  })
+  gatewayApi.status
+    .getCurrent()
+    .then(
+      (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
+    )
 }, 1000)
