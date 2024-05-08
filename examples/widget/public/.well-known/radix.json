@@ -1,0 +1,8 @@
+{
+  "callbackPath": "/connect",
+  "dApps": [
+    {
+      "dAppDefinitionAddress": "account_tdx_2_12yf9gd53yfep7a669fv2t3wm7nz9zeezwd04n02a433ker8vza6rhe"
+    }
+  ]
+}
