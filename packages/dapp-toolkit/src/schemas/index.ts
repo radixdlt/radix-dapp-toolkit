@@ -392,13 +392,13 @@ export const WalletInteractionExtensionInteraction = object({
   sessionId: optional(string()),
 })
 
-export type CancelInteractionExtensionInteraction = Output<
-  typeof CancelInteractionExtensionInteraction
+export type CancelWalletInteractionExtensionInteraction = Output<
+  typeof CancelWalletInteractionExtensionInteraction
 >
 
-export const CancelInteractionExtensionInteraction = object({
+export const CancelWalletInteractionExtensionInteraction = object({
   interactionId: string(),
-  discriminator: literal('cancelInteraction'),
+  discriminator: literal('cancelWalletInteraction'),
   metadata: Metadata,
 })
 
@@ -406,7 +406,7 @@ export const ExtensionInteraction = union([
   StatusExtensionInteraction,
   OpenPopupExtensionInteraction,
   WalletInteractionExtensionInteraction,
-  CancelInteractionExtensionInteraction,
+  CancelWalletInteractionExtensionInteraction,
 ])
 
 export type ExtensionInteraction = Output<typeof ExtensionInteraction>
