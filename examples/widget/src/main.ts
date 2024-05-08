@@ -11,7 +11,6 @@ import {
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
-const widgetUrl = import.meta.env.VITE_WIDGET_DAPP_URL
 const networkId = RadixNetwork.Stokenet
 const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
@@ -25,27 +24,16 @@ const content = document.getElementById('app')!
 
 content.innerHTML = `  
   <button id="reset">Reset</button>
-
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
-
-  <iframe src="${widgetUrl}" width="1000px" height="500px"></iframe>
-
-  <pre id="sessions"></pre>
-  <pre id="requests"></pre>
-  <pre id="state"></pre>
-  <pre id="gatewayConfig"></pre>
-  <pre id="gatewayStatus"></pre>
-  <pre id="device"></pre>
   <pre id="logs"></pre>
 `
 const resetButton = document.getElementById('reset')!
+const oneTimeRequest = document.getElementById('one-time-request')!
 const sessions = document.getElementById('sessions')!
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
-const gatewayConfig = document.getElementById('gatewayConfig')!
 const gatewayStatus = document.getElementById('gatewayStatus')!
-const oneTimeRequest = document.getElementById('one-time-request')!
 
 const logger = Logger()
 
@@ -53,7 +41,7 @@ logger.attachTransport((logObj) => {
   const { _meta, ...rest } = logObj
 
   const logEntry = `[${_meta.name}]
-${JSON.stringify(rest, null, 2)}
+${JSON.stringify(rest, null, 2)}  
 
 ${logs.innerHTML}`
 
@@ -80,10 +68,6 @@ dAppToolkit.walletApi.provideChallengeGenerator(async () => {
 
 dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
 
-gatewayConfig.innerHTML = `
-[Gateway]
-${JSON.stringify(dAppToolkit.gatewayApi.clientConfig, null, 2)}`
-
 resetButton.onclick = () => {
   sessionStore.clear()
   requestsStore.clear()
@@ -99,20 +83,3 @@ oneTimeRequest.onclick = () => {
     OneTimeDataRequestBuilder.accounts().exactly(1),
   )
 }
-
-setInterval(() => {
-  requestsStore.getState().map((value: any) => {
-    requests.innerHTML = JSON.stringify({ requests: value ?? {} }, null, 2)
-  })
-  stateStore.getState().map((value: any) => {
-    state.innerHTML = JSON.stringify({ state: value ?? {} }, null, 2)
-  })
-  sessionStore.getItemList().map((value: any) => {
-    sessions.innerHTML = JSON.stringify({ sessions: value }, null, 2)
-  })
-  gatewayApi.status
-    .getCurrent()
-    .then(
-      (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
-    )
-}, 1000)

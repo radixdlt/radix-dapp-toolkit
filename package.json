@@ -8,7 +8,9 @@
     "test:watch": "turbo test:watch",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "deploy": "turbo deploy"
+    "deploy": "turbo deploy",
+    "deploy:simple-dapp": "turbo deploy --filter simple-dapp",
+    "deploy:widget": "turbo deploy --filter widget"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
