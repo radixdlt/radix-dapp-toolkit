@@ -93,11 +93,10 @@ export const ConnectorExtensionClient = (
     subjects.incomingMessageSubject
       .pipe(
         tap((message) => {
+          logger?.debug('🔵💬⬇️ incomingMessageSubject', message)
           if ('eventType' in message) {
-            logger?.debug(`🔵💬⬇️ messageLifecycleEvent`, message)
             subjects.messageLifeCycleEventSubject.next(message)
           } else {
-            logger?.debug(`🔵⬇️ walletResponse`, message)
             subjects.responseSubject.next(message)
           }
         })
