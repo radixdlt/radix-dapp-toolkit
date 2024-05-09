@@ -161,7 +161,7 @@ export const ConnectorExtensionClient = (
         interactionId: walletInteraction.interactionId,
         metadata: walletInteraction.metadata,
         ...(isExtensionHandlingSessions
-          ? { discriminator: 'cancelInteraction' }
+          ? { discriminator: 'cancelWalletInteraction' }
           : { items: { discriminator: 'cancelRequest' } }),
       })
 

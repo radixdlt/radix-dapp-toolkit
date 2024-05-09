@@ -48,7 +48,7 @@ export type CancelInteractionExtensionInteraction = z.infer<
 
 export const CancelInteractionExtensionInteraction = object({
   interactionId: string(),
-  discriminator: literal('cancelInteraction'),
+  discriminator: literal('cancelWalletInteraction'),
   metadata: Metadata,
 })
 
