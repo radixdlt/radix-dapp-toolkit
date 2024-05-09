@@ -237,27 +237,12 @@ export const Metadata = object({
   origin: string(),
 })
 
-export type MetadataWithOrigin = Output<typeof MetadataWithOrigin>
-export const MetadataWithOrigin = merge([
-  Metadata,
-  object({ origin: string() }),
-])
-
 export type WalletInteraction = Output<typeof WalletInteraction>
 export const WalletInteraction = object({
   interactionId: string(),
   metadata: Metadata,
   items: WalletInteractionItems,
 })
-
-export type WalletInteractionWithOrigin = Output<
-  typeof WalletInteractionWithOrigin
->
-
-export const WalletInteractionWithOrigin = merge([
-  WalletInteraction,
-  object({ metadata: MetadataWithOrigin }),
-])
 
 export type WalletUnauthorizedRequestResponseItems = Output<
   typeof WalletUnauthorizedRequestResponseItems
@@ -361,6 +346,8 @@ export const WalletInteractionResponse = union([
 export const extensionInteractionDiscriminator = {
   extensionStatus: 'extensionStatus',
   openPopup: 'openPopup',
+  cancelWalletInteraction: 'cancelWalletInteraction',
+  walletInteraction: 'walletInteraction',
 } as const
 
 export const StatusExtensionInteraction = object({
@@ -387,7 +374,7 @@ export type WalletInteractionExtensionInteraction = Output<
 
 export const WalletInteractionExtensionInteraction = object({
   interactionId: string(),
-  discriminator: literal('walletInteraction'),
+  discriminator: literal(extensionInteractionDiscriminator.walletInteraction),
   interaction: WalletInteraction,
   sessionId: optional(string()),
 })
@@ -398,7 +385,9 @@ export type CancelWalletInteractionExtensionInteraction = Output<
 
 export const CancelWalletInteractionExtensionInteraction = object({
   interactionId: string(),
-  discriminator: literal('cancelWalletInteraction'),
+  discriminator: literal(
+    extensionInteractionDiscriminator.cancelWalletInteraction,
+  ),
   metadata: Metadata,
 })
 
