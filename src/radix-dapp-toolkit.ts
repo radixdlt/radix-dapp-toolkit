@@ -155,6 +155,7 @@ export const RadixDappToolkit = (
       if (item.showCancel) walletClient.cancelRequest(item.id)
     })
     stateClient.reset()
+    connectorExtensionClient.disconnect()
     walletClient.resetRequestItems()
     connectButtonClient.disconnect()
     if (onDisconnect) onDisconnect()

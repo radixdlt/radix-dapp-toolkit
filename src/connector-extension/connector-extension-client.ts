@@ -259,6 +259,9 @@ export const ConnectorExtensionClient = (
 
   return {
     send: sendWalletInteraction,
+    disconnect: () => {
+      storage.clear()
+    },
     destroy: () => {
       subscription.unsubscribe()
       removeEventListener(eventType.incomingMessage, handleIncomingMessage)
