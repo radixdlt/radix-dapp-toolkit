@@ -85,6 +85,7 @@ export const RadixDappToolkit = (
         stateModule,
         storageModule,
         gatewayModule,
+        dataRequestStateModule: providers?.dataRequestStateModule,
       },
     })
 

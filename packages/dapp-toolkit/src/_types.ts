@@ -23,6 +23,7 @@ import type {
   GatewayModule,
   WalletRequestModule,
   ConnectButtonModule,
+  DataRequestStateModule,
 } from './modules'
 
 export type Providers = {
@@ -31,6 +32,7 @@ export type Providers = {
   stateModule: StateModule
   storageModule: StorageModule
   walletRequestModule: WalletRequestModule
+  dataRequestStateModule: DataRequestStateModule
 }
 
 export type ExplorerConfig = {
