@@ -1,0 +1,245 @@
+name: 'Connect button CI/CD'
+
+on:
+  pull_request:
+    # branches:
+    #   - develop
+  push:
+    branches:
+      - develop
+      - main
+
+env:
+  jenkins_job_name: 'kubernetes-deployments/job/connect-button'
+  helm_dir: 'deploy/helm/connect-button'
+  dev_eks_cluster: 'rdx-works-main-dev'
+  prod_eks_cluster: 'rdx-works-main-dev'
+
+jobs:
+
+  build_push_container:
+    permissions:
+      packages: write
+      id-token: write
+      pull-requests: write
+      contents: read
+    name: Build and push docker image
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
+    with:
+      runs_on: ubuntu-latest
+      image_registry: 'docker.io'
+      image_organization: 'radixdlt'
+      image_name: 'connect-button-storybook'
+      tag: ${{ needs.build.outputs.tag }}
+      tags: |
+        type=sha,priority=601
+        type=ref,event=pr
+        type=ref,event=branch
+        type=semver,pattern={{version}}
+        type=semver,pattern={{major}}.{{minor}}
+        type=semver,pattern={{major}}
+      context: './'
+      dockerfile: './packages/connect-button/Dockerfile'
+      platforms: 'linux/amd64'
+      provenance: 'false'
+      enable_gcr: 'false'
+      scan_image: true
+      snyk_target_ref: ${{ github.ref_name }}
+    secrets:
+      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
+      service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+  deploy_pull_request:
+    if: ${{ github.event.pull_request }}
+    name: Deploy PR
+    runs-on: ubuntu-latest
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'deploy-pr'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/jenkins-credentials-RTHKoO'
+          parse_json: true
+      - name: Connect to tailnet
+        uses: radixdlt/public-iac-resuable-artifacts/tailnet@main
+        with:
+          role_name: "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access"
+          region: "eu-west-2"
+          secret_name: "arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/tailscale-public-workflows-DpiE80"
+      - name: Trigger jenkins job to deploy PR
+        uses: RDXWorks-actions/jenkins-job-trigger-action@master
+        with:
+          jenkins_url: ${{ env.GH_JENKINS_URL }}
+          jenkins_user: ${{ env.GH_JENKINS_USER }}
+          jenkins_token: ${{ env.GH_JENKINS_API_TOKEN }}
+          job_name: ${{ env.jenkins_job_name }}
+          job_params: |
+            {
+              "git_repo" : "${{ github.repository }}",
+              "git_branch" : "${{ github.head_ref }}",
+              "helmfile_environment": "pr",
+              "hierarchical_namespace": "connect-button-ci-pr",
+              "namespace" : "connect-button-pr-${{ github.event.number }}",
+              "create_subnamespace" : "true",
+              "aws_region" : "eu-west-2",
+              "aws_iam_role": "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/jenkins-connect-button-pr-deployer",
+              "aws_eks_cluster" : "${{ env.dev_eks_cluster }}",
+              "helm_folder" : "${{ env.helm_dir }}",
+              "helmfile_extra_vars" : "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }},ci.prNumber=${{ github.event.number }}"
+            }
+          job_timeout: "3600"
+          fetch_logs: "false"
+      - name: Write URL to GH summary
+        run: |
+          echo "PR URL is: https://connect-button-storybook-pr-${{ github.event.number }}.rdx-works-main.extratools.works" >> $GITHUB_STEP_SUMMARY
+
+  deploy_dev:
+    if: ${{ github.event.pull_request }}
+    name: Deploy DEV
+    runs-on: ubuntu-latest
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'deploy-dev'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/jenkins-credentials-RTHKoO'
+          parse_json: true
+      - name: Connect to tailnet
+        uses: radixdlt/public-iac-resuable-artifacts/tailnet@main
+        with:
+          role_name: "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access"
+          region: "eu-west-2"
+          secret_name: "arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/tailscale-public-workflows-DpiE80"
+      - name: Trigger jenkins job to deploy DEV
+        uses: RDXWorks-actions/jenkins-job-trigger-action@master
+        with:
+          jenkins_url: ${{ env.GH_JENKINS_URL }}
+          jenkins_user: ${{ env.GH_JENKINS_USER }}
+          jenkins_token: ${{ env.GH_JENKINS_API_TOKEN }}
+          job_name: ${{ env.jenkins_job_name }}
+          job_params: |
+            {
+              "git_repo" : "${{ github.repository }}",
+              "git_branch" : "${{ github.head_ref }}",
+              "helmfile_environment": "dev",
+              "namespace" : "connect-button-dev",
+              "aws_region" : "eu-west-2",
+              "aws_iam_role": "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/jenkins-connect-button-dev-deployer",
+              "aws_eks_cluster" : "${{ env.dev_eks_cluster }}",
+              "helm_folder" : "${{ env.helm_dir }}",
+              "helmfile_extra_vars" : "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}"
+            }
+          job_timeout: "3600"
+          fetch_logs: "false"
+
+  deploy_prod:
+    if: ${{ github.event.pull_request }}
+    name: Deploy PROD
+    runs-on: ubuntu-latest
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'deploy-prod'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/jenkins-credentials-RTHKoO'
+          parse_json: true
+      - name: Connect to tailnet
+        uses: radixdlt/public-iac-resuable-artifacts/tailnet@main
+        with:
+          role_name: "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access"
+          region: "eu-west-2"
+          secret_name: "arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/tailscale-public-workflows-DpiE80"
+      - name: Trigger jenkins job to deploy DEV
+        uses: RDXWorks-actions/jenkins-job-trigger-action@master
+        with:
+          jenkins_url: ${{ env.GH_JENKINS_URL }}
+          jenkins_user: ${{ env.GH_JENKINS_USER }}
+          jenkins_token: ${{ env.GH_JENKINS_API_TOKEN }}
+          job_name: ${{ env.jenkins_job_name }}
+          job_params: |
+            {
+              "git_repo" : "${{ github.repository }}",
+              "git_branch" : "${{ github.head_ref }}",
+              "helmfile_environment": "prod",
+              "namespace" : "connect-button-prod",
+              "aws_region" : "eu-west-2",
+              "aws_iam_role": "arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/jenkins-connect-button-prod-deployer",
+              "aws_eks_cluster" : "${{ env.dev_eks_cluster }}",
+              "helm_folder" : "${{ env.helm_dir }}",
+              "helmfile_extra_vars" : "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}"
+            }
+          job_timeout: "3600"
+          fetch_logs: "false"
+
+  snyk_container_monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'snyk-cntr-mntr'
+          dockerhub_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/dockerhub-credentials'
+          snyk_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          parse_json: true
+          snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
+          image: docker.io/radixdlt/connect-button-storybook:${{ needs.build.outputs.tag }}
+          target_ref: ${{ github.ref_name }}
+
+  snyk_monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: RDXWorks-actions/checkout@main
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'snyk-monitor'
+          secret_prefix: 'SNYK'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          parse_json: true
+      - name: Enable Snyk online monitoring to check for vulnerabilities
+        uses: RDXWorks-actions/snyk-actions/node@master
+        with:
+          args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
+          command: monitor
