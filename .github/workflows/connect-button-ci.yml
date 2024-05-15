@@ -209,13 +209,11 @@ jobs:
       - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
         with:
           role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
-          app_name: 'connect-button'
-          step_name: 'snyk-cntr-mntr'
+          app_name: 'cnct-button'
           dockerhub_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/dockerhub-credentials'
           snyk_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
-          parse_json: true
           snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
-          image: docker.io/radixdlt/connect-button-storybook:${{ needs.build.outputs.tag }}
+          image: docker.io/radixdlt/connect-button-storybook:${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}
           target_ref: ${{ github.ref_name }}
 
   snyk_monitor:
