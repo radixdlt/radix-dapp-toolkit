@@ -1,0 +1,12 @@
+project: connect-button-storybook
+
+image:
+  tag: {{ .StateValues.ci.tag }}
+
+ingress:
+  enabled: true
+  hosts:
+    - host: connect-button-storybook.radixdlt.com
+      paths:
+        - path: /
+          pathType: Prefix

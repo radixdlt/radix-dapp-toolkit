@@ -1,0 +1,55 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/radixdlt/connect-button-storybook
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets:
+  - name: dockerhub-dev
+
+nameOverride: "connect-button-storybook"
+fullnameOverride: "connect-button-storybook"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "connect-button-storybook"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  limits:
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+docker:
+  secrets:
+    region: eu-west-1
+    name: docker.io/radixdlt
