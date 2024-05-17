@@ -102,7 +102,7 @@ jobs:
           echo "PR URL is: https://connect-button-storybook-pr-${{ github.event.number }}.rdx-works-main.extratools.works" >> $GITHUB_STEP_SUMMARY
 
   deploy_dev:
-    if: ${{ github.event.pull_request }}
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     name: Deploy DEV
     runs-on: ubuntu-latest
     needs:
@@ -149,7 +149,7 @@ jobs:
           fetch_logs: "false"
 
   deploy_prod:
-    if: ${{ github.event.pull_request }}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Deploy PROD
     runs-on: ubuntu-latest
     needs:
