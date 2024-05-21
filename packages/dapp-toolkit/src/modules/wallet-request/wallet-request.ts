@@ -622,6 +622,7 @@ export const WalletRequestModule = (input: {
     getPendingRequests,
     getTransport,
     updateSharedData,
+    dataRequestStateModule,
     interactionStatusChange$: interactionStatusChangeSubject.asObservable(),
     requestItems$: requestItemModule.requests$,
     disconnect,
