@@ -101,8 +101,7 @@ export const WalletRequestModule = (input: {
       RadixConnectRelayModule({
         logger,
         walletUrl: 'https://dr6vsuukf8610.cloudfront.net',
-        baseUrl:
-          'https://radix-connect-relay-dev.rdx-works-main.extratools.works',
+        baseUrl: 'http://radix-connect-relay.radixdlt.com',
         providers: {
           requestItemModule,
           storageModule,
