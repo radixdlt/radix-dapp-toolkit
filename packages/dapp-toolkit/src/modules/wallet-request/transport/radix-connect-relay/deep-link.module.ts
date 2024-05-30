@@ -27,8 +27,6 @@ export const DeepLinkModule = (input: {
     values: Record<string, string>,
   ): ResultAsync<undefined, SdkError> => {
     const outboundUrl = new URL(walletUrl)
-    const currentUrl = new URL(window.origin)
-    currentUrl.hash = callBackPath
 
     Object.entries(values).forEach(([key, value]) => {
       outboundUrl.searchParams.append(key, value)

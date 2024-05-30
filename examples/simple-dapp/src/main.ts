@@ -29,8 +29,6 @@ content.innerHTML = `
 
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
 
-  <iframe src="${widgetUrl}" width="1000px" height="500px"></iframe>
-
   <pre id="sessions"></pre>
   <pre id="requests"></pre>
   <pre id="state"></pre>
@@ -127,9 +125,4 @@ setInterval(() => {
   sessionStore.getItemList().map((value: any) => {
     sessions.innerHTML = JSON.stringify({ sessions: value }, null, 2)
   })
-  gatewayApi.status
-    .getCurrent()
-    .then(
-      (status) => (gatewayStatus.innerHTML = JSON.stringify(status, null, 2)),
-    )
 }, 1000)

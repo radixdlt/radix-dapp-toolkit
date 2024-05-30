@@ -42,9 +42,7 @@ export const RadixDappToolkit = (
     featureFlags = [],
   } = options || {}
 
-  const enableExperimentalMobileSupport = featureFlags.includes(
-    'ExperimentalMobileSupport',
-  )
+  const isMobileSupported = !featureFlags.includes('DisableMobileSupport')
 
   const storageModule =
     providers?.storageModule ??
@@ -80,7 +78,7 @@ export const RadixDappToolkit = (
       networkId,
       dAppDefinitionAddress,
       requestInterceptor: options.requestInterceptor,
-      enableMobile: enableExperimentalMobileSupport,
+      enableMobile: isMobileSupported,
       providers: {
         stateModule,
         storageModule,
@@ -94,7 +92,7 @@ export const RadixDappToolkit = (
       logger,
       networkId,
       explorer: options.explorer,
-      enableMobile: enableExperimentalMobileSupport,
+      enableMobile: isMobileSupported,
       onDisconnect,
       dAppDefinitionAddress,
       providers: {

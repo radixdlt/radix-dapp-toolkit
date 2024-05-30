@@ -10,6 +10,7 @@ import {
 } from '../../schemas'
 import { parse } from 'valibot'
 import { SdkError } from '../../error'
+import { nanoid } from 'nanoid'
 
 export type WalletRequestSdkInput = {
   networkId: number
@@ -49,7 +50,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const createWalletInteraction = (
     items: WalletInteractionItems,
-    interactionId = crypto.randomUUID(),
+    interactionId = nanoid(),
   ): WalletInteraction => ({
     items,
     interactionId,
@@ -81,7 +82,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const request = (
     {
-      interactionId = crypto.randomUUID(),
+      interactionId = nanoid(),
       items,
     }: Pick<WalletInteraction, 'items'> & { interactionId?: string },
     callbackFns: Partial<CallbackFns> = {},
@@ -100,7 +101,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const sendTransaction = (
     {
-      interactionId = crypto.randomUUID(),
+      interactionId = nanoid(),
       items,
     }: { interactionId?: string; items: WalletInteraction['items'] },
     callbackFns: Partial<CallbackFns> = {},
