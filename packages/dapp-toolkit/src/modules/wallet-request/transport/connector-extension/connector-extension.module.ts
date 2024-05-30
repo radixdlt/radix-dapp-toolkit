@@ -33,6 +33,7 @@ import { RequestItemModule } from '../../request-items'
 import { StorageModule } from '../../../storage'
 import { SdkError } from '../../../../error'
 import { TransportProvider } from '../../../../_types'
+import { nanoid } from 'nanoid'
 
 export type ConnectorExtensionModule = ReturnType<
   typeof ConnectorExtensionModule
@@ -108,7 +109,7 @@ export const ConnectorExtensionModule = (input: {
         interaction.items.discriminator === 'authorizedRequest'
 
       const sessionId = isAuthorizedRequest
-        ? state?.sessionId || crypto.randomUUID()
+        ? state?.sessionId || nanoid()
         : state?.sessionId
 
       const wrappedRequest = {
@@ -272,7 +273,7 @@ export const ConnectorExtensionModule = (input: {
   const extensionStatus$ = of(true).pipe(
     tap(() => {
       subjects.outgoingMessageSubject.next({
-        interactionId: crypto.randomUUID(),
+        interactionId: nanoid(),
         discriminator: 'extensionStatus',
       })
     }),
