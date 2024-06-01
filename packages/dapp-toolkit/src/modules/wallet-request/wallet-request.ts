@@ -386,7 +386,10 @@ export const WalletRequestModule = (input: {
                 }),
             )
         }),
-    )
+    ).mapErr((error) => {
+      logger?.error(error)
+      return error;
+    })
   }
 
   const setRequestDataState = (...items: DataRequestBuilderItem[]) => {
