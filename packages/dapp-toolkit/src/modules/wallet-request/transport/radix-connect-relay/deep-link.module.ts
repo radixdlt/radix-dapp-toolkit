@@ -1,4 +1,4 @@
-import type { Result, ResultAsync } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
 import { errAsync, ok, okAsync } from 'neverthrow'
 import { Logger } from '../../../../helpers'
 import { ReplaySubject } from 'rxjs'
@@ -15,6 +15,27 @@ export const DeepLinkModule = (input: {
   const userAgent = Bowser.parse(window.navigator.userAgent)
   const { platform, browser } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkModule' })
+
+  const getNavigator = (): Navigator | undefined => globalThis?.navigator
+
+  // Only exists in Brave browser
+  const getBrave = (): { isBrave: () => Promise<boolean> } | undefined =>
+    (getNavigator() as any)?.brave
+
+  const isBrave = () => {
+    const maybeBrave = getBrave()
+    return maybeBrave
+      ? ResultAsync.fromPromise(maybeBrave.isBrave(), (error) => error as Error)
+      : okAsync(false)
+  }
+
+  isBrave().map((isBrave) => {
+    if (isBrave) {
+      browser.name = 'Brave'
+    }
+
+    logger?.debug({ platform, browser })
+  })
 
   const walletResponseSubject = new ReplaySubject<Record<string, string>>(1)
 
