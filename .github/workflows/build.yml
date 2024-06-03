@@ -4,8 +4,19 @@ on:
   push:
     branches:
       - '**'
+  pull_request:
 
 jobs:
+  phylum-analyze:
+    if: ${{ github.event.pull_request }}
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/phylum-analyze.yml@main
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: read
+    secrets:
+      phylum_api_key: ${{ secrets.PHYLUM_API_KEY }}
+
   snyk-scan-deps-licences:
     runs-on: ubuntu-latest
     permissions:
