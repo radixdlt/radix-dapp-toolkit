@@ -1,8 +1,15 @@
-import { html, css, LitElement } from 'lit'
-import { customElement } from 'lit/decorators.js'
+import { html, css, LitElement, unsafeCSS } from 'lit'
+import { customElement, property } from 'lit/decorators.js'
+import MaskGradient from '../../assets/mask-gradient.svg'
 
 @customElement('radix-mask')
 export class RadixMask extends LitElement {
+  @property({
+    type: Boolean,
+    reflect: true,
+  })
+  isBranded = false
+
   render() {
     return html`<slot></slot>`
   }
@@ -16,6 +23,8 @@ export class RadixMask extends LitElement {
         right: unset;
         height: 100%;
         width: 100%;
+        padding: 16px;
+        box-sizing: border-box;
         backdrop-filter: blur(3px);
         -webkit-backdrop-filter: blur(3px);
         display: flex;
@@ -24,6 +33,13 @@ export class RadixMask extends LitElement {
         transition: opacity 200ms;
         background: var(--radix-mask-background);
         z-index: 2147483647;
+      }
+
+      :host([isBranded]) {
+        align-items: flex-start;
+        background: #000;
+        background-image: url(${unsafeCSS(MaskGradient)});
+        background-size: cover;
       }
 
       :host(.hide) {
