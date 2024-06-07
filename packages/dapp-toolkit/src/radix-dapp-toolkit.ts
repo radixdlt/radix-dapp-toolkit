@@ -1,3 +1,7 @@
+import polyfills from './polyfills'
+
+polyfills()
+
 import type {
   ButtonApi,
   GatewayApiClientConfig,

@@ -23,6 +23,7 @@ import { RadixConnectRelayApiService } from './radix-connect-relay-api.service'
 import { RequestItem } from 'radix-connect-common'
 import type { TransportProvider } from '../../../../_types'
 import { RcfmPageModule, RcfmPageState } from './rcfm-page.module'
+import { base64urlEncode } from './helpers/base64url'
 
 export type RadixConnectRelayModule = ReturnType<typeof RadixConnectRelayModule>
 export const RadixConnectRelayModule = (input: {
@@ -120,15 +121,10 @@ export const RadixConnectRelayModule = (input: {
         requestItemModule
           .patch(walletInteraction.interactionId, { sentToWallet: true })
           .andThen(() =>
-            radixConnectRelayApiService.sendRequest(
-              session,
-              pendingItem.walletInteraction,
-            ),
-          )
-          .andThen(() =>
             deepLinkModule.deepLinkToWallet({
               sessionId: session.sessionId,
               interactionId: pendingItem.interactionId,
+              walletInteraction: base64urlEncode(walletInteraction),
             }),
           ),
       )
@@ -204,27 +200,25 @@ export const RadixConnectRelayModule = (input: {
           pendingItem?: RequestItem
         }) =>
           pendingItem
-            ? radixConnectRelayApiService
-                .sendRequest(activeSession, pendingItem.walletInteraction)
-                .andThen(() =>
-                  requestItemModule
-                    .patch(pendingItem.interactionId, {
-                      sentToWallet: true,
-                    })
-                    .mapErr(() =>
-                      SdkError(
-                        'FailedToUpdateRequestItem',
-                        pendingItem.interactionId,
-                      ),
-                    )
-                    .map(() => pendingItem.interactionId),
+            ? requestItemModule
+                .patch(pendingItem.interactionId, {
+                  sentToWallet: true,
+                })
+                .mapErr(() =>
+                  SdkError(
+                    'FailedToUpdateRequestItem',
+                    pendingItem.interactionId,
+                  ),
                 )
-                .map((interactionId) => {
+                .andThen(() =>
                   deepLinkModule.deepLinkToWallet({
                     sessionId,
-                    interactionId,
-                  })
-                })
+                    interactionId: pendingItem.walletInteraction.interactionId,
+                    walletInteraction: base64urlEncode(
+                      pendingItem.walletInteraction,
+                    ),
+                  }),
+                )
             : ok(pendingItem),
       )
 
