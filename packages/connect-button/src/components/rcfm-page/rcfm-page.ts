@@ -27,7 +27,16 @@ export class RadixRcfmPage extends LitElement {
   })
   isLoading: boolean = false
 
+  @property({
+    type: Boolean,
+  })
+  isHidden: boolean = true
+
   render() {
+    if (this.isHidden) {
+      return html``
+    }
+
     return html` <radix-mask isBranded>
       <radix-wallet-connector-card>
         ${this.isLoading
