@@ -6,14 +6,13 @@ import {
   map,
   merge,
   mergeMap,
-  Observable,
   of,
   Subscription,
   switchMap,
   tap,
   timer,
 } from 'rxjs'
-import type { ConnectButton } from '@radixdlt/connect-button'
+import { ConnectButton } from '@radixdlt/connect-button'
 import type {
   Account,
   RadixButtonStatus,
@@ -30,38 +29,11 @@ import {
 import { GatewayModule, RadixNetworkConfigById } from '../gateway'
 import { StateModule } from '../state'
 import { StorageModule } from '../storage'
-import { ConnectButtonStatus } from './types'
+import { ConnectButtonModuleOutput, ConnectButtonStatus } from './types'
+import { isBrowser } from '../../helpers/is-browser'
+import { ConnectButtonNoopModule } from './connect-button-noop.module'
 
 export type ConnectButtonModule = ReturnType<typeof ConnectButtonModule>
-
-export type ConnectButtonModuleOutput = {
-  status$: Observable<RadixButtonStatus>
-  onConnect$: Observable<{ challenge: string } | undefined>
-  onDisconnect$: Observable<void>
-  onUpdateSharedData$: Observable<void>
-  onShowPopover$: Observable<void>
-  onCancelRequestItem$: Observable<string>
-  onLinkClick$: Observable<{
-    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide'
-    data: string
-  }>
-  setStatus: (value: RadixButtonStatus) => void
-  setMode: (value: 'light' | 'dark') => void
-  setTheme: (value: RadixButtonTheme) => void
-  setActiveTab: (value: 'sharing' | 'requests') => void
-  setIsMobile: (value: boolean) => void
-  setIsWalletLinked: (value: boolean) => void
-  setIsExtensionAvailable: (value: boolean) => void
-  setConnected: (value: boolean) => void
-  setLoggedInTimestamp: (value: string) => void
-  setRequestItems: (value: RequestItem[]) => void
-  setAccounts: (value: Account[]) => void
-  setPersonaData: (value: { value: string; field: string }[]) => void
-  setPersonaLabel: (value: string) => void
-  setDappName: (value: string) => void
-  destroy: () => void
-  disconnect: () => void
-}
 
 export type ConnectButtonModuleInput = {
   networkId: number
@@ -86,6 +58,10 @@ export type ConnectButtonModuleInput = {
 export const ConnectButtonModule = (
   input: ConnectButtonModuleInput,
 ): ConnectButtonModuleOutput => {
+  if (!isBrowser()) {
+    return ConnectButtonNoopModule()
+  }
+  
   import('@radixdlt/connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
   const subjects = input.subjects || ConnectButtonSubjects()
