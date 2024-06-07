@@ -55,7 +55,7 @@ export const RadixConnectRelayModule = (input: {
       callBackPath: '/connect',
     })
 
-  const rcfmPageModule = providers?.rcfmPageModule ?? RcfmPageModule()
+  const rcfmPageModule = providers?.rcfmPageModule ?? RcfmPageModule({ logger })
 
   const identityModule =
     providers?.identityModule ??
