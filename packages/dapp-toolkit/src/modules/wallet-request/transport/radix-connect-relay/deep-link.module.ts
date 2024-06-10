@@ -2,8 +2,54 @@ import { Result, ResultAsync } from 'neverthrow'
 import { errAsync, ok, okAsync } from 'neverthrow'
 import { Logger } from '../../../../helpers'
 import { ReplaySubject } from 'rxjs'
-import Bowser from 'bowser'
 import { SdkError } from '../../../../error'
+import Bowser from 'bowser'
+
+const uaParsing = (logger?: Logger) => {
+  const userAgent = Bowser.parse(globalThis.navigator.userAgent)
+  const { platform, browser } = userAgent
+
+  const getNavigator = (): Navigator | undefined => globalThis?.navigator
+
+  const navigator = getNavigator() as any
+
+  const isBrave = () => {
+    // Only exists in Brave browser
+    const getBrave = (): { isBrave: () => Promise<boolean> } | undefined =>
+      navigator?.brave
+
+    const maybeBrave = getBrave()
+    return maybeBrave
+      ? ResultAsync.fromPromise(maybeBrave.isBrave(), (error) => error as Error)
+      : okAsync(false)
+  }
+
+  const isDuckDuckGo = () => {
+    try {
+      const value = Object.keys(navigator ?? {})[0]
+
+      return value && typeof value === 'string'
+        ? okAsync(value.includes('duckduckgo'))
+        : okAsync(false)
+    } catch (error) {
+      return errAsync(error)
+    }
+  }
+
+  ResultAsync.combine([isBrave(), isDuckDuckGo()]).map(
+    ([isBrave, isDuckDuckGo]) => {
+      if (isBrave) {
+        browser.name = 'Brave'
+      } else if (isDuckDuckGo) {
+        browser.name = 'DuckDuckGo'
+      }
+
+      logger?.debug({ platform, browser })
+    },
+  )
+
+  return { platform, browser }
+}
 
 export type DeepLinkModule = ReturnType<typeof DeepLinkModule>
 export const DeepLinkModule = (input: {
@@ -12,30 +58,8 @@ export const DeepLinkModule = (input: {
   walletUrl: string
 }) => {
   const { callBackPath, walletUrl } = input
-  const userAgent = Bowser.parse(window.navigator.userAgent)
-  const { platform, browser } = userAgent
+  const { platform, browser } = uaParsing(input.logger)
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkModule' })
-
-  const getNavigator = (): Navigator | undefined => globalThis?.navigator
-
-  // Only exists in Brave browser
-  const getBrave = (): { isBrave: () => Promise<boolean> } | undefined =>
-    (getNavigator() as any)?.brave
-
-  const isBrave = () => {
-    const maybeBrave = getBrave()
-    return maybeBrave
-      ? ResultAsync.fromPromise(maybeBrave.isBrave(), (error) => error as Error)
-      : okAsync(false)
-  }
-
-  isBrave().map((isBrave) => {
-    if (isBrave) {
-      browser.name = 'Brave'
-    }
-
-    logger?.debug({ platform, browser })
-  })
 
   const walletResponseSubject = new ReplaySubject<Record<string, string>>(1)
 
