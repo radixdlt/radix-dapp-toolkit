@@ -1,7 +1,11 @@
 import type { Result, ResultAsync } from 'neverthrow'
 import type { Observable } from 'rxjs'
 
-import type { RadixButtonStatus, RadixButtonTheme } from 'radix-connect-common'
+import type {
+  BrowserHandling,
+  RadixButtonStatus,
+  RadixButtonTheme,
+} from 'radix-connect-common'
 import {
   CallbackFns,
   Persona,
@@ -51,6 +55,8 @@ export type OptionalRadixDappToolkitOptions = {
   explorer: ExplorerConfig
   gatewayBaseUrl: string
   applicationName: string
+  inAppBrowserHandling: BrowserHandling
+  unsupportedBrowserHandling: BrowserHandling
   applicationVersion: string
   useCache: boolean
   providers: Partial<Providers>

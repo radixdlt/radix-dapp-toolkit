@@ -2,7 +2,11 @@ import { html, css, LitElement, TemplateResult } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 
 import logoGradient from '../../assets/logo-gradient.png'
-import { RadixButtonStatus, RequestItem } from 'radix-connect-common'
+import {
+  BrowserHandling,
+  RadixButtonStatus,
+  RequestItem,
+} from 'radix-connect-common'
 import { classMap } from 'lit/directives/class-map.js'
 import '../card/request-cards'
 import '../themed-button/themed-button'
@@ -29,6 +33,27 @@ export class RadixNotConnectedPage extends LitElement {
   isExtensionAvailable: boolean = false
 
   @property({
+    type: Boolean,
+  })
+  isInAppBrowser: boolean = false
+
+  @property({
+    type: Boolean,
+  })
+  showCloseButton: boolean = false
+
+  @property({
+    type: Boolean,
+  })
+  isUnsupportedBrowser: boolean = false
+
+  @property({ type: String })
+  inAppBrowserHandling: BrowserHandling = BrowserHandling.blockOnConnect
+
+  @property({ type: String })
+  unsupportedBrowserHandling: BrowserHandling = BrowserHandling.blockOnConnect
+
+  @property({
     type: Array,
   })
   requestItems: RequestItem[] = []
@@ -40,6 +65,9 @@ export class RadixNotConnectedPage extends LitElement {
       template = this.renderCeNotInstalledTemplate()
     else if (!this.isWalletLinked && !this.isMobile)
       template = this.renderCeNotLinkedTemplate()
+    else if (this.isInAppBrowser) template = this.renderInAppBrowserTemplate()
+    else if (this.isUnsupportedBrowser)
+      template = this.renderUnsupportedBrowserTemplate()
     else if (this.status === RadixButtonStatus.pending)
       template = this.renderRequestItemsTemplate()
 
@@ -49,6 +77,56 @@ export class RadixNotConnectedPage extends LitElement {
         <span class="text connect">Connect Your Radix Wallet</span>
       </div>
       ${template}
+    `
+  }
+
+  private renderInAppBrowserTemplate() {
+    return html` <div class="browser-info">
+        <strong>In App Browser</strong>
+        <div>Please use a supported browser to connect to Radix dApps.</div>
+      </div>
+      <div class="action-button">
+        <radix-themed-button
+          class="primary full "
+          @click=${() => {
+            window.open(window.location.href, '_system', 'location=yes')
+          }}
+        >
+          Open in system browser
+        </radix-themed-button>
+      </div>`
+  }
+
+  private renderUnsupportedBrowserTemplate() {
+    return html`
+      <div class="browser-info">
+        <strong>This browser is not supported</strong>
+        <div>
+          You can connect to this dApp with the following browsers:
+          <ul class="supported-browser">
+            <li>Google Chrome</li>
+            <li>Safari</li>
+            <li>Brave</li>
+          </ul>
+        </div>
+      </div>
+      ${this.showCloseButton
+        ? html`<div class="action-button">
+            <radix-themed-button
+              class="primary full "
+              @click=${() => {
+                this.dispatchEvent(
+                  new CustomEvent('onClosePopover', {
+                    bubbles: true,
+                    composed: true,
+                  }),
+                )
+              }}
+            >
+              Close
+            </radix-themed-button>
+          </div>`
+        : ``}
     `
   }
 
@@ -158,6 +236,20 @@ export class RadixNotConnectedPage extends LitElement {
         box-sizing: border-box;
       }
 
+      .supported-browser li {
+        text-align: left;
+        padding: 0 12px;
+        list-style-type: '✅';
+      }
+
+      .supported-browser li::marker {
+        font-size: 13px;
+      }
+
+      .action-button {
+        margin: 40px 50px 15px;
+      }
+
       .wrapper.connect-your-wallet {
         display: flex;
         align-items: center;
@@ -176,6 +268,22 @@ export class RadixNotConnectedPage extends LitElement {
       .card {
         margin-bottom: 10px;
       }
+
+      .browser-info {
+        margin-top: 34px;
+      }
+
+      .browser-info,
+      .browser-info ul {
+        padding: 0 24px;
+        line-height: 24px;
+      }
+
+      .browser-info ul {
+        margin-top: 10px;
+        margin-left: 5px;
+      }
+
       .info {
         margin-bottom: 20px;
         padding: 0 20px;

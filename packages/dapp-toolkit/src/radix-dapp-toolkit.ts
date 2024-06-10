@@ -1,9 +1,10 @@
-import type {
-  ButtonApi,
-  GatewayApiClientConfig,
-  RadixDappToolkitOptions,
-  SendTransactionInput,
-  WalletApi,
+import { BrowserHandling } from 'radix-connect-common'
+import {
+  type ButtonApi,
+  type GatewayApiClientConfig,
+  type RadixDappToolkitOptions,
+  type SendTransactionInput,
+  type WalletApi,
 } from './_types'
 import {
   type WalletData,
@@ -41,6 +42,11 @@ export const RadixDappToolkit = (
     useCache = true,
     featureFlags = [],
   } = options || {}
+
+  const inAppBrowserHandling =
+    options.inAppBrowserHandling ?? BrowserHandling.blockOnConnect
+  const unsupportedBrowserHandling =
+    options.unsupportedBrowserHandling ?? BrowserHandling.blockOnConnect
 
   const isMobileSupported = !featureFlags.includes('DisableMobileSupport')
 
@@ -93,6 +99,8 @@ export const RadixDappToolkit = (
       networkId,
       explorer: options.explorer,
       enableMobile: isMobileSupported,
+      inAppBrowserHandling,
+      unsupportedBrowserHandling,
       onDisconnect,
       dAppDefinitionAddress,
       providers: {

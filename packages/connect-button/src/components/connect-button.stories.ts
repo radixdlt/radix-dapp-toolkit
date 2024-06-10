@@ -2,6 +2,7 @@ import { Story, Meta } from '@storybook/web-components'
 import { html } from 'lit-html'
 import {
   Account,
+  BrowserHandling,
   PersonaData,
   RadixButtonStatus,
   RequestItem,
@@ -34,6 +35,20 @@ const argTypes = {
   },
   isMobile: {
     control: 'boolean',
+  },
+  isInAppBrowser: {
+    control: 'boolean',
+  },
+  isUnsupportedBrowser: {
+    control: 'boolean',
+  },
+  inAppBrowserHandling: {
+    options: [BrowserHandling.blockOnConnect, BrowserHandling.blockOnPageLoad],
+    control: 'select',
+  },
+  unsupportedBrowserHandling: {
+    options: [BrowserHandling.blockOnConnect, BrowserHandling.blockOnPageLoad],
+    control: 'select',
   },
   enableMobile: {
     control: 'boolean',
@@ -85,6 +100,10 @@ const Button = (args: any, { globals }: any) => {
           loggedInTimestamp=${args.loggedInTimestamp}
           ?connected=${args.connected}
           ?isMobile=${args.isMobile}
+          ?isInAppBrowser=${args.isInAppBrowser}
+          ?isUnsupportedBrowser=${args.isUnsupportedBrowser}
+          inAppBrowserHandling=${args.inAppBrowserHandling}
+          unsupportedBrowserHandling=${args.unsupportedBrowserHandling}
           ?enableMobile=${args.enableMobile}
           ?isWalletLinked=${args.isWalletLinked}
           ?isExtensionAvailable=${args.isExtensionAvailable}
@@ -239,6 +258,16 @@ linking.args = {
   enableMobile: true,
 }
 linking.argTypes = argTypes
+
+export const inAppBrowser = Template.bind({})
+inAppBrowser.args = {
+  ...defaultArgs,
+  width: 120,
+  isMobile: true,
+  enableMobile: true,
+  isInAppBrowser: true,
+}
+inAppBrowser.argTypes = argTypes
 
 export const sharing = Template.bind({})
 sharing.args = {

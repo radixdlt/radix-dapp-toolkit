@@ -7,6 +7,14 @@ export const RadixButtonStatus = {
   default: 'default',
 } as const
 
+export const BrowserHandling = {
+  blockOnConnect: 'blockOnConnect',
+  blockOnPageLoad: 'blockOnPageLoad',
+} as const
+
+export type BrowserHandling =
+  (typeof BrowserHandling)[keyof typeof BrowserHandling]
+
 export type RadixButtonStatus = keyof typeof RadixButtonStatus
 
 export const RadixButtonTheme = {

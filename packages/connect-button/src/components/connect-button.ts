@@ -10,6 +10,7 @@ import './mask/mask'
 import './pages/requests'
 import {
   Account,
+  BrowserHandling,
   PersonaData,
   RadixButtonStatus,
   RadixButtonTheme,
@@ -88,6 +89,18 @@ export class ConnectButton extends LitElement {
 
   @property({ type: String, reflect: true })
   mode: 'light' | 'dark' = 'light'
+
+  @property({ type: String })
+  inAppBrowserHandling: BrowserHandling = BrowserHandling.blockOnConnect
+
+  @property({ type: String })
+  unsupportedBrowserHandling: BrowserHandling = BrowserHandling.blockOnConnect
+
+  @property({ type: Boolean })
+  isInAppBrowser: boolean = false
+
+  @property({ type: Boolean })
+  isUnsupportedBrowser: boolean = false
 
   @property({ type: String })
   avatarUrl: string = ''
@@ -220,8 +233,14 @@ export class ConnectButton extends LitElement {
       status=${this.status}
       ?isMobile=${this.isMobile}
       .requestItems=${this.requestItems}
+      ?isInAppBrowser=${this.isInAppBrowser}
+      ?isUnsupportedBrowser=${this.isUnsupportedBrowser}
+      ?showCloseButton=${this.showPopoverCloseButton}
       ?isWalletLinked=${this.isWalletLinked}
       ?isExtensionAvailable=${this.isExtensionAvailable}
+      @onClosePopover=${() => {
+        this.closePopover()
+      }}
     >
     </radix-not-connected-page>`
   }
@@ -265,10 +284,29 @@ export class ConnectButton extends LitElement {
   }
 
   private get showPopoverCloseButton() {
-    return this.isMobile
+    return (
+      this.isMobile &&
+      !(
+        this.inAppBrowserHandling === BrowserHandling.blockOnPageLoad &&
+        this.isInAppBrowser
+      ) &&
+      !(
+        this.unsupportedBrowserHandling === BrowserHandling.blockOnPageLoad &&
+        this.isUnsupportedBrowser
+      )
+    )
   }
 
   private popoverTemplate() {
+    if (
+      [this.inAppBrowserHandling, this.unsupportedBrowserHandling].includes(
+        BrowserHandling.blockOnPageLoad,
+      )
+    ) {
+      this.pristine = false
+      this.showPopoverMenu = true
+    }
+
     if (this.pristine) return ''
 
     return html` <radix-popover

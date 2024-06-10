@@ -1,5 +1,4 @@
 import {
-  delay,
   filter,
   first,
   fromEvent,
@@ -15,6 +14,7 @@ import {
 import { ConnectButton } from '@radixdlt/connect-button'
 import type {
   Account,
+  BrowserHandling,
   RadixButtonStatus,
   RadixButtonTheme,
   RequestItem,
@@ -43,6 +43,8 @@ export type ConnectButtonModuleInput = {
   subjects?: ConnectButtonSubjects
   logger?: Logger
   onDisconnect?: () => void
+  inAppBrowserHandling: BrowserHandling
+  unsupportedBrowserHandling: BrowserHandling
   explorer?: ExplorerConfig
   enableMobile?: boolean
   providers: {
@@ -61,10 +63,15 @@ export const ConnectButtonModule = (
   if (!isBrowser()) {
     return ConnectButtonNoopModule()
   }
-  
+
   import('@radixdlt/connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
-  const subjects = input.subjects || ConnectButtonSubjects()
+  const subjects =
+    input.subjects ||
+    ConnectButtonSubjects({
+      inAppBrowserHandling: input.inAppBrowserHandling,
+      unsupportedBrowserHandling: input.unsupportedBrowserHandling,
+    })
   const dAppDefinitionAddress = input.dAppDefinitionAddress
   const { baseUrl, accountsPath, transactionPath } = input.explorer ?? {
     baseUrl: RadixNetworkConfigById[input.networkId].dashboardUrl,
@@ -214,6 +221,26 @@ export const ConnectButtonModule = (
             tap((value) => (connectButtonElement.theme = value)),
           )
 
+          const isInAppBrowser$ = subjects.isInAppBrowser.pipe(
+            tap((value) => (connectButtonElement.isInAppBrowser = value)),
+          )
+
+          const isUnsupportedBrowser$ = subjects.isUnsupportedBrowser.pipe(
+            tap((value) => (connectButtonElement.isUnsupportedBrowser = value)),
+          )
+
+          const inAppBrowserHandling$ = subjects.inAppBrowserHandling.pipe(
+            tap((value) => (connectButtonElement.inAppBrowserHandling = value)),
+          )
+
+          const unsupportedBrowserHandling$ =
+            subjects.unsupportedBrowserHandling.pipe(
+              tap(
+                (value) =>
+                  (connectButtonElement.unsupportedBrowserHandling = value),
+              ),
+            )
+
           return merge(
             onConnect$,
             status$,
@@ -234,6 +261,10 @@ export const ConnectButtonModule = (
             onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
+            isInAppBrowser$,
+            isUnsupportedBrowser$,
+            inAppBrowserHandling$,
+            unsupportedBrowserHandling$,
             dAppName$,
             onLinkClick$,
           )
