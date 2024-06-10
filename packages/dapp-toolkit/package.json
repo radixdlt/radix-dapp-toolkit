@@ -65,10 +65,10 @@
     "immer": "^10.0.4",
     "lit": "^3.1.2",
     "lit-html": "^3.1.2",
-    "nanoid": "^5.0.7",
     "neverthrow": "^6.1.0",
     "rxjs": "^7.8.1",
     "tslog": ">=4.8.0",
+    "uuid": "^10.0.0",
     "valibot": "^0.30.0"
   },
   "devDependencies": {

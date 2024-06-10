@@ -2,7 +2,7 @@ import type { ResultAsync } from 'neverthrow'
 import { errAsync, okAsync } from 'neverthrow'
 import type { IdentityModule } from '../identity/identity.module'
 import { StorageModule } from '../../storage/local-storage.module'
-import { nanoid } from 'nanoid'
+import { v4 as uuidV4 } from 'uuid'
 
 type Status = (typeof Status)[keyof typeof Status]
 const Status = { Pending: 'Pending', Active: 'Active' } as const
@@ -53,7 +53,7 @@ export const SessionModule = (input: {
     storageModule.getItemById(sessionId)
 
   const createSession = (): ResultAsync<PendingSession, Error> => {
-    const sessionId = nanoid()
+    const sessionId = uuidV4()
     const newSession: PendingSession = {
       sessionId,
       status: Status.Pending,
