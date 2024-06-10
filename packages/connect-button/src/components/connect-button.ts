@@ -95,11 +95,6 @@ export class ConnectButton extends LitElement {
   @property({ type: Boolean, state: true })
   compact = false
 
-  @property({
-    type: Boolean,
-  })
-  showLinking: boolean = false
-
   get hasSharedData(): boolean {
     return !!(this.accounts.length || this.personaData.length)
   }
@@ -269,12 +264,8 @@ export class ConnectButton extends LitElement {
     return this.isMobile && !this.enableMobile
   }
 
-  private get showLinkingTemplate() {
-    return this.isMobile && this.showLinking
-  }
-
   private get showPopoverCloseButton() {
-    return this.isMobile && !this.showLinking
+    return this.isMobile
   }
 
   private popoverTemplate() {
@@ -295,9 +286,7 @@ export class ConnectButton extends LitElement {
     >
       ${this.showComingSoonTemplate
         ? this.renderComingSoonTemplate()
-        : this.showLinkingTemplate
-          ? this.renderLinkingTemplate()
-          : this.renderPopoverContentTemplate()}
+        : this.renderPopoverContentTemplate()}
     </radix-popover>`
   }
 
@@ -323,15 +312,6 @@ export class ConnectButton extends LitElement {
       <div class="header">Mobile dApps are coming soon.</div>
       <div class="content">
         For now, please connect to Radix dApps using a desktop web browser.
-      </div>
-    </div>`
-  }
-
-  private renderLinkingTemplate() {
-    return html` <div class="mobile-wrapper">
-      <div class="header">dApp Verified</div>
-      <div class="content">
-        You can close this tab and return to where you left off.
       </div>
     </div>`
   }

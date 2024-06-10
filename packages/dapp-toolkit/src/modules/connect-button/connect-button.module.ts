@@ -214,15 +214,6 @@ export const ConnectButtonModule = (
             tap((value) => (connectButtonElement.theme = value)),
           )
 
-          const showLinking$ = subjects.showLinking.pipe(
-            delay(1000),
-            tap((value) => {
-              connectButtonElement.showPopoverMenu = value
-              connectButtonElement.showLinking = value
-              connectButtonElement.pristine = false
-            }),
-          )
-
           return merge(
             onConnect$,
             status$,
@@ -245,7 +236,6 @@ export const ConnectButtonModule = (
             onShowPopover$,
             dAppName$,
             onLinkClick$,
-            showLinking$,
           )
         }),
       )
@@ -284,15 +274,6 @@ export const ConnectButtonModule = (
       )
       .subscribe(),
   )
-
-  if (transport?.sessionChange$)
-    subscriptions.add(
-      transport.sessionChange$
-        .pipe(filter((session) => session.status === 'Active'))
-        .subscribe(() => {
-          subjects.showLinking.next(true)
-        }),
-    )
 
   const connectButtonApi = {
     status$: subjects.status.asObservable(),

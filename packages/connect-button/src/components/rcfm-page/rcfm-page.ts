@@ -4,6 +4,7 @@ import '../mask/mask'
 import '../wallet-connector-card/wallet-connector-card'
 import '../wallet-connector-card/wallet-connector-info'
 import '../loading-spinner/loading-spinner'
+import { variablesCSS } from '../../theme'
 
 @customElement('radix-rcfm-page')
 export class RadixRcfmPage extends LitElement {
@@ -27,7 +28,16 @@ export class RadixRcfmPage extends LitElement {
   })
   isLoading: boolean = false
 
+  @property({
+    type: Boolean,
+  })
+  isHidden: boolean = true
+
   render() {
+    if (this.isHidden) {
+      return html``
+    }
+
     return html` <radix-mask isBranded>
       <radix-wallet-connector-card>
         ${this.isLoading
@@ -44,6 +54,7 @@ export class RadixRcfmPage extends LitElement {
   }
 
   static styles = [
+    variablesCSS,
     css`
       .loading-container {
         display: flex;

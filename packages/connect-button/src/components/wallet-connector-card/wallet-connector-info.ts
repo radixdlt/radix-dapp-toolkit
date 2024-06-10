@@ -45,6 +45,7 @@ export class RadixWalletConnectorInfo extends LitElement {
         font-size: 24px;
         font-weight: 700;
         margin: 0;
+        color: var(--color-grey-1);
       }
 
       .error {

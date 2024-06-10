@@ -22,6 +22,7 @@ import { Curve25519 } from '../../crypto'
 import { RadixConnectRelayApiService } from './radix-connect-relay-api.service'
 import { RequestItem } from 'radix-connect-common'
 import type { TransportProvider } from '../../../../_types'
+import { RcfmPageModule, RcfmPageState } from './rcfm-page.module'
 
 export type RadixConnectRelayModule = ReturnType<typeof RadixConnectRelayModule>
 export const RadixConnectRelayModule = (input: {
@@ -34,6 +35,7 @@ export const RadixConnectRelayModule = (input: {
     encryptionModule?: EncryptionModule
     identityModule?: IdentityModule
     sessionModule?: SessionModule
+    rcfmPageModule?: RcfmPageModule
     deepLinkModule?: DeepLinkModule
   }
 }): TransportProvider => {
@@ -52,6 +54,8 @@ export const RadixConnectRelayModule = (input: {
       walletUrl,
       callBackPath: '/connect',
     })
+
+  const rcfmPageModule = providers?.rcfmPageModule ?? RcfmPageModule({ logger })
 
   const identityModule =
     providers?.identityModule ??
@@ -329,6 +333,13 @@ export const RadixConnectRelayModule = (input: {
         switchMap((item) => handleWalletCallback(item)),
       )
       .subscribe(),
+  )
+
+  subscriptions.add(
+    sessionChangeSubject
+      .asObservable()
+      .pipe(filter((session) => session.status === 'Active'))
+      .subscribe(() => rcfmPageModule.show(RcfmPageState.dAppVerified)),
   )
 
   deepLinkModule.handleWalletCallback()

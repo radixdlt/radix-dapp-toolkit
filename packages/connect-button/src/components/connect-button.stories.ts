@@ -38,9 +38,6 @@ const argTypes = {
   enableMobile: {
     control: 'boolean',
   },
-  showLinking: {
-    control: 'boolean',
-  },
 }
 
 const defaultArgs = {
@@ -89,7 +86,6 @@ const Button = (args: any, { globals }: any) => {
           ?connected=${args.connected}
           ?isMobile=${args.isMobile}
           ?enableMobile=${args.enableMobile}
-          ?showLinking=${args.showLinking}
           ?isWalletLinked=${args.isWalletLinked}
           ?isExtensionAvailable=${args.isExtensionAvailable}
           ?showPopoverMenu=${args.showPopoverMenu}
@@ -239,7 +235,6 @@ export const linking = Template.bind({})
 linking.args = {
   ...defaultArgs,
   width: 120,
-  showLinking: true,
   isMobile: true,
   enableMobile: true,
 }
