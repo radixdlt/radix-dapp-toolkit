@@ -12,11 +12,11 @@
     "deploy:simple-dapp": "turbo deploy --filter simple-dapp"
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "latest",
-    "husky": "^8.0.3",
     "@commitlint/cli": "^17.4.2",
-    "@commitlint/config-conventional": "^17.4.2"
+    "@commitlint/config-conventional": "^17.4.2",
+    "husky": "^8.0.3",
+    "prettier": "^3.2.5",
+    "turbo": "latest"
   },
   "engines": {
     "node": ">=18"
