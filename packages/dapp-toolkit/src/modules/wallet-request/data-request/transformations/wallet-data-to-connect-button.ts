@@ -38,7 +38,7 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
       ): item is {
         value: string
         field: string
-      } => !!item && !!item.value.trim(),
+      } => !!item && !!item.value?.trim(),
     )
 
   return { accounts, personaLabel, connected, personaData }
