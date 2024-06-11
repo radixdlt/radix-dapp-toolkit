@@ -1,5 +1,4 @@
 import {
-  delay,
   filter,
   first,
   fromEvent,
@@ -20,7 +19,7 @@ import type {
   RequestItem,
 } from 'radix-connect-common'
 import { ConnectButtonSubjects } from './subjects'
-import { type Logger } from '../../helpers'
+import { isMobile, type Logger } from '../../helpers'
 import { ExplorerConfig } from '../../_types'
 import {
   transformWalletDataToConnectButton,
@@ -194,6 +193,10 @@ export const ConnectButtonModule = (
             tap((items) => (connectButtonElement.requestItems = items)),
           )
 
+          const showPopoverMenu$ = subjects.showPopoverMenu.pipe(
+            tap((value) => (connectButtonElement.showPopoverMenu = value)),
+          )
+
           const accounts$ = subjects.accounts.pipe(
             tap((items) => (connectButtonElement.accounts = items)),
           )
@@ -220,6 +223,7 @@ export const ConnectButtonModule = (
             theme$,
             mode$,
             connected$,
+            showPopoverMenu$,
             requestItems$,
             loggedInTimestamp$,
             isMobile$,
@@ -295,6 +299,7 @@ export const ConnectButtonModule = (
     setLoggedInTimestamp: (value: string) =>
       subjects.loggedInTimestamp.next(value),
     setConnected: (value: boolean) => subjects.connected.next(value),
+    setShowPopoverMenu: (value: boolean) => subjects.showPopoverMenu.next(value),
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
@@ -377,7 +382,8 @@ export const ConnectButtonModule = (
               isConnect: true,
               oneTime: false,
             }),
-          ),
+          )
+          .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
         ),
       )
       .subscribe(),

@@ -17,6 +17,7 @@ export const ConnectButtonSubjects = () => ({
   loggedInTimestamp: new BehaviorSubject<string>(''),
   isMobile: new BehaviorSubject<boolean>(isMobile()),
   isWalletLinked: new BehaviorSubject<boolean>(false),
+  showPopoverMenu: new BehaviorSubject<boolean>(false),
   isExtensionAvailable: new BehaviorSubject<boolean>(false),
   fullWidth: new BehaviorSubject<boolean>(false),
   activeTab: new BehaviorSubject<'sharing' | 'requests'>('sharing'),
