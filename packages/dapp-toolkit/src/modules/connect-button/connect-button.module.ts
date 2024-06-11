@@ -194,6 +194,10 @@ export const ConnectButtonModule = (
             tap((items) => (connectButtonElement.requestItems = items)),
           )
 
+          const showPopoverMenu$ = subjects.showPopoverMenu.pipe(
+            tap((value) => (connectButtonElement.showPopoverMenu = value)),
+          )
+
           const accounts$ = subjects.accounts.pipe(
             tap((items) => (connectButtonElement.accounts = items)),
           )
@@ -220,6 +224,7 @@ export const ConnectButtonModule = (
             theme$,
             mode$,
             connected$,
+            showPopoverMenu$,
             requestItems$,
             loggedInTimestamp$,
             isMobile$,
@@ -295,6 +300,7 @@ export const ConnectButtonModule = (
     setLoggedInTimestamp: (value: string) =>
       subjects.loggedInTimestamp.next(value),
     setConnected: (value: boolean) => subjects.connected.next(value),
+    setShowPopoverMenu: (value: boolean) => subjects.showPopoverMenu.next(value),
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
@@ -377,7 +383,8 @@ export const ConnectButtonModule = (
               isConnect: true,
               oneTime: false,
             }),
-          ),
+          )
+          .map(() => subjects.showPopoverMenu.next(false)),
         ),
       )
       .subscribe(),
