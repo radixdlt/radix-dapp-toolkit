@@ -4,8 +4,8 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
   const accounts = walletData.accounts ?? []
   const personaLabel = walletData?.persona?.label ?? ''
   const connected = !!walletData?.persona
-  const personaData = walletData.personaData
-    .map((item) => {
+  const personaData = walletData?.personaData
+    ?.map((item) => {
       if (item.entry === 'fullName') {
         const { variant, givenNames, familyName, nickname } = item.fields
         const value =
@@ -34,11 +34,11 @@ export const transformWalletDataToConnectButton = (walletData: WalletData) => {
     })
     .filter(
       (
-        item
+        item,
       ): item is {
         value: string
         field: string
-      } => !!item && !!item.value.trim()
+      } => !!item && !!item.value?.trim(),
     )
 
   return { accounts, personaLabel, connected, personaData }
