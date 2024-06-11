@@ -1,5 +1,4 @@
 import {
-  delay,
   filter,
   first,
   fromEvent,
@@ -20,7 +19,7 @@ import type {
   RequestItem,
 } from 'radix-connect-common'
 import { ConnectButtonSubjects } from './subjects'
-import { type Logger } from '../../helpers'
+import { isMobile, type Logger } from '../../helpers'
 import { ExplorerConfig } from '../../_types'
 import {
   transformWalletDataToConnectButton,
@@ -384,7 +383,7 @@ export const ConnectButtonModule = (
               oneTime: false,
             }),
           )
-          .map(() => subjects.showPopoverMenu.next(false)),
+          .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
         ),
       )
       .subscribe(),
