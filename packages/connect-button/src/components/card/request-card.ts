@@ -5,23 +5,32 @@ import '../account/account'
 import '../link/link'
 import { shortenAddress } from '../../helpers/shorten-address'
 import { classMap } from 'lit/directives/class-map.js'
-import { RequestItemType, RequestStatus } from 'radix-connect-common'
+import {
+  RequestItemTypes,
+  RequestStatusTypes,
+  RequestStatus,
+} from 'radix-connect-common'
 @customElement('radix-request-card')
 export class RadixRequestCard extends LitElement {
   @property({
     type: String,
   })
-  type: keyof typeof RequestItemType = 'dataRequest'
+  type: RequestItemTypes = 'dataRequest'
 
   @property({
     type: String,
   })
-  status: keyof typeof RequestStatus = 'pending'
+  status: RequestStatusTypes = 'pending'
 
   @property({
     type: Boolean,
   })
   showCancel: boolean = false
+
+  @property({
+    type: Boolean,
+  })
+  showIgnore: boolean = false
 
   @property({
     type: String,
@@ -46,18 +55,29 @@ export class RadixRequestCard extends LitElement {
         pending: 'Pending Transaction',
         fail: 'Transaction Failed',
         cancelled: 'Transaction Cancelled',
+        ignored: 'Transaction Ignored',
         success: 'Send transaction',
         content: html`
           ${this.renderTxIntentHash()}
-          ${this.getRequestContentTemplate(
-            'Open your Radix Wallet app to review the transaction',
-          )}
+          ${this.status === 'pending'
+            ? html`<div class="request-content">
+                Open your Radix Wallet app to review the transaction
+                ${this.showCancel
+                  ? html`<div class="cancel" @click=${this.onCancel}>
+                      Cancel
+                    </div>`
+                  : html`<div class="cancel" @click=${this.onIgnore}>
+                      Ignore
+                    </div>`}
+              </div>`
+            : ''}
         `,
       },
       dataRequest: {
         pending: 'Data Request Pending',
         fail: 'Data Request Rejected',
         cancelled: 'Data Request Rejected',
+        ignored: '',
         success: 'Data Request',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
@@ -68,6 +88,7 @@ export class RadixRequestCard extends LitElement {
         fail: 'Login Request Rejected',
         cancelled: 'Login Request Rejected',
         success: 'Login Request',
+        ignored: '',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
         ),
@@ -85,7 +106,7 @@ export class RadixRequestCard extends LitElement {
   }
 
   private getRequestContentTemplate(text: string) {
-    return this.status === 'pending'
+    return this.status === RequestStatus.pending
       ? html`<div class="request-content">
           ${text}
           ${this.showCancel
@@ -95,17 +116,29 @@ export class RadixRequestCard extends LitElement {
       : ''
   }
 
+  private isErrorStatus(status: RequestStatusTypes) {
+    return (
+      [
+        RequestStatus.cancelled,
+        RequestStatus.fail,
+        RequestStatus.ignored,
+      ] as string[]
+    ).includes(status)
+  }
+
   private getIconFromStatus() {
-    return this.status === 'pending'
+    return this.status === RequestStatus.pending
       ? 'pending'
-      : this.status === 'cancelled' || this.status === 'fail'
-        ? 'error'
-        : 'checked'
+      : this.status === RequestStatus.ignored
+        ? 'ignored'
+        : this.isErrorStatus(this.status)
+          ? 'error'
+          : 'checked'
   }
 
   private getStylingFromStatus() {
     return classMap({
-      dimmed: this.status === 'fail' || this.status === 'cancelled',
+      dimmed: this.isErrorStatus(this.status),
       inverted: this.status === 'pending',
     })
   }
@@ -113,6 +146,19 @@ export class RadixRequestCard extends LitElement {
   private onCancel(event: MouseEvent) {
     this.dispatchEvent(
       new CustomEvent('onCancelRequestItem', {
+        detail: {
+          ...event,
+          id: this.id,
+        },
+        bubbles: true,
+        composed: true,
+      }),
+    )
+  }
+
+  private onIgnore(event: MouseEvent) {
+    this.dispatchEvent(
+      new CustomEvent('onIgnoreTransactionItem', {
         detail: {
           ...event,
           id: this.id,

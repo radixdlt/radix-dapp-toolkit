@@ -60,7 +60,7 @@ export const ConnectButtonModule = (
   if (!isBrowser()) {
     return ConnectButtonNoopModule()
   }
-  
+
   import('@radixdlt/connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
   const subjects = input.subjects || ConnectButtonSubjects()
@@ -139,6 +139,21 @@ export const ConnectButtonModule = (
               const id = (event as CustomEvent<{ id: string }>).detail.id
               logger?.debug({ method: 'onCancelRequestItem', id })
               subjects.onCancelRequestItem.next(id)
+            }),
+          )
+
+          const onIgnoreTransactionItem$ = fromEvent(
+            connectButtonElement,
+            'onIgnoreTransactionItem',
+          ).pipe(
+            tap((event) => {
+              const id = (event as CustomEvent<{ id: string }>).detail.id
+
+              logger?.debug({
+                method: 'onIgnoreTransactionItem',
+                id,
+              })
+              subjects.onIgnoreTransactionItem.next(id)
             }),
           )
 
@@ -232,6 +247,7 @@ export const ConnectButtonModule = (
             isExtensionAvailable$,
             onDisconnect$,
             onCancelRequestItem$,
+            onIgnoreTransactionItem$,
             accounts$,
             personaData$,
             personaLabel$,
@@ -286,6 +302,7 @@ export const ConnectButtonModule = (
     onShowPopover$: subjects.onShowPopover.asObservable(),
     onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
+    onIgnoreTransactionItem$: subjects.onIgnoreTransactionItem.asObservable(),
     onLinkClick$: subjects.onLinkClick.asObservable(),
     setStatus: (value: RadixButtonStatus) => subjects.status.next(value),
     setTheme: (value: RadixButtonTheme) => subjects.theme.next(value),
@@ -299,7 +316,8 @@ export const ConnectButtonModule = (
     setLoggedInTimestamp: (value: string) =>
       subjects.loggedInTimestamp.next(value),
     setConnected: (value: boolean) => subjects.connected.next(value),
-    setShowPopoverMenu: (value: boolean) => subjects.showPopoverMenu.next(value),
+    setShowPopoverMenu: (value: boolean) =>
+      subjects.showPopoverMenu.next(value),
     setRequestItems: (items: RequestItem[]) =>
       subjects.requestItems.next(items),
     setAccounts: (accounts: Account[]) => subjects.accounts.next(accounts),
@@ -344,6 +362,16 @@ export const ConnectButtonModule = (
   )
 
   subscriptions.add(
+    subjects.onIgnoreTransactionItem
+      .pipe(
+        tap((value) => {
+          walletRequestModule.ignoreTransaction(value)
+        }),
+      )
+      .subscribe(),
+  )
+
+  subscriptions.add(
     walletRequestModule.requestItems$
       .pipe(
         tap((items) => {
@@ -377,13 +405,15 @@ export const ConnectButtonModule = (
     subjects.onConnect
       .pipe(
         switchMap(() =>
-          stateModule.reset().andThen(() =>
-            walletRequestModule.sendRequest({
-              isConnect: true,
-              oneTime: false,
-            }),
-          )
-          .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
+          stateModule
+            .reset()
+            .andThen(() =>
+              walletRequestModule.sendRequest({
+                isConnect: true,
+                oneTime: false,
+              }),
+            )
+            .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
         ),
       )
       .subscribe(),

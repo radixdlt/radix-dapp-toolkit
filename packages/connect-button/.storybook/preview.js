@@ -10,9 +10,7 @@ export const parameters = {
         .replaceAll(':host', '.storybook-wrapper')
       const theme = themeCSS
         .toString()
-        .replace(":host([mode='dark'])", '.storybook-wrapper[mode=dark]')
-        .replace(":host([mode='light'])", '.storybook-wrapper[mode=light]')
-        .replaceAll(':host', '.storybook-wrapper')
+        .replaceAll(/(?::host)\(([a-z=\[\]-]+)\)/g, '.storybook-wrapper$1')
 
       return html`<style>
           ${variables}

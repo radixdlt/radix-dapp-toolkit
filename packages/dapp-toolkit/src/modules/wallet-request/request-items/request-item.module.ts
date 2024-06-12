@@ -1,4 +1,8 @@
-import type { RequestItem, RequestStatusTypes } from 'radix-connect-common'
+import {
+  RequestStatus,
+  type RequestItem,
+  type RequestStatusTypes,
+} from 'radix-connect-common'
 import { Subscription, filter, map, switchMap } from 'rxjs'
 import { Logger } from '../../../helpers'
 import { ErrorType } from '../../../error'
@@ -79,7 +83,8 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
         if (item) {
           const updated = {
             ...item,
-            status,
+            status:
+              item.status === RequestStatus.ignored ? item.status : status,
           } as RequestItem
           if (updated.status === 'fail') {
             updated.error = error!

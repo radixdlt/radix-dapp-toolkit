@@ -32,6 +32,7 @@ export const RequestStatus = {
   success: 'success',
   fail: 'fail',
   cancelled: 'cancelled',
+  ignored: 'ignored',
 } as const
 
 export const RequestItemType = {

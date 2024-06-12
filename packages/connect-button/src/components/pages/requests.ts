@@ -38,15 +38,6 @@ export class RadixRequestsPage extends LitElement {
               id="${requestItem.interactionId}"
               transactionIntentHash="${requestItem.transactionIntentHash || ''}"
               ?showCancel="${requestItem.showCancel}"
-              @onCancel=${(event: any) => {
-                this.dispatchEvent(
-                  new CustomEvent('onCancel', {
-                    detail: event.detail,
-                    bubbles: true,
-                    composed: true,
-                  }),
-                )
-              }}
               timestamp=${requestItem.createdAt}
             ></radix-request-card>`,
         )}
