@@ -11,6 +11,7 @@ export const ConnectButtonSubjects = () => ({
   connected: new ReplaySubject<boolean>(1),
   requestItems: new BehaviorSubject<RequestItem[]>([]),
   onCancelRequestItem: new Subject<string>(),
+  onIgnoreTransactionItem: new Subject<string>(),
   accounts: new BehaviorSubject<Account[]>([]),
   onShowPopover: new Subject<void>(),
   status: new BehaviorSubject<ConnectButtonStatus>('default'),

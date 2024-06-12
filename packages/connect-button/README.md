@@ -102,6 +102,7 @@ type ConnectButtonEvents = {
   onConnect: () => void
   onDisconnect: () => void
   onCancelRequestItem: (event: CustomEvent<{ id: string }>) => void
+  onIgnoreTransactionItem: (event: CustomEvent<{ id: string }>) => void
   onDestroy: () => void
   onShowPopover: () => void
   onUpdateSharedData: () => void
@@ -110,7 +111,8 @@ type ConnectButtonEvents = {
 
 - onConnect - triggers when user clicks connect now button
 - onDisconnect - triggers when user clicks disconnect wallet button
-- onCancelRequestItem - triggers when user cancels connect request
+- onCancelRequestItem - triggers when user cancels data or login request
+- onIgnoreTransactionItem - triggers when user ignores transaction output
 - onDestroy - triggers when button is removed from the DOM. Useful for cleaning up registered event listeners and subscriptions.
 - onShowPopover - triggers when users clicks on radix button and popover is being shown
 - onUpdateSharedData - triggers when users clicks on "Update Shared Data" button

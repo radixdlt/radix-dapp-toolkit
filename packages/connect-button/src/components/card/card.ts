@@ -5,6 +5,7 @@ import UncheckedIcon from '../../assets/unchecked.svg'
 import CheckedIcon from '../../assets/checked.svg'
 import IconLoading from '../../assets/icon-loading.svg'
 import IconFailed from '../../assets/icon-failed.svg'
+import IconIgnored from '../../assets/icon-ignored.svg'
 import { formatTimestamp } from '../../helpers/format-timestamp'
 
 @customElement('radix-card')
@@ -13,7 +14,7 @@ export class RadixCard extends LitElement {
     type: String,
     reflect: true,
   })
-  icon?: 'unchecked' | 'checked' | 'pending' | 'success' | 'error'
+  icon?: 'unchecked' | 'checked' | 'pending' | 'success' | 'error' | 'ignored'
 
   @property({
     type: String,
@@ -116,6 +117,13 @@ export class RadixCard extends LitElement {
       :host([icon='pending']) i::before {
         -webkit-mask-image: url(${unsafeCSS(IconLoading)});
         mask-image: url(${unsafeCSS(IconLoading)});
+        width: 24px;
+        height: 24px;
+      }
+
+      :host([icon='ignored']) i::before {
+        -webkit-mask-image: url(${unsafeCSS(IconIgnored)});
+        mask-image: url(${unsafeCSS(IconIgnored)});
         width: 24px;
         height: 24px;
       }

@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/web-components'
 import './card'
+
 import './persona-card'
 import './request-card'
 import '../popover/popover'
@@ -89,8 +90,11 @@ export const Requests: Story = {
         status="${args.status}"
         type="${args.type}"
         timestamp=${args.timestamp}
-        @onCancel=${(event: any) => {
-          console.log(event)
+        @onCancelRequestItem=${(event: any) => {
+          console.log('onCancelRequestItem', event)
+        }}
+        @onIgnoreTransactionItem=${(event: any) => {
+          console.log('onIgnoreTransactionItem', event)
         }}
         ?showCancel="${args.showCancel}"
         transactionIntentHash="${args.transactionIntentHash}"
@@ -103,7 +107,7 @@ export const Requests: Story = {
       control: 'select',
     },
     status: {
-      options: ['pending', 'success', 'fail', 'cancelled'],
+      options: ['pending', 'success', 'fail', 'cancelled', 'ignored'],
       control: 'select',
     },
     timestamp: {

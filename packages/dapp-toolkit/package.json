@@ -85,7 +85,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/radixdlt/radix-dapp-toolkit.git"
+    "url": "git+https://github.com/radixdlt/radix-dapp-toolkit.git",
+    "directory": "packages/dapp-toolkit"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
