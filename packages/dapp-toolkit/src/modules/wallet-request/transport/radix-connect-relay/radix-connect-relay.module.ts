@@ -252,7 +252,6 @@ export const RadixConnectRelayModule = (input: {
 
                 if (walletResponse.interactionId === interactionId) {
                   response = walletResponse
-                  break
                 }
               }
             }
