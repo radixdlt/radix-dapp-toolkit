@@ -252,6 +252,9 @@ export const RadixConnectRelayModule = (input: {
 
                 if (walletResponse.interactionId === interactionId) {
                   response = walletResponse
+                  await requestItemModule.patch(walletResponse.interactionId, {
+                    walletResponse,
+                  })
                 }
               }
             }
