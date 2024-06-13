@@ -1,4 +1,4 @@
-import { x25519 } from '@noble/curves/ed25519'
+import { x25519, ed25519 } from '@noble/curves/ed25519'
 import { Buffer } from 'buffer'
 import { Result, err, ok } from 'neverthrow'
 
@@ -8,6 +8,7 @@ export type KeyPairProvider = (privateKeyHex?: string) => {
   getPublicKey: () => string
   getPrivateKey: () => string
   calculateSharedSecret: (publicKeyHex: string) => Result<string, Error>
+  sign: (messageHex: string) => Result<string, Error>
 }
 
 export type Curve25519 = ReturnType<typeof Curve25519>
@@ -29,5 +30,13 @@ export const Curve25519: KeyPairProvider = (
     }
   }
 
-  return { getPublicKey, getPrivateKey, calculateSharedSecret }
+  const sign = (messageHex: string): Result<string, Error> => {
+    try {
+      return ok(toHex(ed25519.sign(privateKeyHex, messageHex)))
+    } catch (error) {
+      return err(error as Error)
+    }
+  }
+
+  return { getPublicKey, getPrivateKey, calculateSharedSecret, sign }
 }

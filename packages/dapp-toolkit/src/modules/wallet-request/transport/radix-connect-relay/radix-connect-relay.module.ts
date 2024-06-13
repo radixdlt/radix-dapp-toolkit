@@ -136,12 +136,19 @@ export const RadixConnectRelayModule = (input: {
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
   ): ResultAsync<WalletInteractionResponse, SdkError> =>
-    sessionModule
-      .getCurrentSession()
-      .mapErr(() =>
-        SdkError('FailedToReadSession', walletInteraction.interactionId),
-      )
-      .andThen((session) =>
+    ResultAsync.combine([
+      identityModule
+        .get('dApp')
+        .mapErr(() =>
+          SdkError('FailedToGetDappIdentity', walletInteraction.interactionId),
+        ),
+      sessionModule
+        .getCurrentSession()
+        .mapErr(() =>
+          SdkError('FailedToReadSession', walletInteraction.interactionId),
+        ),
+    ])
+      .andThen(([dAppIdentity, session]) =>
         (session.status === 'Pending'
           ? sendWalletLinkingRequest(session)
           : sendWalletInteractionRequest(session, walletInteraction)

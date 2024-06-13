@@ -1,6 +1,7 @@
-import { err, ok, okAsync } from 'neverthrow'
+import { ResultAsync, err, ok, okAsync } from 'neverthrow'
 import { StorageModule } from '../../storage/local-storage.module'
 import type { KeyPairProvider } from '../crypto'
+import { createSignatureMessage } from '../crypto/create-signature-message'
 
 export const IdentityKind = {
   dApp: 'dApp',
@@ -42,9 +43,12 @@ export const IdentityModule = (input: {
     )
 
   const getOrCreateIdentity = (kind: IdentityKind) =>
-    getIdentity(kind).andThen((keyPair) =>
-      keyPair ? okAsync(keyPair) : createIdentity(kind),
-    )
+    getIdentity(kind)
+      .andThen((keyPair) => (keyPair ? okAsync(keyPair) : createIdentity(kind)))
+      .mapErr((error) => ({
+        reason: 'couldNotGetOrCreateIdentity',
+        jsError: error,
+      }))
 
   const deriveSharedSecret = (kind: IdentityKind, publicKey: string) =>
     getIdentity(kind)
@@ -57,8 +61,39 @@ export const IdentityModule = (input: {
           : err({ reason: 'DappIdentityNotFound' }),
       )
 
+  const createSignature = ({
+    kind,
+    interactionId,
+    dAppDefinitionAddress,
+    origin,
+  }: {
+    kind: IdentityKind
+    interactionId: string
+    dAppDefinitionAddress: string
+    origin: string
+  }): ResultAsync<
+    string,
+    {
+      reason: string
+      jsError: Error
+    }
+  > =>
+    getOrCreateIdentity(kind).andThen((identity) =>
+      createSignatureMessage({
+        interactionId,
+        dAppDefinitionAddress,
+        origin,
+      }).andThen((message) =>
+        identity.sign(message).mapErr((error) => ({
+          reason: 'couldNotSignMessage',
+          jsError: error,
+        })),
+      ),
+    )
+
   return {
     get: (kind: IdentityKind) => getOrCreateIdentity(kind),
     deriveSharedSecret,
+    createSignature,
   }
 }
