@@ -55,7 +55,7 @@ export const IdentityModule = (input: {
       .mapErr(() => ({ reason: 'couldNotDeriveSharedSecret' }))
       .andThen((identity) =>
         identity
-          ? identity.calculateSharedSecret(publicKey).mapErr(() => ({
+          ? identity.x25519.calculateSharedSecret(publicKey).mapErr(() => ({
               reason: 'FailedToDeriveSharedSecret',
             }))
           : err({ reason: 'DappIdentityNotFound' }),
@@ -72,7 +72,7 @@ export const IdentityModule = (input: {
     dAppDefinitionAddress: string
     origin: string
   }): ResultAsync<
-    string,
+    { signature: string; publicKey: string },
     {
       reason: string
       jsError: Error
@@ -84,10 +84,17 @@ export const IdentityModule = (input: {
         dAppDefinitionAddress,
         origin,
       }).andThen((message) =>
-        identity.sign(message).mapErr((error) => ({
-          reason: 'couldNotSignMessage',
-          jsError: error,
-        })),
+        identity.ed25519
+          .sign(message)
+          .map((signature) => ({
+            signature,
+            publicKey: identity.x25519.getPublicKey(),
+            identity: identity.ed25519.getPublicKey(),
+          }))
+          .mapErr((error) => ({
+            reason: 'couldNotSignMessage',
+            jsError: error,
+          })),
       ),
     )
 

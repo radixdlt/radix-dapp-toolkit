@@ -1,28 +1,25 @@
-import { ResultAsync, err, ok } from 'neverthrow'
-import { Subject, Subscription, filter, switchMap } from 'rxjs'
-import { EncryptionModule } from '../../encryption'
-import {
-  ActiveSession,
-  PendingSession,
-  Session,
-  SessionModule,
-} from '../../session/session.module'
+import { ResultAsync, err, errAsync, ok } from 'neverthrow'
+import { Subject, Subscription, share } from 'rxjs'
+import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
+import { Session, SessionModule } from '../../session/session.module'
 import type {
   CallbackFns,
   WalletInteraction,
   WalletInteractionResponse,
 } from '../../../../schemas'
-import { Logger, isMobile } from '../../../../helpers'
+import { Logger, isMobile, parseJSON } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
 import { RequestItemModule } from '../../request-items/request-item.module'
 import { StorageModule } from '../../../storage'
-import { Curve25519 } from '../../crypto'
-import { RadixConnectRelayApiService } from './radix-connect-relay-api.service'
+import { Curve25519, KeyPairProvider } from '../../crypto'
+import {
+  RadixConnectRelayApiService,
+  WalletResponse,
+} from './radix-connect-relay-api.service'
 import { RequestItem } from 'radix-connect-common'
 import type { TransportProvider } from '../../../../_types'
-import { RcfmPageModule, RcfmPageState } from './rcfm-page.module'
 import { base64urlEncode } from './helpers/base64url'
 
 export type RadixConnectRelayModule = ReturnType<typeof RadixConnectRelayModule>
@@ -36,7 +33,6 @@ export const RadixConnectRelayModule = (input: {
     encryptionModule?: EncryptionModule
     identityModule?: IdentityModule
     sessionModule?: SessionModule
-    rcfmPageModule?: RcfmPageModule
     deepLinkModule?: DeepLinkModule
   }
 }): TransportProvider => {
@@ -46,17 +42,12 @@ export const RadixConnectRelayModule = (input: {
 
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
-  const sessionChangeSubject = new Subject<Session>()
-
   const deepLinkModule =
     providers?.deepLinkModule ??
     DeepLinkModule({
       logger,
       walletUrl,
-      callBackPath: '/connect',
     })
-
-  const rcfmPageModule = providers?.rcfmPageModule ?? RcfmPageModule({ logger })
 
   const identityModule =
     providers?.identityModule ??
@@ -72,39 +63,29 @@ export const RadixConnectRelayModule = (input: {
     SessionModule({
       providers: {
         storageModule: storageModule.getPartition('sessions'),
-        identityModule,
       },
     })
 
   const radixConnectRelayApiService = RadixConnectRelayApiService({
     baseUrl: `${baseUrl}/api/v1`,
     logger,
-    providers: { encryptionModule },
   })
 
   const subscriptions = new Subscription()
 
-  const sendWalletLinkingRequest = (session: PendingSession) =>
-    identityModule
-      .get('dApp')
-      .mapErr(() => SdkError('FailedToReadIdentity', ''))
-      .andThen((dAppIdentity) =>
-        sessionModule
-          .patchSession(session.sessionId, { sentToWallet: true })
-          .mapErr(() => SdkError('FailedToUpdateSession', ''))
-          .andThen(() =>
-            deepLinkModule.deepLinkToWallet({
-              sessionId: session.sessionId,
-              origin,
-              publicKey: dAppIdentity.getPublicKey(),
-            }),
-          ),
-      )
-
-  const sendWalletInteractionRequest = (
-    session: ActiveSession,
-    walletInteraction: WalletInteraction,
-  ) =>
+  const sendWalletInteractionRequest = ({
+    session,
+    walletInteraction,
+    signature,
+    publicKey,
+    identity,
+  }: {
+    session: Session
+    walletInteraction: WalletInteraction
+    signature: string
+    publicKey: string
+    identity: string
+  }) =>
     requestItemModule
       .getById(walletInteraction.interactionId)
       .mapErr(() =>
@@ -117,14 +98,19 @@ export const RadixConnectRelayModule = (input: {
               SdkError('PendingItemNotFound', walletInteraction.interactionId),
             ),
       )
-      .andThen((pendingItem) =>
+      .andThen(() =>
         requestItemModule
           .patch(walletInteraction.interactionId, { sentToWallet: true })
           .andThen(() =>
             deepLinkModule.deepLinkToWallet({
               sessionId: session.sessionId,
-              interactionId: pendingItem.interactionId,
-              walletInteraction: base64urlEncode(walletInteraction),
+              request: base64urlEncode(walletInteraction),
+              signature,
+              publicKey,
+              identity: identity,
+              origin: walletInteraction.metadata.origin,
+              dAppDefinitionAddress:
+                walletInteraction.metadata.dAppDefinitionAddress,
             }),
           ),
       )
@@ -137,104 +123,77 @@ export const RadixConnectRelayModule = (input: {
     callbackFns: Partial<CallbackFns>,
   ): ResultAsync<WalletInteractionResponse, SdkError> =>
     ResultAsync.combine([
-      identityModule
-        .get('dApp')
-        .mapErr(() =>
-          SdkError('FailedToGetDappIdentity', walletInteraction.interactionId),
-        ),
       sessionModule
         .getCurrentSession()
-        .mapErr(() =>
-          SdkError('FailedToReadSession', walletInteraction.interactionId),
+        .mapErr((error) =>
+          SdkError(error.reason, walletInteraction.interactionId),
         ),
-    ])
-      .andThen(([dAppIdentity, session]) =>
-        (session.status === 'Pending'
-          ? sendWalletLinkingRequest(session)
-          : sendWalletInteractionRequest(session, walletInteraction)
-        ).map(() => session),
-      )
-      .andThen((session) =>
-        waitForWalletResponse({
-          sessionId: session.sessionId,
+      identityModule
+        .get('dApp')
+        .mapErr((error) =>
+          SdkError(error.reason, walletInteraction.interactionId),
+        ),
+    ]).andThen(([session, dAppIdentity]) =>
+      identityModule
+        .createSignature({
+          dAppDefinitionAddress:
+            walletInteraction.metadata.dAppDefinitionAddress,
           interactionId: walletInteraction.interactionId,
-        }),
-      )
+          origin: walletInteraction.metadata.origin,
+          kind: 'dApp',
+        })
+        .mapErr((error) =>
+          SdkError(error.reason, walletInteraction.interactionId),
+        )
+        .andThen(({ signature }) =>
+          sendWalletInteractionRequest({
+            session,
+            walletInteraction,
+            signature,
+            identity: dAppIdentity.ed25519.getPublicKey(),
+            publicKey: dAppIdentity.x25519.getPublicKey(),
+          }),
+        )
+        .andThen(() =>
+          waitForWalletResponse({
+            session,
+            interactionId: walletInteraction.interactionId,
+            dAppIdentity,
+          }),
+        ),
+    )
 
-  // check if session exists
-  // -- if not, send error message to wallet
-  // generate shared secret
-  // update session
-  // send encrypted wallet interaction to RCR
-  // deep link to wallet with sessionId, interactionId, browser
-  const handleWalletLinkingResponse = (
-    sessionId: string,
-    walletPublicKey: string,
-  ) =>
-    sessionModule
-      .getSessionById(sessionId)
-      .mapErr(() => SdkError('FailedToReadSession', ''))
-      .andThen((session) =>
-        session ? ok(session) : err(SdkError('SessionNotFound', '')),
+  const decryptWalletResponseData = (
+    sharedSecretHex: string,
+    value: string,
+  ): ResultAsync<
+    WalletInteractionResponse,
+    { reason: string; jsError: Error }
+  > =>
+    transformBufferToSealbox(Buffer.from(value, 'hex'))
+      .asyncAndThen(({ ciphertextAndAuthTag, iv }) =>
+        encryptionModule.decrypt(
+          ciphertextAndAuthTag,
+          Buffer.from(sharedSecretHex, 'hex'),
+          iv,
+        ),
       )
-      .andThen((session) =>
-        session.status === 'Active'
-          ? ok(session)
-          : sessionModule
-              .convertToActiveSession(sessionId, walletPublicKey)
-              .mapErr(() => SdkError('FailedToUpdateSession', '')),
+      .andThen((decrypted) =>
+        parseJSON<WalletInteractionResponse>(decrypted.toString('utf-8')),
       )
-      .andThen((activeSession) => {
-        sessionChangeSubject.next(activeSession)
-        return requestItemModule
-          .getPending()
-          .mapErr(() => SdkError('FailedToReadPendingItems', ''))
-          .map((items) => {
-            const [item] = items.filter(
-              (item) => !item.walletResponse && !item.sentToWallet,
-            )
-            return item
-          })
-
-          .map((item) => ({ activeSession, pendingItem: item }))
-      })
-      .andThen(
-        ({
-          activeSession,
-          pendingItem,
-        }: {
-          activeSession: ActiveSession
-          pendingItem?: RequestItem
-        }) =>
-          pendingItem
-            ? requestItemModule
-                .patch(pendingItem.interactionId, {
-                  sentToWallet: true,
-                })
-                .mapErr(() =>
-                  SdkError(
-                    'FailedToUpdateRequestItem',
-                    pendingItem.interactionId,
-                  ),
-                )
-                .andThen(() =>
-                  deepLinkModule.deepLinkToWallet({
-                    sessionId,
-                    interactionId: pendingItem.walletInteraction.interactionId,
-                    walletInteraction: base64urlEncode(
-                      pendingItem.walletInteraction,
-                    ),
-                  }),
-                )
-            : ok(pendingItem),
-      )
+      .mapErr((error) => ({
+        reason: 'FailedToDecryptWalletResponseData',
+        jsError: error,
+      }))
 
   const waitForWalletResponse = ({
-    sessionId,
+    session,
     interactionId,
+    dAppIdentity,
   }: {
-    sessionId: string
+    session: Session
     interactionId: string
+    dAppIdentity: Curve25519
   }): ResultAsync<WalletInteractionResponse, SdkError> =>
     ResultAsync.fromPromise(
       new Promise(async (resolve, reject) => {
@@ -246,56 +205,57 @@ export const RadixConnectRelayModule = (input: {
 
         logger?.debug({
           method: 'waitForWalletResponse',
-          sessionId,
+          sessionId: session.sessionId,
           interactionId,
         })
 
-        while (!response) {
-          const sessionResult = await sessionModule.getSessionById(sessionId)
+        const getEncryptedWalletResponses = () =>
+          radixConnectRelayApiService.getResponses(session.sessionId)
 
-          if (sessionResult.isErr())
-            return reject(SdkError('FailedToReadSession', interactionId))
-
-          if (!sessionResult.value) {
-            return reject(SdkError('SessionNotFound', interactionId))
+        const decryptWalletResponse = (
+          walletResponse: WalletResponse,
+        ): ResultAsync<WalletInteractionResponse, { reason: string }> => {
+          if ('error' in walletResponse) {
+            return errAsync({ reason: walletResponse.error })
           }
+          return dAppIdentity.x25519
+            .calculateSharedSecret(walletResponse.publicKey)
+            .mapErr(() => ({ reason: 'FailedToDeriveSharedSecret' }))
+            .asyncAndThen((sharedSecret) =>
+              decryptWalletResponseData(sharedSecret, walletResponse.data),
+            )
+        }
 
-          const session = sessionResult.value
+        while (!response) {
+          const encryptedWalletResponsesResult =
+            await getEncryptedWalletResponses()
 
-          if (session.status === 'Active') {
-            await radixConnectRelayApiService
-              .getResponses(session)
-              .andThen((walletResponses) =>
-                ResultAsync.combine(
-                  walletResponses.map((walletResponse) =>
-                    requestItemModule.patch(walletResponse.interactionId, {
-                      walletResponse,
-                    }),
-                  ),
-                ).map(() => walletResponses),
+          if (encryptedWalletResponsesResult.isOk()) {
+            const encryptedWalletResponses =
+              encryptedWalletResponsesResult.value
+
+            for (const encryptedWalletResponse of encryptedWalletResponses) {
+              const walletResponseResult = await decryptWalletResponse(
+                encryptedWalletResponse,
               )
-              .andThen(() => requestItemModule.getById(interactionId))
-              .map((walletInteraction) => {
-                if (walletInteraction) {
-                  logger?.debug({
-                    method: 'waitForWalletResponse.success',
-                    retry,
-                    sessionId,
-                    interactionId,
-                    walletResponse: walletInteraction.walletResponse,
-                  })
-                  response = walletInteraction.walletResponse
-                }
-              })
-              .mapErr((error) => {
-                logger?.debug({
-                  method: 'waitForWalletResponse.error',
-                  retry,
-                  sessionId,
+
+              if (walletResponseResult.isErr())
+                logger?.error({
+                  method: 'waitForWalletResponse.decryptWalletResponse.error',
+                  error: walletResponseResult.error,
+                  sessionId: session.sessionId,
                   interactionId,
-                  error,
                 })
-              })
+
+              if (walletResponseResult.isOk()) {
+                const walletResponse = walletResponseResult.value
+
+                if (walletResponse.interactionId === interactionId) {
+                  response = walletResponse
+                  break
+                }
+              }
+            }
           }
 
           if (!response) {
@@ -309,47 +269,10 @@ export const RadixConnectRelayModule = (input: {
       (err) => err as SdkError,
     )
 
-  const handleWalletCallback = async (values: Record<string, string>) => {
-    const { sessionId, publicKey } = values
-
-    const isLinkingResponse = sessionId && publicKey
-
-    if (isLinkingResponse) {
-      return handleWalletLinkingResponse(sessionId, publicKey).mapErr(
-        (error) => {
-          logger?.debug({ method: 'handleWalletLinkingResponse.error', error })
-
-          deepLinkModule.deepLinkToWallet({ error: error.error })
-        },
-      )
-    }
-
-    logger?.debug({ method: 'handleWalletCallback.unhandled', values })
-  }
-
-  subscriptions.add(
-    deepLinkModule.walletResponse$
-      .pipe(
-        filter((values) => Object.values(values).length > 0),
-        switchMap((item) => handleWalletCallback(item)),
-      )
-      .subscribe(),
-  )
-
-  subscriptions.add(
-    sessionChangeSubject
-      .asObservable()
-      .pipe(filter((session) => session.status === 'Active'))
-      .subscribe(() => rcfmPageModule.show(RcfmPageState.dAppVerified)),
-  )
-
-  deepLinkModule.handleWalletCallback()
-
   return {
     id: 'radix-connect-relay' as const,
     isSupported: () => isMobile(),
     send: sendToWallet,
-    sessionChange$: sessionChangeSubject.asObservable(),
     disconnect: () => {},
     destroy: () => {
       subscriptions.unsubscribe()
