@@ -63,6 +63,7 @@ jobs:
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
     with:
       jenkins_job_name: "kubernetes-deployments/job/connect-button"
+      github_branch: "${{ github.head_ref }}"
       application_name: "connect-button"
       hierarchical_namespace: "connect-button-ci-pr"
       create_subnamespace: "true"
@@ -90,6 +91,7 @@ jobs:
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
     with:
       github_environment: "dev"
+      github_branch: "${{ github.ref }}"
       jenkins_job_name: "kubernetes-deployments/job/connect-button"
       application_name: "connect-button"
       kubernetes_namespace: "connect-button-dev"
@@ -116,6 +118,7 @@ jobs:
     uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
     with:
       github_environment: "prod"
+      github_branch: "${{ github.ref }}"
       jenkins_job_name: "kubernetes-deployments/job/connect-button"
       application_name: "connect-button"
       kubernetes_namespace: "connect-button-prod"
