@@ -19,6 +19,5 @@ describe('blake2b', () => {
       const message = buffer.toString('hex')
       return { message, blake2bHash }
     })
-    console.log(vectors)
   })
 })
