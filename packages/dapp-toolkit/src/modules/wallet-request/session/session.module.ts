@@ -21,7 +21,7 @@ export const SessionModule = (input: {
     { reason: string; jsError: Error }
   > =>
     storageModule
-      .getItems()
+      .getItemList()
       .mapErr((error) => ({
         reason: 'couldNotReadSessionFromStore',
         jsError: error,
