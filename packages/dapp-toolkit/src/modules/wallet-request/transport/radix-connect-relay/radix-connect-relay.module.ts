@@ -52,6 +52,7 @@ export const RadixConnectRelayModule = (input: {
   const identityModule =
     providers?.identityModule ??
     IdentityModule({
+      logger,
       providers: {
         storageModule: storageModule.getPartition('identities'),
         KeyPairModule: Curve25519,
@@ -198,6 +199,7 @@ export const RadixConnectRelayModule = (input: {
     ResultAsync.fromPromise(
       new Promise(async (resolve, reject) => {
         let response: WalletInteractionResponse | undefined
+        let error: SdkError | undefined
         let retry = 0
 
         const wait = (timer = 1500) =>
@@ -227,6 +229,24 @@ export const RadixConnectRelayModule = (input: {
         }
 
         while (!response) {
+          const requestItemResult =
+            await requestItemModule.getById(interactionId)
+
+          if (requestItemResult.isOk()) {
+            logger?.debug({
+              method: 'waitForWalletResponse.requestItemResult',
+              requestItemResult: requestItemResult.value,
+            })
+            if (requestItemResult.value?.status !== 'pending') {
+              error = SdkError(
+                'RequestItemNotPending',
+                interactionId,
+                'request not in pending state',
+              )
+              break
+            }
+          }
+
           const encryptedWalletResponsesResult =
             await getEncryptedWalletResponses()
 
@@ -266,7 +286,7 @@ export const RadixConnectRelayModule = (input: {
           }
         }
 
-        return resolve(response)
+        return response ? resolve(response) : reject(error)
       }),
       (err) => err as SdkError,
     )

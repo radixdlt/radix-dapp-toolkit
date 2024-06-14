@@ -2,6 +2,7 @@ import { ResultAsync, err, ok, okAsync } from 'neverthrow'
 import { StorageModule } from '../../storage/local-storage.module'
 import type { KeyPairProvider } from '../crypto'
 import { createSignatureMessage } from '../crypto/create-signature-message'
+import { Logger } from '../../../helpers'
 
 export const IdentityKind = {
   dApp: 'dApp',
@@ -14,6 +15,7 @@ export type IdentityStore = {
 
 export type IdentityModule = ReturnType<typeof IdentityModule>
 export const IdentityModule = (input: {
+  logger?: Logger
   providers: {
     storageModule: StorageModule<IdentitySecret>
     KeyPairModule: KeyPairProvider
@@ -83,6 +85,7 @@ export const IdentityModule = (input: {
         interactionId,
         dAppDefinitionAddress,
         origin,
+        logger: input.logger,
       }).andThen((message) =>
         identity.ed25519
           .sign(message)
