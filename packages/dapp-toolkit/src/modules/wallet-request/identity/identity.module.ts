@@ -1,6 +1,8 @@
-import { err, ok, okAsync } from 'neverthrow'
+import { ResultAsync, err, ok, okAsync } from 'neverthrow'
 import { StorageModule } from '../../storage/local-storage.module'
 import type { KeyPairProvider } from '../crypto'
+import { createSignatureMessage } from '../crypto/create-signature-message'
+import { Logger } from '../../../helpers'
 
 export const IdentityKind = {
   dApp: 'dApp',
@@ -13,6 +15,7 @@ export type IdentityStore = {
 
 export type IdentityModule = ReturnType<typeof IdentityModule>
 export const IdentityModule = (input: {
+  logger?: Logger
   providers: {
     storageModule: StorageModule<IdentitySecret>
     KeyPairModule: KeyPairProvider
@@ -42,23 +45,65 @@ export const IdentityModule = (input: {
     )
 
   const getOrCreateIdentity = (kind: IdentityKind) =>
-    getIdentity(kind).andThen((keyPair) =>
-      keyPair ? okAsync(keyPair) : createIdentity(kind),
-    )
+    getIdentity(kind)
+      .andThen((keyPair) => (keyPair ? okAsync(keyPair) : createIdentity(kind)))
+      .mapErr((error) => ({
+        reason: 'couldNotGetOrCreateIdentity',
+        jsError: error,
+      }))
 
   const deriveSharedSecret = (kind: IdentityKind, publicKey: string) =>
     getIdentity(kind)
       .mapErr(() => ({ reason: 'couldNotDeriveSharedSecret' }))
       .andThen((identity) =>
         identity
-          ? identity.calculateSharedSecret(publicKey).mapErr(() => ({
+          ? identity.x25519.calculateSharedSecret(publicKey).mapErr(() => ({
               reason: 'FailedToDeriveSharedSecret',
             }))
           : err({ reason: 'DappIdentityNotFound' }),
       )
 
+  const createSignature = ({
+    kind,
+    interactionId,
+    dAppDefinitionAddress,
+    origin,
+  }: {
+    kind: IdentityKind
+    interactionId: string
+    dAppDefinitionAddress: string
+    origin: string
+  }): ResultAsync<
+    { signature: string; publicKey: string },
+    {
+      reason: string
+      jsError: Error
+    }
+  > =>
+    getOrCreateIdentity(kind).andThen((identity) =>
+      createSignatureMessage({
+        interactionId,
+        dAppDefinitionAddress,
+        origin,
+        logger: input.logger,
+      }).andThen((message) =>
+        identity.ed25519
+          .sign(message)
+          .map((signature) => ({
+            signature,
+            publicKey: identity.x25519.getPublicKey(),
+            identity: identity.ed25519.getPublicKey(),
+          }))
+          .mapErr((error) => ({
+            reason: 'couldNotSignMessage',
+            jsError: error,
+          })),
+      ),
+    )
+
   return {
     get: (kind: IdentityKind) => getOrCreateIdentity(kind),
     deriveSharedSecret,
+    createSignature,
   }
 }
