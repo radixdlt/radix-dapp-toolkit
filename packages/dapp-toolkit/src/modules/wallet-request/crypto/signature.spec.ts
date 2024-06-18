@@ -29,6 +29,11 @@ describe('signature', () => {
       origin,
     })._unsafeUnwrap()
 
+    const expectedMessage =
+      '30be6dd4eca632a6d393f76e4ef29edead5e4a169644a2a3fabf9d8bd8a2a2fd'
+
+    expect(message).toBe(expectedMessage)
+
     const expectedSignatureHex = Buffer.from(
       ed25519.sign(message, privateKey),
     ).toString('hex')
