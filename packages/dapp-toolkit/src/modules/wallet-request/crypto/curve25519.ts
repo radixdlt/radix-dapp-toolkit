@@ -37,7 +37,7 @@ export const Curve25519: KeyPairProvider = (
     getPublicKey: () => toHex(ed25519.getPublicKey(privateKeyHex)),
     sign: (messageHex: string): Result<string, Error> => {
       try {
-        return ok(toHex(ed25519.sign(privateKeyHex, messageHex)))
+        return ok(toHex(ed25519.sign(messageHex, privateKeyHex)))
       } catch (error) {
         return err(error as Error)
       }
