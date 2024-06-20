@@ -9,7 +9,7 @@ export const testVectors = [
     publicKey2:
       'd75c0da37485122bdfd27998015791d34b27f5b1d0ff013b826002e3c825613a',
     sharedSecret:
-      '1ce63dd27a4c1a65a4d4b8e6e9c7e3b486d4c44f247dbb08a47501d80799ea4a',
+      '98c7bbd6b839074df4909203315167a15bdf1278601d931cc2318da23ece21f3',
   },
   {
     privateKey1:
@@ -21,7 +21,7 @@ export const testVectors = [
     publicKey2:
       '3b432de67106d808e2618492c3fa8a2c62e4541600b03b19ef6ad8c0a923a45f',
     sharedSecret:
-      '31a1bdd2e5e5e8d2fb4c5aed7d42076216543b6debe6427868a0d67de1e25112',
+      '4ec4bc2b16fef13d0efb3f52ef231da826d378968d6df628a076d5d0b7acca2e',
   },
   {
     privateKey1:
@@ -33,7 +33,7 @@ export const testVectors = [
     publicKey2:
       '793638fae78fd3ae006295fe935243f4cde600897595b3fe8efe0df22061f830',
     sharedSecret:
-      '0dc255663605768d1fe8e119eac29f37eed2eb06c546d505fe03fd949dad203f',
+      'a92f73fd63e8e902645ce461495e49b6c9079877bb19d9d315df9ae2e2674130',
   },
   {
     privateKey1:
@@ -45,7 +45,7 @@ export const testVectors = [
     publicKey2:
       '1beec61acc925777849084d7ee391684d38f098fa915453f28e57030abadd557',
     sharedSecret:
-      'a41c50f907e0372fbf192f3c7586bb3d532205cd199df0845f828d9c55c99c1c',
+      'cf702edb32bebde72c138cd08eda6f68f96d4242a4dc5709b4e09c000f875cc8',
   },
   {
     privateKey1:
@@ -57,7 +57,7 @@ export const testVectors = [
     publicKey2:
       'e9eb0baa91c72e30d01c01158b559da2bedd7b42a2672b1c589585750f3de658',
     sharedSecret:
-      '7624bd005c3c231b4e6194cd6ad5cfdef7a41ee02a94ab42a0d95399a10c0d0e',
+      'de29b74e485da2677b1b631e1657b3b436695b0b62d731b04bc78538bf7c8030',
   },
   {
     privateKey1:
@@ -69,7 +69,7 @@ export const testVectors = [
     publicKey2:
       '4a60f1d8af2b9ea5a78010eb095d8d8c65ae6dee7dba23b8868ca1801855425e',
     sharedSecret:
-      '6badb61762c79c58aeba50408dbb696b81c34e72c062ecbbfa484f574f645c4e',
+      '575689d7d21ce289bf8aac188e2f45120b2076ce8f373412eb352a3dd637f944',
   },
   {
     privateKey1:
@@ -81,7 +81,7 @@ export const testVectors = [
     publicKey2:
       'cc66c66e8a830ad2003fddd5e9a723b4b558c77f5b9f66641c87cdd369f5cd4c',
     sharedSecret:
-      'd4c7fb9ce163b82ee64894fe1ad420464f8d4b842608f70475141b9152f2683d',
+      'c9ce908382a73f1b92976fb4e9e152aff8c6f1338db4b44616392a13a4788cc4',
   },
   {
     privateKey1:
@@ -93,7 +93,7 @@ export const testVectors = [
     publicKey2:
       '8f618f9eee8eb6492ba5fcc2d5c8fd31432aac8e0281f1c9afc44a8b33261724',
     sharedSecret:
-      '61e93b25df04d60dfca080d806e7c237b847cb922ff09652d2bea91060d78a77',
+      'e080f0a6e3ba84c1644aa8c9252f6cc67936403a346747206158999b192205b9',
   },
   {
     privateKey1:
@@ -105,7 +105,7 @@ export const testVectors = [
     publicKey2:
       'f38c1c87c273b2ec5a957b2f0112de3c711e06eee1d16186ecfd9e4f2730286f',
     sharedSecret:
-      '99691583adda005d1ef709bc0b3725e5cb2359bbdd898e984eeac08ccb228941',
+      '839a0ac8eace95917b28da42dfad37dc999cf48f26f8f7345788de6a6c5b0e9a',
   },
   {
     privateKey1:
@@ -117,6 +117,6 @@ export const testVectors = [
     publicKey2:
       '6e5a9113da4446a46b9b8e2d5616a32602655a5bc9d5e997b5a0e8fc5cf6dd64',
     sharedSecret:
-      '67d975dedf4ef073c9083222499fd987511f4b8d4055cf7d38e2f5d08627232f',
+      '4cef0bccdf3fdab0668733b45ed69eebe6bfc7a38406220936fcf2359360e802',
   },
 ]

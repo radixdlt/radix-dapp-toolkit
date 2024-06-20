@@ -1,5 +1,5 @@
 import { ResultAsync, err, errAsync, ok } from 'neverthrow'
-import { Subject, Subscription, share } from 'rxjs'
+import { Subscription } from 'rxjs'
 import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
 import { Session, SessionModule } from '../../session/session.module'
 import type {
@@ -13,12 +13,11 @@ import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
 import { RequestItemModule } from '../../request-items/request-item.module'
 import { StorageModule } from '../../../storage'
-import { Curve25519, KeyPairProvider } from '../../crypto'
+import { Curve25519 } from '../../crypto'
 import {
   RadixConnectRelayApiService,
   WalletResponse,
 } from './radix-connect-relay-api.service'
-import { RequestItem } from 'radix-connect-common'
 import type { TransportProvider } from '../../../../_types'
 import { base64urlEncode } from './helpers/base64url'
 
@@ -27,6 +26,7 @@ export const RadixConnectRelayModule = (input: {
   baseUrl: string
   logger?: Logger
   walletUrl: string
+  dAppDefinitionAddress: string
   providers: {
     requestItemModule: RequestItemModule
     storageModule: StorageModule
@@ -53,6 +53,7 @@ export const RadixConnectRelayModule = (input: {
     providers?.identityModule ??
     IdentityModule({
       logger,
+      dAppDefinitionAddress: input.dAppDefinitionAddress,
       providers: {
         storageModule: storageModule.getPartition('identities'),
         KeyPairModule: Curve25519,
@@ -221,7 +222,10 @@ export const RadixConnectRelayModule = (input: {
             return errAsync({ reason: walletResponse.error })
           }
           return dAppIdentity.x25519
-            .calculateSharedSecret(walletResponse.publicKey)
+            .calculateSharedSecret(
+              walletResponse.publicKey,
+              input.dAppDefinitionAddress,
+            )
             .mapErr(() => ({ reason: 'FailedToDeriveSharedSecret' }))
             .asyncAndThen((sharedSecret) =>
               decryptWalletResponseData(sharedSecret, walletResponse.data),

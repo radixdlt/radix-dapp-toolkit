@@ -16,6 +16,7 @@ export type IdentityStore = {
 export type IdentityModule = ReturnType<typeof IdentityModule>
 export const IdentityModule = (input: {
   logger?: Logger
+  dAppDefinitionAddress: string
   providers: {
     storageModule: StorageModule<IdentitySecret>
     KeyPairModule: KeyPairProvider
@@ -57,9 +58,11 @@ export const IdentityModule = (input: {
       .mapErr(() => ({ reason: 'couldNotDeriveSharedSecret' }))
       .andThen((identity) =>
         identity
-          ? identity.x25519.calculateSharedSecret(publicKey).mapErr(() => ({
-              reason: 'FailedToDeriveSharedSecret',
-            }))
+          ? identity.x25519
+              .calculateSharedSecret(publicKey, input.dAppDefinitionAddress)
+              .mapErr(() => ({
+                reason: 'FailedToDeriveSharedSecret',
+              }))
           : err({ reason: 'DappIdentityNotFound' }),
       )
 
