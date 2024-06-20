@@ -7,7 +7,7 @@ describe('ECDH key exchange', () => {
     for (const { privateKey1, publicKey2, sharedSecret } of testVectors) {
       expect(
         Curve25519(privateKey1)
-          .x25519.calculateSharedSecret(publicKey2)
+          .x25519.calculateSharedSecret(publicKey2, 'dapp_definition_address')
           ._unsafeUnwrap(),
       ).toBe(sharedSecret)
     }

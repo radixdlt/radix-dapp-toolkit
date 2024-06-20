@@ -30,7 +30,7 @@ describe('Curve25519', () => {
 
     console.log({
       sharedSecretResult: sharedSecretResult.value,
-      keyPair1PrivateKeyKey: keyPair2.x25519.getPublicKey(),
+      keyPair1PrivateKeyKey: keyPair2.getPrivateKey(),
       keyPair2PublicKey: keyPair2.x25519.getPublicKey(),
     })
 
