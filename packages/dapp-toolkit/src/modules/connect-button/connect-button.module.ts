@@ -91,13 +91,12 @@ export const ConnectButtonModule = (
 
   subscriptions.add(
     merge(
-      fromEvent(document, 'onRender'),
+      fromEvent(window, 'onConnectButtonRender'),
       of(getConnectButtonElement()).pipe(filter((e) => !!e)),
     )
       .pipe(
         map(() => getConnectButtonElement()),
         filter((element): element is ConnectButton => !!element),
-        first(),
         switchMap((connectButtonElement) => {
           logger?.debug({ event: `connectButtonDiscovered` })
 
