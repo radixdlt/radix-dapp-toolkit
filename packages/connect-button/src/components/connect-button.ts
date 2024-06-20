@@ -132,6 +132,7 @@ export class ConnectButton extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback()
+    window.dispatchEvent(new Event('onConnectButtonRender'))
     this.dispatchEvent(
       new CustomEvent('onRender', {
         bubbles: true,

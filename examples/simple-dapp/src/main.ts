@@ -26,6 +26,8 @@ const content = document.getElementById('app')!
 content.innerHTML = `  
   <button id="reset">Reset</button>
   <button id="sendTx">Send Tx</button>
+  <button id="removeCb">Remove Connect Button</button>
+  <button id="addCb">Add Connect Button</button>
 
   <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
 
@@ -40,6 +42,8 @@ content.innerHTML = `
 const resetButton = document.getElementById('reset')!
 const sendTxButton = document.getElementById('sendTx')!
 const sessions = document.getElementById('sessions')!
+const removeCb = document.getElementById('removeCb')!
+const addCb = document.getElementById('addCb')!
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
@@ -62,6 +66,15 @@ ${logs.innerHTML}`
   logs.innerHTML = logEntry
 })
 
+removeCb.onclick = () => {
+  document.querySelector('radix-connect-button')?.remove()
+}
+
+addCb.onclick = () => {
+  const connectButton = document.createElement('radix-connect-button')
+  const header = document.querySelector('header')!
+  header.appendChild(connectButton)
+}
 const dAppToolkit = RadixDappToolkit({
   dAppDefinitionAddress,
   networkId,
