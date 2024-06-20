@@ -35,7 +35,7 @@ describe('Curve25519', () => {
     })
 
     expect(sharedSecretResult.value).toBe(
-      'e9278143a272e9cce596335d0f29e0194305a2a00b57501bc4c21a432d5c2b49264231657e186b6e70a13da4bbf23be6',
+      'e9278143a272e9cce596335d0f29e0194305a2a00b57501bc4c21a432d5c2b49',
     )
   })
 })

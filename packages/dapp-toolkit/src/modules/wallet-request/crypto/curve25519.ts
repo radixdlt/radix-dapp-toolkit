@@ -40,7 +40,7 @@ export const Curve25519: KeyPairProvider = (
           sharedSecret,
           Buffer.from(dAppDefinitionAddress, 'utf-8'),
           'RCfM',
-          48,
+          32,
         )
         return ok(toHex(derived))
       } catch (error) {
