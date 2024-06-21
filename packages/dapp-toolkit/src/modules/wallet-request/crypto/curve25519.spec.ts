@@ -20,7 +20,8 @@ describe('Curve25519', () => {
     expect(keyPair2.x25519.getPublicKey()).toBeDefined()
     expect(keyPair2.ed25519.getPublicKey()).toBeDefined()
   })
-  it.only('should calculate a shared secret', () => {
+  
+  it('should calculate a shared secret', () => {
     const sharedSecretResult = keyPair1.x25519.calculateSharedSecret(
       keyPair2.x25519.getPublicKey(),
       dAppDefinitionAddress,
