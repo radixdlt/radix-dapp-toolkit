@@ -16,12 +16,12 @@
     "@commitlint/config-conventional": "^17.4.2",
     "husky": "^8.0.3",
     "prettier": "^3.2.5",
-    "turbo": "latest"
+    "turbo": "^2.0.4"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@9.6.7",
+  "packageManager": "npm@9.9.3",
   "workspaces": [
     "examples/*",
     "packages/*"
