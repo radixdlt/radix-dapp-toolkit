@@ -1,5 +1,5 @@
 {
-  "name": "radix-connect-web",
+  "name": "radix-dapp-toolkit",
   "private": true,
   "scripts": {
     "build": "turbo build",
