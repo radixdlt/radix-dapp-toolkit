@@ -17,7 +17,7 @@
     "Alex Stelea <alex.stelea@rdx.works>",
     "Dawid Sowa <dawid.sowa@rdx.works>"
   ],
-  "bugs": "https://github.com/radixdlt/connect-button/issues",
+  "bugs": "https://github.com/radixdlt/radix-dapp-toolkit/issues",
   "license": "SEE LICENSE IN RADIX-SOFTWARE-EULA",
   "type": "module",
   "main": "./dist/connect-button.js",
