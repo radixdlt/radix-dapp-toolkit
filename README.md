@@ -4,7 +4,7 @@
 
 # Radix dApp Toolkit - v2 Monorepo
 
-Look for dApp toolkit and related packages under the [/packages](/packages/) directory. Example applications are under the [/apps](/apps/) directory.
+Look for dApp toolkit and related packages under the [/packages](/packages/) directory. Example applications are under the [/examples](/examples/) directory.
 
 [Apache 2.0 License](LICENSE)
 
