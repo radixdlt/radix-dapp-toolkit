@@ -208,7 +208,11 @@ export const ConnectButtonModule = (
           )
 
           const showPopoverMenu$ = subjects.showPopoverMenu.pipe(
-            tap((value) => (connectButtonElement.showPopoverMenu = value)),
+            tap((value) => {
+              value
+                ? connectButtonElement.setAttribute('showPopoverMenu', 'true')
+                : connectButtonElement.removeAttribute('showPopoverMenu')
+            }),
           )
 
           const accounts$ = subjects.accounts.pipe(
