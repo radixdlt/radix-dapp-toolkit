@@ -192,10 +192,6 @@ export class ConnectButton extends LitElement {
         : this.initialBodyOverflow
   }
 
-  private closePopover() {
-    this.showPopoverMenu = false
-  }
-
   private connectButtonTemplate() {
     const buttonText = this.connected ? this.personaLabel : 'Connect'
 
@@ -277,7 +273,7 @@ export class ConnectButton extends LitElement {
       ?compact=${this.compact}
       ?showCloseButton=${this.showPopoverCloseButton}
       @onClosePopover=${() => {
-        this.closePopover()
+        this.togglePopoverMenu()
       }}
       class=${classMap({
         show: this.showPopoverMenu,
