@@ -101,7 +101,7 @@ export const WalletRequestModule = (input: {
     transports.push(
       RadixConnectRelayModule({
         logger,
-        walletUrl: 'radixWallet://',
+        walletUrl: 'radixWallet://connect',
         baseUrl: 'https://radix-connect-relay.radixdlt.com',
         dAppDefinitionAddress: input.dAppDefinitionAddress,
         providers: {

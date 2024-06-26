@@ -14,6 +14,12 @@ export const DeepLinkModule = (input: {
   const { platform } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkModule' })
 
+  logger?.debug({
+    platform,
+    userAgent: window.navigator.userAgent,
+    userAgentParsed: userAgent,
+  })
+
   const deepLinkToWallet = (
     values: Record<string, string>,
   ): ResultAsync<undefined, SdkError> => {

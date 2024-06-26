@@ -61,8 +61,6 @@ ${JSON.stringify(rest, null, 2)}
 
 ${logs.innerHTML}`
 
-  localStorage.setItem('logs', logEntry)
-
   logs.innerHTML = logEntry
 })
 
