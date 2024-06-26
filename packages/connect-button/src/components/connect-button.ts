@@ -42,7 +42,7 @@ export class ConnectButton extends LitElement {
   @property({ type: String })
   loggedInTimestamp: string = ''
 
-  @property({ type: Boolean })
+  @property({ type: Boolean, reflect: true })
   showPopoverMenu: boolean = false
 
   @property({ type: Array })
@@ -112,6 +112,7 @@ export class ConnectButton extends LitElement {
     super.attributeChangedCallback(name, _old, value)
     if (name === 'showpopovermenu') {
       this.pristine = false
+      this.toggleBodyOverflow()
     }
   }
 
