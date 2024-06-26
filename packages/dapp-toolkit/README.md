@@ -1,5 +1,8 @@
+# <img src="../../docs/radix-logo.png" alt="Radix Logo" width="35" height="35"> Radix dApp toolkit
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
+- [ Radix dApp toolkit](#-radix-dapp-toolkit)
 - [What is Radix dApp Toolkit?](#what-is-radix-dapp-toolkit)
   - [Resources](#resources)
     - [Building a dApp frontend](#building-a-dapp-frontend)
@@ -65,12 +68,6 @@ The current version only supports desktop browser webapps with requests made via
 
 ```bash
 npm install @radixdlt/radix-dapp-toolkit
-```
-
-**Using Yarn**
-
-```bash
-yarn add @radixdlt/radix-dapp-toolkit
 ```
 
 # Usage

@@ -1,35 +1,23 @@
+# <img src="../../docs/radix-logo.png" alt="Radix Logo" width="35" height="35"> √ Connect Button
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 The √ Connect Button is a framework agnostic web component to help developers connect users and their Radix Wallet to their dApps.
 
 It appears as a consistent, Radix-branded UI element that helps users identify your dApp website as a Radix dApp. When used with [Radix dApp Toolkit](https://github.com/radixdlt/radix-dapp-toolkit) it is compatible with the Radix Wallet – and it automatically provides a consistent user experience for users to connect with their wallet and see the current status of the connection between dApp and Radix Wallet.
 
-- [Installation](#installation)
+- [ √ Connect Button](#--connect-button)
 - [Usage](#usage)
   - [Getting started](#getting-started)
-    - [Properties](#properties)
-    - [Events](#events)
+  - [Setting properties programmatically](#setting-properties-programmatically)
+  - [Events](#events)
 - [License](#license)
-
-# Installation
-
-**Using NPM**
-
-```bash
-npm install @radixdlt/connect-button
-```
-
-**Using Yarn**
-
-```bash
-yarn add @radixdlt/connect-button
-```
 
 # Usage
 
 ## Getting started
 
-Add the `<radix-connect-button />` element in your HTML code and call the configuration function.
+Add the `<radix-connect-button />` element in your HTML code and instantiate [Radix Dapp Toolkit](../dapp-toolkit/README.md).
 
 ```html
 <!doctype html>
@@ -44,7 +32,9 @@ Add the `<radix-connect-button />` element in your HTML code and call the config
 </html>
 ```
 
-### Properties
+## Setting properties programmatically
+
+To manually set properties on the √ Connect Button.
 
 ```typescript
 const radixConnectButton = document.querySelector('radix-connect-button')!
@@ -95,7 +85,7 @@ type ConnectButtonProperties = {
 - activeTab - changes active tab inside popover
 - mode - set styling of a popover
 
-### Events
+## Events
 
 ```typescript
 type ConnectButtonEvents = {

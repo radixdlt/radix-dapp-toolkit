@@ -19,7 +19,12 @@ fs.writeFileSync(
   ),
 )
 
-export default defineConfig({
+const plugins = []
+
+if (process.env.NGROK_AUTH_TOKEN)
   // @ts-ignore
-  plugins: [ngrok(process.env.NGROK_AUTH_TOKEN)],
+  plugins.push(ngrok(process.env.NGROK_AUTH_TOKEN))
+
+export default defineConfig({
+  plugins,
 })
