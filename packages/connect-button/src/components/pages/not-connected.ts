@@ -66,7 +66,6 @@ export class RadixNotConnectedPage extends LitElement {
     const template = this.isMobile
       ? html`<div class="cta-link">
           <radix-link
-            href="http://wallet.radixdlt.com/"
             displayText="Don't have the Radix Wallet?"
             @click=${() => {
               this.dispatchEvent(
@@ -109,7 +108,6 @@ export class RadixNotConnectedPage extends LitElement {
 
       <div class="cta-link">
         <radix-link
-          href="http://wallet.radixdlt.com/"
           displayText="Download and Setup Guide"
           @click=${() => {
             this.dispatchEvent(
@@ -149,7 +147,6 @@ export class RadixNotConnectedPage extends LitElement {
 
       <div class="cta-link">
         <radix-link
-          href="http://wallet.radixdlt.com/"
           displayText="Download and Setup Guide"
           @click=${() => {
             this.dispatchEvent(
