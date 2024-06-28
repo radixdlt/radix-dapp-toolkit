@@ -1,0 +1,7 @@
+id: ad50ad22-146e-4339-80ea-d895b4bce133
+name: radix-dapp-toolkit
+created_at: 2024-06-03T08:21:31.593544+02:00
+group_name: dApp-engineering
+depfiles:
+- path: ./package-lock.json
+  type: npm
