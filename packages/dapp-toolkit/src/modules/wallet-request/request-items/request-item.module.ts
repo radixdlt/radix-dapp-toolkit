@@ -95,6 +95,10 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
           ) {
             updated.transactionIntentHash = transactionIntentHash!
           }
+          if (['success', 'fail', 'ignored', 'cancelled'].includes(updated.status)) {
+            delete updated.walletInteraction
+            delete updated.walletResponse
+          }
           logger?.debug({ method: 'updateRequestItemStatus', updated })
           return storageModule
             .setItems({ [id]: updated })
