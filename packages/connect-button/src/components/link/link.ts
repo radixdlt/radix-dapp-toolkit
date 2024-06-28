@@ -7,11 +7,6 @@ export class RadixLink extends LitElement {
   @property({
     type: String,
   })
-  href: string = ''
-
-  @property({
-    type: String,
-  })
   displayText: string = ''
 
   render() {
