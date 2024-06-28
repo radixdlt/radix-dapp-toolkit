@@ -14,6 +14,10 @@ Look for dApp toolkit and related packages under the [/packages](/packages/) dir
 
 This is merging [Radix dApp Toolkit](https://github.com/radixdlt/radix-dapp-toolkit), [√ Connect Button](https://github.com/radixdlt/connect-button), [Wallet Request SDK](https://github.com/radixdlt/wallet-sdk), [Radix Connect Schemas](https://github.com/radixdlt/radix-connect-schemas) into one mono-repository.
 
+## Migration guide
+
+- [v1 -> v2 migration guide](docs/v2.md)
+
 ## Versions In This Repository
 
 - [main](https://github.com/radixdlt/radix-dapp-toolkit/commits/main) - This is all of the current work, which is against v2 of RDT right now
