@@ -43,10 +43,7 @@ export const RadixDappToolkit = (
     applicationName,
     applicationVersion,
     useCache = true,
-    featureFlags = [],
   } = options || {}
-
-  const isMobileSupported = !featureFlags.includes('DisableMobileSupport')
 
   const storageModule =
     providers?.storageModule ??
@@ -82,7 +79,6 @@ export const RadixDappToolkit = (
       networkId,
       dAppDefinitionAddress,
       requestInterceptor: options.requestInterceptor,
-      enableMobile: isMobileSupported,
       providers: {
         stateModule,
         storageModule,
@@ -96,7 +92,6 @@ export const RadixDappToolkit = (
       logger,
       networkId,
       explorer: options.explorer,
-      enableMobile: isMobileSupported,
       onDisconnect,
       dAppDefinitionAddress,
       providers: {

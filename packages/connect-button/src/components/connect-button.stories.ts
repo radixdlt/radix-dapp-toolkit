@@ -178,6 +178,12 @@ const personaData: PersonaData[] = [
   },
 ]
 
+export const mobileNotConnected = Template.bind({})
+mobileNotConnected.args = {
+  ...defaultArgs,
+  isMobile: true,
+}
+
 export const connectorExtensionNotInstalled = Template.bind({})
 connectorExtensionNotInstalled.args = {
   ...defaultArgs,

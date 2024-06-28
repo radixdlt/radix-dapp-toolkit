@@ -15,10 +15,10 @@ export class RadixLink extends LitElement {
   displayText: string = ''
 
   render() {
-    return html`<a target="_blank" href=${this.href} class="link">
+    return html`<span target="_blank" class="link">
       ${this.displayText}
       <i class="icon-north-east-arrow"></i>
-    </a>`
+    </span>`
   }
 
   static styles = [
@@ -31,6 +31,7 @@ export class RadixLink extends LitElement {
         gap: 4px;
         align-items: center;
         font-size: 14px;
+        cursor: pointer;
       }
 
       .icon-north-east-arrow::before {

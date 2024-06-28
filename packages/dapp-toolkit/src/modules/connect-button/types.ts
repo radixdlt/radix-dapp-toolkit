@@ -23,7 +23,7 @@ export type ConnectButtonModuleOutput = {
   onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
   onLinkClick$: Observable<{
-    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide'
+    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet'
     data: string
   }>
   setStatus: (value: RadixButtonStatus) => void

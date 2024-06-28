@@ -62,24 +62,43 @@ export class RadixNotConnectedPage extends LitElement {
   private connectNowButtonTemplate() {
     const disabled =
       (!this.isExtensionAvailable || !this.isWalletLinked) && !this.isMobile
-    return html`<radix-themed-button
-      class="${classMap({
-        full: true,
-        primary: true,
-        disabled,
-      })}"
-      @click=${() => {
-        if (disabled) return
-        this.dispatchEvent(
-          new CustomEvent('onConnect', {
-            bubbles: true,
-            composed: true,
-          }),
-        )
-      }}
-    >
-      Connect Now
-    </radix-themed-button>`
+
+    const template = this.isMobile
+      ? html`<div class="cta-link">
+          <radix-link
+            href="http://wallet.radixdlt.com/"
+            displayText="Don't have the Radix Wallet?"
+            @click=${() => {
+              this.dispatchEvent(
+                new CustomEvent('onLinkClick', {
+                  bubbles: true,
+                  composed: true,
+                  detail: { type: 'getWallet' },
+                }),
+              )
+            }}
+          ></radix-link>
+        </div>`
+      : html``
+
+    return html`${template}<radix-themed-button
+        class="${classMap({
+          full: true,
+          primary: true,
+          disabled,
+        })}"
+        @click=${() => {
+          if (disabled) return
+          this.dispatchEvent(
+            new CustomEvent('onConnect', {
+              bubbles: true,
+              composed: true,
+            }),
+          )
+        }}
+      >
+        Connect Now
+      </radix-themed-button>`
   }
 
   private renderCeNotInstalledTemplate() {
