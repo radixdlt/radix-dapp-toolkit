@@ -81,8 +81,8 @@ import { RadixDappToolkit, RadixNetwork } from '@radixdlt/radix-dapp-toolkit'
 
 const rdt = RadixDappToolkit({
   dAppDefinitionAddress:
-    'account_tdx_e_128uml7z6mqqqtm035t83alawc3jkvap9sxavecs35ud3ct20jxxuhl',
-  networkId: RadixNetwork.RCnetV3,
+    'account_rdx12y7md4spfq5qy7e3mfjpa52937uvkxf0nmydsu5wydkkxw3qx6nghn',
+  networkId: RadixNetwork.Mainnet,
   applicationName: 'Radix Web3 dApp',
   applicationVersion: '1.0.0',
 })
