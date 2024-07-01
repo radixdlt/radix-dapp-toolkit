@@ -288,9 +288,7 @@ export const ConnectButtonModule = (
           } else if (type === 'setupGuide')
             window.open('https://wallet.radixdlt.com')
           else if (type === 'getWallet') {
-            window.open(
-              'https://ib64v.app.link/wiAsvigtiDb?_p=c81529c391017af7e5038bfc',
-            )
+            window.open('https://app.radixdlt.com/qr-code')
           } else if (type === 'showQrCode' && transport?.showQrCode)
             transport.showQrCode()
         }),
