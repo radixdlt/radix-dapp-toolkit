@@ -62,24 +62,42 @@ export class RadixNotConnectedPage extends LitElement {
   private connectNowButtonTemplate() {
     const disabled =
       (!this.isExtensionAvailable || !this.isWalletLinked) && !this.isMobile
+
+    const template = this.isMobile
+      ? html`<div class="cta-link">
+          <radix-link
+            displayText="Don't have the Radix Wallet?"
+            @click=${() => {
+              this.dispatchEvent(
+                new CustomEvent('onLinkClick', {
+                  bubbles: true,
+                  composed: true,
+                  detail: { type: 'getWallet' },
+                }),
+              )
+            }}
+          ></radix-link>
+        </div>`
+      : html``
+
     return html`<radix-themed-button
-      class="${classMap({
-        full: true,
-        primary: true,
-        disabled,
-      })}"
-      @click=${() => {
-        if (disabled) return
-        this.dispatchEvent(
-          new CustomEvent('onConnect', {
-            bubbles: true,
-            composed: true,
-          }),
-        )
-      }}
-    >
-      Connect Now
-    </radix-themed-button>`
+        class="${classMap({
+          full: true,
+          primary: true,
+          disabled,
+        })}"
+        @click=${() => {
+          if (disabled) return
+          this.dispatchEvent(
+            new CustomEvent('onConnect', {
+              bubbles: true,
+              composed: true,
+            }),
+          )
+        }}
+      >
+        Connect Now </radix-themed-button
+      >${template}`
   }
 
   private renderCeNotInstalledTemplate() {
@@ -90,7 +108,6 @@ export class RadixNotConnectedPage extends LitElement {
 
       <div class="cta-link">
         <radix-link
-          href="http://wallet.radixdlt.com/"
           displayText="Download and Setup Guide"
           @click=${() => {
             this.dispatchEvent(
@@ -130,7 +147,6 @@ export class RadixNotConnectedPage extends LitElement {
 
       <div class="cta-link">
         <radix-link
-          href="http://wallet.radixdlt.com/"
           displayText="Download and Setup Guide"
           @click=${() => {
             this.dispatchEvent(

@@ -64,11 +64,6 @@ export class ConnectButton extends LitElement {
   @property({
     type: Boolean,
   })
-  enableMobile: boolean = false
-
-  @property({
-    type: Boolean,
-  })
   isWalletLinked: boolean = false
 
   @property({
@@ -258,10 +253,6 @@ export class ConnectButton extends LitElement {
     ></radix-requests-page>`
   }
 
-  private get showComingSoonTemplate() {
-    return this.isMobile && !this.enableMobile
-  }
-
   private get showPopoverCloseButton() {
     return this.isMobile
   }
@@ -282,9 +273,7 @@ export class ConnectButton extends LitElement {
         popoverPosition: !this.isMobile,
       })}
     >
-      ${this.showComingSoonTemplate
-        ? this.renderComingSoonTemplate()
-        : this.renderPopoverContentTemplate()}
+      ${this.renderPopoverContentTemplate()}
     </radix-popover>`
   }
 
@@ -303,15 +292,6 @@ export class ConnectButton extends LitElement {
             : this.renderRequestItemsTemplate()}
         `
       : this.connectTemplate()
-  }
-
-  private renderComingSoonTemplate() {
-    return html` <div class="mobile-wrapper">
-      <div class="header">Mobile dApps are coming soon.</div>
-      <div class="content">
-        For now, please connect to Radix dApps using a desktop web browser.
-      </div>
-    </div>`
   }
 
   render() {

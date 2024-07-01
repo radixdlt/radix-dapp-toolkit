@@ -43,7 +43,6 @@ export type ConnectButtonModuleInput = {
   logger?: Logger
   onDisconnect?: () => void
   explorer?: ExplorerConfig
-  enableMobile?: boolean
   providers: {
     stateModule: StateModule
     gatewayModule: GatewayModule
@@ -74,7 +73,6 @@ export const ConnectButtonModule = (
 
   const stateModule = input.providers.stateModule
   const gatewayModule = input.providers.gatewayModule
-  const enableMobile = input.enableMobile ?? false
 
   const walletRequestModule = input.providers.walletRequestModule
 
@@ -99,8 +97,6 @@ export const ConnectButtonModule = (
         filter((element): element is ConnectButton => !!element),
         switchMap((connectButtonElement) => {
           logger?.debug({ event: `connectButtonDiscovered` })
-
-          connectButtonElement.enableMobile = enableMobile
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
@@ -291,7 +287,11 @@ export const ConnectButtonModule = (
             window.open(url)
           } else if (type === 'setupGuide')
             window.open('https://wallet.radixdlt.com')
-          else if (type === 'showQrCode' && transport?.showQrCode)
+          else if (type === 'getWallet') {
+            window.open(
+              'https://ib64v.app.link/wiAsvigtiDb?_p=c81529c391017af7e5038bfc',
+            )
+          } else if (type === 'showQrCode' && transport?.showQrCode)
             transport.showQrCode()
         }),
       )
