@@ -55,7 +55,6 @@ export const WalletRequestModule = (input: {
   useCache: boolean
   requestInterceptor?: (input: WalletInteraction) => Promise<WalletInteraction>
   dAppDefinitionAddress: string
-  enableMobile?: boolean
   providers: {
     stateModule: StateModule
     storageModule: StorageModule
@@ -95,21 +94,17 @@ export const WalletRequestModule = (input: {
       logger,
       providers: { requestItemModule, storageModule },
     }),
+    RadixConnectRelayModule({
+      logger,
+      walletUrl: 'radixWallet://connect',
+      baseUrl: 'https://radix-connect-relay.radixdlt.com',
+      dAppDefinitionAddress: input.dAppDefinitionAddress,
+      providers: {
+        requestItemModule,
+        storageModule,
+      },
+    }),
   ]
-
-  if (input.enableMobile)
-    transports.push(
-      RadixConnectRelayModule({
-        logger,
-        walletUrl: 'radixWallet://connect',
-        baseUrl: 'https://radix-connect-relay.radixdlt.com',
-        dAppDefinitionAddress: input.dAppDefinitionAddress,
-        providers: {
-          requestItemModule,
-          storageModule,
-        },
-      }),
-    )
 
   const walletRequestSdk =
     input.providers.walletRequestSdk ??
