@@ -237,7 +237,7 @@ export const RadixConnectRelayModule = (input: {
             await requestItemModule.getById(interactionId)
 
           if (requestItemResult.isOk()) {
-            logger?.debug({
+            logger?.trace({
               method: 'waitForWalletResponse.requestItemResult',
               requestItemResult: requestItemResult.value,
             })
