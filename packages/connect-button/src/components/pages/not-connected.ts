@@ -80,7 +80,7 @@ export class RadixNotConnectedPage extends LitElement {
         </div>`
       : html``
 
-    return html`${template}<radix-themed-button
+    return html`<radix-themed-button
         class="${classMap({
           full: true,
           primary: true,
@@ -96,8 +96,8 @@ export class RadixNotConnectedPage extends LitElement {
           )
         }}
       >
-        Connect Now
-      </radix-themed-button>`
+        Connect Now </radix-themed-button
+      >${template}`
   }
 
   private renderCeNotInstalledTemplate() {
