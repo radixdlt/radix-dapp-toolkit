@@ -117,7 +117,7 @@ export const RadixDappToolkit = (
       },
       provideConnectResponseCallback:
         walletRequestModule.provideConnectResponseCallback,
-      updateSharedData: () => walletRequestModule.updateSharedData(),
+      updateSharedAccounts: () => walletRequestModule.updateSharedAccounts(),
       sendOneTimeRequest: walletRequestModule.sendOneTimeRequest,
       sendTransaction: (input: SendTransactionInput) =>
         walletRequestModule.sendTransaction(input),

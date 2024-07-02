@@ -47,6 +47,7 @@ export class RadixThemedButton extends LitElement {
         background: var(--radix-button-disabled-background);
         color: var(--radix-button-disabled-text-color);
         cursor: default;
+        pointer-events: none;
       }
     `,
   ]

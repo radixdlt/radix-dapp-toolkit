@@ -6,7 +6,7 @@ export const ConnectButtonNoopModule = (): ConnectButtonModuleOutput => {
     status$: NEVER,
     onConnect$: NEVER,
     onDisconnect$: NEVER,
-    onUpdateSharedData$: NEVER,
+    onUpdateSharedAccounts$: NEVER,
     onShowPopover$: NEVER,
     onCancelRequestItem$: NEVER,
     onLinkClick$: NEVER,

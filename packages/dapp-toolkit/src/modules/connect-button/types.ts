@@ -19,7 +19,7 @@ export type ConnectButtonModuleOutput = {
   status$: Observable<RadixButtonStatus>
   onConnect$: Observable<{ challenge: string } | undefined>
   onDisconnect$: Observable<void>
-  onUpdateSharedData$: Observable<void>
+  onUpdateSharedAccounts$: Observable<void>
   onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
   onLinkClick$: Observable<{

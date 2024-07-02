@@ -235,8 +235,9 @@ export class ConnectButton extends LitElement {
         )
       }}
       @onUpdateData=${() => {
+        if (!this.accounts.length) return
         this.dispatchEvent(
-          new CustomEvent('onUpdateSharedData', {
+          new CustomEvent('onUpdateSharedAccounts', {
             bubbles: true,
             composed: true,
           }),

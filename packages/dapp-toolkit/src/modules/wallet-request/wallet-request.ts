@@ -416,7 +416,7 @@ export const WalletRequestModule = (input: {
     }
   }
 
-  const updateSharedData = () =>
+  const updateSharedAccounts = () =>
     stateModule
       .getState()
       .mapErr((err) => {
@@ -645,7 +645,7 @@ export const WalletRequestModule = (input: {
     setRequestDataState,
     getPendingRequests,
     getTransport,
-    updateSharedData,
+    updateSharedAccounts,
     dataRequestStateModule,
     interactionStatusChange$: interactionStatusChangeSubject.asObservable(),
     requestItems$: requestItemModule.requests$,
