@@ -1,0 +1,48 @@
+<svg viewBox="0 0 138 42" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#top-left-teal)" transform="translate(0, 0)">
+        <path
+            d="M0.406329 -34.4957C16.611 -41.8331 34.6174 -37.0258 40.625 -23.7583C46.6325 -10.4908 38.3661 6.21286 22.1615 13.5503C5.95686 20.8877 -42.5127 -1.1736 -48.5202 -14.4411C-54.5277 -27.7087 -15.7983 -27.1583 0.406329 -34.4957Z"
+            fill="#21FFBE" />
+
+        <filter id="top-left-teal" x="-79.343" y="-68.1254" width="152" height="113"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="15.0979" />
+        </filter>
+    </g>
+
+
+    <g filter="url(#bottom-right-azure)" transform="translate(0, 0)">
+        <path
+            d="M77.9482 28.467C86.7362 22.0869 98.095 22.7478 103.319 29.943C108.542 37.1382 105.653 48.1432 96.8649 54.5233C88.0768 60.9034 56.3799 53.6703 51.1562 46.4751C45.9325 39.2798 69.1601 34.8471 77.9482 28.467Z"
+            fill="#20E4FF" />
+
+        <filter id="bottom-right-azure" x="26.3997" y="0.0827713" width="103" height="81"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="12" />
+        </filter>
+    </g>
+
+
+    <g filter="url(#bottom-left-blue)" transform="translate(0, 0)">
+        <path
+            d="M16.1421 29.509C26.9266 34.0427 32.5116 45.2292 28.6164 54.4949C24.7213 63.7606 12.8211 67.5966 2.03658 63.063C-8.74792 58.5293 -19.2781 24.0904 -15.383 14.8247C-11.4878 5.55903 5.35765 24.9754 16.1421 29.509Z"
+            fill="#060F8F" />
+
+        <filter id="bottom-left-blue" x="-36.2107" y="-7.64941" width="86" height="93"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+    </g>
+
+    <g filter="url(#bottom-right-purple)" transform="translate(0, 0)">
+        <path
+            d="M120.135 16.2613C103.57 17.3209 89.4382 7.18525 88.5707 -6.37718C87.7032 -19.9396 100.428 -31.793 116.993 -32.8526C133.558 -33.9121 168.589 1.33232 169.456 14.8947C170.324 28.4572 136.699 15.2018 120.135 16.2613Z"
+            fill="#FF43CA" />
+
+        <filter id="bottom-right-purple" x="48.5289" y="-72.8759" width="161" height="134"
+            filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="20" />
+        </filter>
+    </g>
+</svg>
+    

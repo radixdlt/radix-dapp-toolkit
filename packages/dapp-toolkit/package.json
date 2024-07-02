@@ -1,0 +1,96 @@
+{
+  "name": "@radixdlt/radix-dapp-toolkit",
+  "description": "Radix dApp Toolkit repository",
+  "version": "0.0.0",
+  "homepage": "https://developers.radixdlt.com",
+  "type": "module",
+  "keywords": [
+    "radix",
+    "dapp",
+    "toolkit",
+    "dlt",
+    "web3",
+    "dApp",
+    "crypto",
+    "DeFi"
+  ],
+  "authors": [
+    "Alex Stelea <alex.stelea@rdx.works>",
+    "Dawid Sowa <dawid.sowa@rdx.works>"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "bugs": "https://github.com/radixdlt/radix-dapp-toolkit/issues",
+  "license": "SEE LICENSE IN RADIX-SOFTWARE-EULA",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./connect-button": {
+      "import": {
+        "types": "./dist/connect-button.d.ts",
+        "default": "./dist/connect-button.js"
+      },
+      "require": {
+        "types": "./dist/connect-button.d.cts",
+        "default": "./dist/connect-button.cjs"
+      }
+    }
+  },
+  "files": [
+    "RADIX-SOFTWARE-EULA",
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "dev": "npm run build -- --watch",
+    "build": "tsup",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.4.0",
+    "base64url": "^3.0.1",
+    "blakejs": "^1.2.1",
+    "bowser": "^2.11.0",
+    "buffer": "^6.0.3",
+    "immer": "^10.0.4",
+    "lit": "^3.1.2",
+    "lit-html": "^3.1.2",
+    "neverthrow": "^6.1.0",
+    "rxjs": "^7.8.1",
+    "tslog": ">=4.8.0",
+    "uuid": "^10.0.0",
+    "valibot": "0.30.0"
+  },
+  "devDependencies": {
+    "@radixdlt/connect-button": "*",
+    "@saithodev/semantic-release-backmerge": "^3.2.1",
+    "@semantic-release/exec": "^6.0.3",
+    "radix-connect-common": "*",
+    "semantic-release": "^23.0.0",
+    "semantic-release-replace-plugin": "^1.2.7",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.4",
+    "vitest": "^1.4.0",
+    "vitest-mock-extended": "^1.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/radix-dapp-toolkit.git",
+    "directory": "packages/dapp-toolkit"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
+}

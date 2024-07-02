@@ -14,8 +14,16 @@ jobs:
       id-token: write
       pull-requests: write
       contents: read
+      deployments: write
     secrets:
       phylum_api_key: ${{ secrets.PHYLUM_API_KEY }}
+    with:
+      phylum_pr_number: ${{ github.event.number }}
+      phylum_pr_name: ${{ github.head_ref }}
+      phylum_group_name: dApp-engineering
+      phylum_project_id: ad50ad22-146e-4339-80ea-d895b4bce133
+      github_repository: ${{ github.repository }}
+      add_report_comment_to_pull_request: true
 
   snyk-scan-deps-licences:
     runs-on: ubuntu-latest
@@ -99,7 +107,7 @@ jobs:
       - name: Use Node.js
         uses: RDXWorks-actions/setup-node@main
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
       - name: Authenticate with private NPM package
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPMJS_TOKEN }}" > ~/.npmrc
@@ -107,11 +115,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run test
-
       - name: Build
         run: npm run build
+
+      - name: Run tests
+        run: npm run test
 
       - name: Dump context
         uses: RDXWorks-actions/ghaction-dump-context@master
