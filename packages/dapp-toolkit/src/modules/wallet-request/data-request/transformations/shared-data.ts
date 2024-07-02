@@ -12,11 +12,6 @@ export const transformWalletRequestToSharedData = (
     return produce({}, (draft: SharedData) => {
       draft.persona = { proof: false }
 
-      draft.ongoingAccounts = {
-        proof: false,
-        numberOfAccounts: undefined,
-      }
-
       if (walletDataRequest.auth.discriminator === 'loginWithChallenge')
         draft.persona.proof = !!walletDataRequest.auth.challenge
 
