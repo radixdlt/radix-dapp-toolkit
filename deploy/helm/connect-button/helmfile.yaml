@@ -1,0 +1,28 @@
+environments:
+  pr: {}
+  dev: {}
+  prod: {}
+---
+helmDefaults:
+  verify: false
+  wait: true
+  timeout: 120
+  recreatePods: false
+  force: false
+  createNamespace: false
+repositories:
+  - name: rdx-works
+    url: https://raw.githubusercontent.com/radixdlt/helm-charts/master/
+    username: {{ requiredEnv "HELM_GH_USER" }}
+    password: {{ requiredEnv "HELM_GH_PASS" }}
+releases:
+  - name: connect-button-storybook
+    chart: ./storybook
+    values:
+      - environments/{{ .Environment.Name }}/values.yaml.gotmpl
+
+  - name: developer-access
+    chart: rdx-works/developer-access
+    version: 1.0.0
+    values:
+      - environments/{{ .Environment.Name }}/values.yaml.gotmpl

@@ -1,0 +1,179 @@
+name: 'Connect button CI/CD'
+
+on:
+  pull_request:
+    # branches:
+    #   - develop
+  push:
+    branches:
+      - develop
+      - main
+
+env:
+  jenkins_job_name: 'kubernetes-deployments/job/connect-button'
+  helm_dir: 'deploy/helm/connect-button'
+  dev_eks_cluster: 'rdx-works-main-dev'
+  prod_eks_cluster: 'rdx-works-main-dev'
+
+jobs:
+
+  build_push_container:
+    permissions:
+      packages: write
+      id-token: write
+      pull-requests: write
+      contents: read
+    name: Build and push docker image
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/docker-build.yml@main
+    with:
+      runs_on: ubuntu-latest
+      image_registry: 'docker.io'
+      image_organization: 'radixdlt'
+      image_name: 'connect-button-storybook'
+      tag: ${{ needs.build.outputs.tag }}
+      tags: |
+        type=sha,priority=601
+        type=ref,event=pr
+        type=ref,event=branch
+        type=semver,pattern={{version}}
+        type=semver,pattern={{major}}.{{minor}}
+        type=semver,pattern={{major}}
+      context: './'
+      dockerfile: './packages/connect-button/Dockerfile'
+      platforms: 'linux/amd64'
+      provenance: 'false'
+      enable_gcr: 'false'
+      scan_image: true
+      snyk_target_ref: ${{ github.ref_name }}
+    secrets:
+      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
+      service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+  deploy_pull_request:
+    if: ${{ github.event.pull_request }}
+    name: Deploy PR
+    permissions:
+      id-token: write
+      deployments: write
+      packages: write
+      pull-requests: write
+      contents: read
+    needs:
+      - build_push_container
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
+    with:
+      jenkins_job_name: "kubernetes-deployments/job/connect-button"
+      github_branch: "${{ github.head_ref }}"
+      application_name: "connect-button"
+      hierarchical_namespace: "connect-button-ci-pr"
+      create_subnamespace: "true"
+      kubernetes_namespace: "connect-button-pr-${{ github.event.number }}"
+      aws_eks_cluster: "rdx-works-main-dev"
+      aws_iam_role_name: "jenkins-connect-button-pr-deployer"
+      helmfile_environment: "pr"
+      helm_dir: "deploy/helm/connect-button"
+      helmfile_extra_vars: "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }},ci.prNumber=${{ github.event.number }}"
+    secrets:
+      aws_deployment_account_id: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+      secrets_account_id: ${{ secrets.SECRETS_ACCOUNT_ID }}
+
+  deploy_dev:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    name: Deploy DEV
+    permissions:
+      id-token: write
+      deployments: write
+      packages: write
+      pull-requests: write
+      contents: read
+    needs:
+      - build_push_container
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
+    with:
+      github_environment: "dev"
+      github_branch: "${{ github.ref }}"
+      jenkins_job_name: "kubernetes-deployments/job/connect-button"
+      application_name: "connect-button"
+      kubernetes_namespace: "connect-button-dev"
+      aws_eks_cluster: "rdx-works-main-dev"
+      aws_iam_role_name: "jenkins-connect-button-dev-deployer"
+      helmfile_environment: "dev"
+      helm_dir: "deploy/helm/connect-button"
+      helmfile_extra_vars: "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}"
+    secrets:
+      aws_deployment_account_id: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+      secrets_account_id: ${{ secrets.SECRETS_ACCOUNT_ID }}
+
+  deploy_prod:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: Deploy PROD
+    permissions:
+      id-token: write
+      deployments: write
+      packages: write
+      pull-requests: write
+      contents: read
+    needs:
+      - build_push_container
+    uses: radixdlt/public-iac-resuable-artifacts/.github/workflows/jenkins-deployment.yml@main
+    with:
+      github_environment: "prod"
+      github_branch: "${{ github.ref }}"
+      jenkins_job_name: "kubernetes-deployments/job/connect-button"
+      application_name: "connect-button"
+      kubernetes_namespace: "connect-button-prod"
+      aws_eks_cluster: "rdx-works-main-dev"
+      aws_iam_role_name: "jenkins-connect-button-prod-deployer"
+      helmfile_environment: "prod"
+      helm_dir: "deploy/helm/connect-button"
+      helmfile_extra_vars: "ci.tag=${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}"
+    secrets:
+      aws_deployment_account_id: ${{ secrets.AWS_DEV_ACCOUNT_ID }}
+      secrets_account_id: ${{ secrets.SECRETS_ACCOUNT_ID }}
+
+  snyk_container_monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'cnct-button'
+          dockerhub_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/dockerhub-credentials'
+          snyk_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
+          image: docker.io/radixdlt/connect-button-storybook:${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}
+          target_ref: ${{ github.ref_name }}
+
+  snyk_monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs:
+      - build_push_container
+    permissions:
+      id-token: write
+      pull-requests: read
+      contents: read
+      deployments: write
+    steps:
+      - uses: RDXWorks-actions/checkout@main
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'connect-button'
+          step_name: 'snyk-monitor'
+          secret_prefix: 'SNYK'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          parse_json: true
+      - name: Enable Snyk online monitoring to check for vulnerabilities
+        uses: RDXWorks-actions/snyk-actions/node@master
+        with:
+          args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --target-reference=${{ github.ref_name }}
+          command: monitor

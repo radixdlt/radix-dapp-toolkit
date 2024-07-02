@@ -1,0 +1,12 @@
+project: connect-button-storybook
+
+image:
+  tag: {{ .StateValues.ci.tag }}
+
+ingress:
+  enabled: true
+  hosts:
+    - host: connect-button-storybook-pr-{{ .StateValues.ci.prNumber }}.rdx-works-main.extratools.works
+      paths:
+        - path: /
+          pathType: Prefix
