@@ -1,5 +1,6 @@
 import {
   filter,
+  finalize,
   first,
   fromEvent,
   map,
@@ -87,16 +88,15 @@ export const ConnectButtonModule = (
 
   const subscriptions = new Subscription()
 
+  const onConnectButtonRender$ = fromEvent(window, 'onConnectButtonRender')
+
   subscriptions.add(
-    merge(
-      fromEvent(window, 'onConnectButtonRender'),
-      of(getConnectButtonElement()).pipe(filter((e) => !!e)),
-    )
+    onConnectButtonRender$
       .pipe(
         map(() => getConnectButtonElement()),
         filter((element): element is ConnectButton => !!element),
         switchMap((connectButtonElement) => {
-          logger?.debug({ event: `connectButtonDiscovered` })
+          logger?.debug({ observable: `onConnectButtonRender$` })
 
           const onConnect$ = fromEvent(connectButtonElement, 'onConnect').pipe(
             tap(() => {
@@ -121,8 +121,9 @@ export const ConnectButtonModule = (
           )
 
           const onDestroy$ = fromEvent(connectButtonElement, 'onDestroy').pipe(
-            tap(() => {
-              logger?.debug(`connectButtonRemovedFromDOM`)
+            map(() => {
+              logger?.debug({ observable: `onDestroy$` })
+              return true
             }),
           )
 
@@ -231,7 +232,7 @@ export const ConnectButtonModule = (
             tap((value) => (connectButtonElement.theme = value)),
           )
 
-          return merge(
+          const connectButtonEvents$ = merge(
             onConnect$,
             status$,
             theme$,
@@ -250,14 +251,22 @@ export const ConnectButtonModule = (
             accounts$,
             personaData$,
             personaLabel$,
-            onDestroy$,
             onUpdateSharedData$,
             onShowPopover$,
             dAppName$,
             onLinkClick$,
+          ).pipe(map(() => false))
+
+          return merge(connectButtonEvents$, onDestroy$).pipe(
+            filter((shouldDestroy) => !!shouldDestroy),
+            first(),
+            finalize(() => {
+              logger?.debug({ observable: `onConnectButtonRender$.finalize` })
+            }),
           )
         }),
       )
+
       .subscribe(),
   )
 
