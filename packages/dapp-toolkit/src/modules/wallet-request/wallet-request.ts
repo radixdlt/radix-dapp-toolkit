@@ -584,6 +584,10 @@ export const WalletRequestModule = (input: {
 
   const ignoreTransaction = (id: string) => {
     ignoreTransactionSubject.next(id)
+    requestItemModule.updateStatus({
+      id,
+      status: 'ignored',
+    })
     interactionStatusChangeSubject.next('fail')
   }
 
