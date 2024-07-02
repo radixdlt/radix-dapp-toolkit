@@ -126,7 +126,7 @@ export type WalletApi = {
     fn: (result: AwaitedWalletDataRequestResult) => void,
   ) => void
   dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
-  updateSharedData: () => WalletDataRequestResult
+  updateSharedAccounts: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult

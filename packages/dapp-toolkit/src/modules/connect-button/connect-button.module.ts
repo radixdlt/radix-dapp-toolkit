@@ -153,13 +153,13 @@ export const ConnectButtonModule = (
             }),
           )
 
-          const onUpdateSharedData$ = fromEvent(
+          const onUpdateSharedAccounts$ = fromEvent(
             connectButtonElement,
-            'onUpdateSharedData',
+            'onUpdateSharedAccounts',
           ).pipe(
             tap(() => {
-              logger?.debug(`onUpdateSharedData`)
-              subjects.onUpdateSharedData.next()
+              logger?.debug(`onUpdateSharedAccounts`)
+              subjects.onUpdateSharedAccounts.next()
             }),
           )
 
@@ -251,7 +251,7 @@ export const ConnectButtonModule = (
             accounts$,
             personaData$,
             personaLabel$,
-            onUpdateSharedData$,
+            onUpdateSharedAccounts$,
             onShowPopover$,
             dAppName$,
             onLinkClick$,
@@ -310,7 +310,7 @@ export const ConnectButtonModule = (
     onConnect$: subjects.onConnect.asObservable(),
     onDisconnect$: subjects.onDisconnect.asObservable(),
     onShowPopover$: subjects.onShowPopover.asObservable(),
-    onUpdateSharedData$: subjects.onUpdateSharedData.asObservable(),
+    onUpdateSharedAccounts$: subjects.onUpdateSharedAccounts.asObservable(),
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     onIgnoreTransactionItem$: subjects.onIgnoreTransactionItem.asObservable(),
     onLinkClick$: subjects.onLinkClick.asObservable(),
@@ -430,8 +430,8 @@ export const ConnectButtonModule = (
   )
 
   subscriptions.add(
-    subjects.onUpdateSharedData
-      .pipe(switchMap(() => walletRequestModule.updateSharedData()))
+    subjects.onUpdateSharedAccounts
+      .pipe(switchMap(() => walletRequestModule.updateSharedAccounts()))
       .subscribe(),
   )
 

@@ -7,7 +7,7 @@ export type ConnectButtonSubjects = ReturnType<typeof ConnectButtonSubjects>
 export const ConnectButtonSubjects = () => ({
   onConnect: new Subject<{ challenge: string } | undefined>(),
   onDisconnect: new Subject<void>(),
-  onUpdateSharedData: new Subject<void>(),
+  onUpdateSharedAccounts: new Subject<void>(),
   connected: new ReplaySubject<boolean>(1),
   requestItems: new BehaviorSubject<RequestItem[]>([]),
   onCancelRequestItem: new Subject<string>(),

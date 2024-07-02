@@ -9,6 +9,7 @@ import '../themed-button/themed-button'
 import RefreshIcon from '../../assets/refresh.svg'
 import LogoutIcon from '../../assets/logout.svg'
 import { pageStyles } from './styles'
+import { classMap } from 'lit/directives/class-map.js'
 
 @customElement('radix-sharing-page')
 export class RadixSharingPage extends LitElement {
@@ -77,8 +78,20 @@ export class RadixSharingPage extends LitElement {
         </div>
       </div>
       <div class="buttons">
-        <radix-themed-button class="full" @click=${this.onUpdateData}>
-          <div class="icon update-data"></div>
+        <radix-themed-button
+          class=${classMap({
+            full: true,
+            disabled: this.accounts.length === 0,
+          })}
+          @click=${this.onUpdateData}
+        >
+          <div
+            class=${classMap({
+              icon: true,
+              'update-data': true,
+              disabled: this.accounts.length === 0,
+            })}
+          ></div>
           Update Account Sharing
         </radix-themed-button>
         <radix-themed-button class="full" @click=${this.onLogout}>
@@ -104,6 +117,9 @@ export class RadixSharingPage extends LitElement {
         display: block;
         width: 20px;
         height: 20px;
+      }
+      .icon.disabled::before {
+        background: var(--radix-button-disabled-text-color);
       }
       .content {
         max-height: 193px;

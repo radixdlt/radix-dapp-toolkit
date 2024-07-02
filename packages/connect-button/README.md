@@ -95,7 +95,7 @@ type ConnectButtonEvents = {
   onIgnoreTransactionItem: (event: CustomEvent<{ id: string }>) => void
   onDestroy: () => void
   onShowPopover: () => void
-  onUpdateSharedData: () => void
+  onUpdateSharedAccounts: () => void
 }
 ```
 
@@ -105,7 +105,7 @@ type ConnectButtonEvents = {
 - onIgnoreTransactionItem - triggers when user ignores transaction output
 - onDestroy - triggers when button is removed from the DOM. Useful for cleaning up registered event listeners and subscriptions.
 - onShowPopover - triggers when users clicks on radix button and popover is being shown
-- onUpdateSharedData - triggers when users clicks on "Update Shared Data" button
+- onUpdateSharedAccounts - triggers when users clicks on "Update Account Sharing" button
 
 # License
 
