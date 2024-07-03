@@ -11,6 +11,7 @@ It appears as a consistent, Radix-branded UI element that helps users identify y
   - [Getting started](#getting-started)
   - [Setting properties programmatically](#setting-properties-programmatically)
   - [Events](#events)
+- [Playground](#playground)
 - [License](#license)
 
 # Usage
@@ -106,6 +107,10 @@ type ConnectButtonEvents = {
 - onDestroy - triggers when button is removed from the DOM. Useful for cleaning up registered event listeners and subscriptions.
 - onShowPopover - triggers when users clicks on radix button and popover is being shown
 - onUpdateSharedAccounts - triggers when users clicks on "Update Account Sharing" button
+
+# Playground
+
+You can play around with different settings using our storybook instance. Visit [connect-button-storybook.radixdlt.com](https://connect-button-storybook.radixdlt.com/) to easily experiment with Connect Button.
 
 # License
 
