@@ -1,6 +1,6 @@
 import Bowser from 'bowser'
 
-export const isMobile = () => {
-  const userAgent = Bowser.parse(window.navigator.userAgent)
-  return userAgent.platform.type === 'mobile'
+export const isMobile = (userAgent: string = window.navigator.userAgent) => {
+  const parsed = Bowser.parse(userAgent)
+  return parsed.platform.type === 'mobile' || parsed.platform.type === 'tablet'
 }
