@@ -1,6 +1,6 @@
 import { ResultAsync } from 'neverthrow'
 import { errAsync, okAsync } from 'neverthrow'
-import { Logger } from '../../../../helpers'
+import { Logger, isMobile } from '../../../../helpers'
 import Bowser from 'bowser'
 import { SdkError } from '../../../../error'
 
@@ -34,7 +34,7 @@ export const DeepLinkModule = (input: {
       data: { ...values },
     })
 
-    if (platform.type === 'mobile' && globalThis.location?.href) {
+    if (isMobile() && globalThis.location?.href) {
       globalThis.location.href = outboundUrl.toString()
 
       return okAsync(undefined)
