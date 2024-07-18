@@ -48,7 +48,7 @@
 
 Radix dApp Toolkit (RDT) is a TypeScript library that automates getting users logged in to your dApp using a Persona, maintains a browser session for that login, and provides a local cache of data the user has given permission to your app to access associated with their Persona. It also provides an interface to request accounts and personal data from the user's wallet, either as a permission for ongoing access or as a one-time request, as well as to submit transaction manifest stubs for the user to review, sign, and submit in their wallet.
 
-RDT supports both desktop and mobile browser web apps. For desktop browsers, it uses the Radix Wallet Connector browser extension. For mobile browsers, it employs deep linking, while maintaining the same essential interface for both.
+RDT supports both desktop and mobile browser web apps. For desktop browsers, it uses the Radix Wallet Connector browser extension. For mobile browsers, it employs deep linking, while maintaining the same essential interface for both. 
 
 **RDT is composed of:**
 
