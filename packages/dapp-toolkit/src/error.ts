@@ -31,14 +31,21 @@ const defaultErrorMessage = new Map<string, string>()
   .set(ErrorType.rejectedByUser, 'user rejected request')
   .set(ErrorType.canceledByUser, 'user has canceled the request')
 
-export type SdkError = ReturnType<typeof SdkError>
+export type SdkError = {
+  error: string
+  interactionId: string
+  message?: string
+  jsError?: unknown
+}
 
 export const SdkError = (
   error: string,
   interactionId: string,
   message?: string,
-) => ({
+  jsError?: unknown,
+): SdkError => ({
   error,
   interactionId,
   message: message || defaultErrorMessage.get(error) || '',
+  jsError,
 })
