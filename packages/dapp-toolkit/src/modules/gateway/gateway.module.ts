@@ -64,6 +64,15 @@ export const GatewayModule = (input: {
                 return
               })
               .mapErr((response) => {
+                if (response.reason === 'FailedToFetch') {
+                  logger?.debug({
+                    error: response,
+                    context: 'unexpected error, retrying',
+                  })
+                  retry.trigger.next()
+                  return
+                }
+
                 logger?.debug(response)
                 return SdkError(
                   'failedToPollSubmittedTransaction',
