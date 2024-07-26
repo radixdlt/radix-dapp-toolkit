@@ -1,6 +1,6 @@
 import { GatewayApiService } from './gateway.service'
 import type { Result } from 'neverthrow'
-import { ResultAsync, err } from 'neverthrow'
+import { ResultAsync, err, ok } from 'neverthrow'
 import { filter, first, firstValueFrom, switchMap } from 'rxjs'
 import {
   ExponentialBackoffInput,
@@ -63,27 +63,24 @@ export const GatewayModule = (input: {
                 retry.trigger.next()
                 return
               })
-              .mapErr((response) => {
+              .orElse((response) => {
                 if (response.reason === 'FailedToFetch') {
                   logger?.debug({
                     error: response,
                     context: 'unexpected error, retrying',
                   })
                   retry.trigger.next()
-                  return
+                  return ok(undefined)
                 }
 
                 logger?.debug(response)
-                return SdkError(
-                  'failedToPollSubmittedTransaction',
-                  '',
-                  undefined,
-                  {
+                return err(
+                  SdkError('failedToPollSubmittedTransaction', '', undefined, {
                     error: response,
                     transactionIntentHash,
                     context:
                       'GatewayModule.pollTransactionStatus.getTransactionStatus',
-                  },
+                  }),
                 )
               })
           }),
