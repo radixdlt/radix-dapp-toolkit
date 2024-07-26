@@ -41,7 +41,16 @@ export const GatewayModule = (input: {
         retry.withBackoff$.pipe(
           switchMap((result) => {
             if (result.isErr())
-              return [err(SdkError('failedToPollSubmittedTransaction', ''))]
+              return [
+                err(
+                  SdkError('failedToPollSubmittedTransaction', '', undefined, {
+                    error: result.error,
+                    context:
+                      'GatewayModule.pollTransactionStatus.retry.withBackoff$',
+                    transactionIntentHash,
+                  }),
+                ),
+              ]
 
             logger?.debug(`pollingTxStatus retry #${result.value + 1}`)
 
@@ -56,7 +65,17 @@ export const GatewayModule = (input: {
               })
               .mapErr((response) => {
                 logger?.debug(response)
-                return SdkError('failedToPollSubmittedTransaction', '')
+                return SdkError(
+                  'failedToPollSubmittedTransaction',
+                  '',
+                  undefined,
+                  {
+                    error: response,
+                    transactionIntentHash,
+                    context:
+                      'GatewayModule.pollTransactionStatus.getTransactionStatus',
+                  },
+                )
               })
           }),
           filter(

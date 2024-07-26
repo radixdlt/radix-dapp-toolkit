@@ -37,8 +37,10 @@ export const SdkError = (
   error: string,
   interactionId: string,
   message?: string,
+  jsError?: unknown,
 ) => ({
   error,
   interactionId,
   message: message || defaultErrorMessage.get(error) || '',
+  jsError,
 })
