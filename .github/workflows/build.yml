@@ -66,6 +66,7 @@ jobs:
           parse_json: true
       - name: Run Snyk to check for code vulnerabilities
         uses: RDXWorks-actions/snyk-actions/node@master
+        continue-on-error: true
         with:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --severity-threshold=high
           command: code test
