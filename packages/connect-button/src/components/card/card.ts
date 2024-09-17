@@ -119,6 +119,14 @@ export class RadixCard extends LitElement {
         mask-image: url(${unsafeCSS(IconLoading)});
         width: 24px;
         height: 24px;
+        transform-origin: center;
+        animation: spinner 0.75s infinite linear;
+      }
+      
+      @keyframes spinner {
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
       :host([icon='ignored']) i::before {
