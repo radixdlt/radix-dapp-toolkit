@@ -9,7 +9,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import type { Logger } from '../../helpers'
+import { validateRolaChallenge, type Logger } from '../../helpers'
 import { TransactionStatus } from '../gateway'
 import { Result, ResultAsync, err, ok, okAsync } from 'neverthrow'
 import type {
@@ -181,6 +181,10 @@ export const WalletRequestModule = (input: {
 
     return ResultAsync.fromPromise(challengeGeneratorFn(), () =>
       SdkError('ChallengeGeneratorError', '', 'failed to generate challenge'),
+    ).andThen((challenge) =>
+      validateRolaChallenge(challenge)
+        ? ok(challenge)
+        : err(SdkError('ChallengeValidationError', '', 'challenge is invalid')),
     )
   }
 
