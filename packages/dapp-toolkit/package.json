@@ -53,7 +53,7 @@
     "types"
   ],
   "scripts": {
-    "dev": "npm run build -- --watch",
+    "dev": "tsup --watch",
     "build": "tsup && npm run build:single",
     "build:single": "vite build --config vite-single-file.config.ts && cp dist/radix-dapp-toolkit.bundle.umd.cjs ../../examples/cdn",
     "test": "vitest",
