@@ -9,6 +9,7 @@ type PartitionKey =
   | 'requests'
   | 'state'
   | 'connectButton'
+  | 'walletResponses'
   | 'connectorExtension'
 type dAppDefinitionAddress = string
 
@@ -53,6 +54,11 @@ export const LocalStorageModule = <T extends object = any>(
       data ? parseJSON(data) : ok({}),
     )
 
+  const getState = (): ResultAsync<T | undefined, Error> =>
+    ResultAsync.fromPromise(getDataAsync(), typedError).andThen((data) =>
+      data ? parseJSON<T>(data) : ok(undefined),
+    )
+
   const getItemById = (id: string): ResultAsync<T | undefined, Error> =>
     ResultAsync.fromPromise(getDataAsync(), typedError)
       .andThen((data) => (data ? parseJSON(data) : ok(undefined)))
@@ -61,7 +67,21 @@ export const LocalStorageModule = <T extends object = any>(
   const removeItemById = (id: string): ResultAsync<void, Error> =>
     getItems().andThen((items) => {
       const { [id]: _, ...newItems } = items
-      return setItems(newItems)
+      return stringify({ ...newItems }).asyncAndThen((serialized) => {
+        const result = ResultAsync.fromPromise(
+          setDataAsync(serialized),
+          typedError,
+        ).map(() => {
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key: storageKey,
+              oldValue: JSON.stringify(items),
+              newValue: serialized,
+            }),
+          )
+        })
+        return result
+      })
     })
 
   const patchItem = (id: string, patch: Partial<T>): ResultAsync<void, Error> =>
@@ -92,11 +112,6 @@ export const LocalStorageModule = <T extends object = any>(
 
   const getItemList = (): ResultAsync<T[], Error> =>
     getItems().map(Object.values)
-
-  const getState = (): ResultAsync<T | undefined, Error> =>
-    ResultAsync.fromPromise(getDataAsync(), typedError).andThen((data) =>
-      data ? parseJSON<T>(data) : ok(undefined),
-    )
 
   const setState = (newValue: T): ResultAsync<void, Error> =>
     getState().andThen((oldValue) =>

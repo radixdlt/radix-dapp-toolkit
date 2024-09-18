@@ -1,4 +1,4 @@
-import { ResultAsync, err, errAsync, ok } from 'neverthrow'
+import { ResultAsync, err, errAsync, ok, okAsync } from 'neverthrow'
 import { Subscription } from 'rxjs'
 import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
 import { Session, SessionModule } from '../../session/session.module'
@@ -40,6 +40,8 @@ export const RadixConnectRelayModule = (input: {
   const { baseUrl, providers, walletUrl } = input
   const { requestItemModule, storageModule } = providers
 
+  const walletResponses = storageModule.getPartition('walletResponses')
+
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
   const deepLinkModule =
@@ -74,6 +76,62 @@ export const RadixConnectRelayModule = (input: {
   })
 
   const subscriptions = new Subscription()
+
+  const wait = (timer = 1800) =>
+    new Promise((resolve) => setTimeout(resolve, timer))
+
+  const decryptWalletResponse = (
+    walletResponse: WalletResponse,
+  ): ResultAsync<WalletInteractionResponse, { reason: string }> => {
+    if ('error' in walletResponse) {
+      return errAsync({ reason: walletResponse.error })
+    }
+
+    return identityModule.get('dApp').andThen((dAppIdentity) =>
+      dAppIdentity.x25519
+        .calculateSharedSecret(
+          walletResponse.publicKey,
+          input.dAppDefinitionAddress,
+        )
+        .mapErr(() => ({ reason: 'FailedToDeriveSharedSecret' }))
+        .asyncAndThen((sharedSecret) =>
+          decryptWalletResponseData(sharedSecret, walletResponse.data),
+        ),
+    )
+  }
+
+  const checkRelayLoop = async () => {
+    await requestItemModule.getPending().andThen((pendingItems) => {
+      if (pendingItems.length === 0) {
+        return okAsync(undefined)
+      }
+
+      return sessionModule
+        .getCurrentSession()
+        .andThen((session) =>
+          radixConnectRelayApiService.getResponses(session.sessionId),
+        )
+        .andThen((responses) =>
+          ResultAsync.combine(
+            responses.map((response) => decryptWalletResponse(response)),
+          ).andThen((decryptedResponses) => {
+            return walletResponses.setItems(
+              decryptedResponses.reduce(
+                (acc, response) => {
+                  acc[response.interactionId] = response
+                  return acc
+                },
+                {} as Record<string, WalletInteractionResponse>,
+              ),
+            )
+          }),
+        )
+    })
+    await wait()
+    checkRelayLoop()
+  }
+
+  checkRelayLoop()
 
   const sendWalletInteractionRequest = ({
     session,
@@ -156,13 +214,7 @@ export const RadixConnectRelayModule = (input: {
             publicKey: dAppIdentity.x25519.getPublicKey(),
           }),
         )
-        .andThen(() =>
-          waitForWalletResponse({
-            session,
-            interactionId: walletInteraction.interactionId,
-            dAppIdentity,
-          }),
-        ),
+        .andThen(() => waitForWalletResponse(walletInteraction.interactionId)),
     )
 
   const decryptWalletResponseData = (
@@ -188,49 +240,18 @@ export const RadixConnectRelayModule = (input: {
         jsError: error,
       }))
 
-  const waitForWalletResponse = ({
-    session,
-    interactionId,
-    dAppIdentity,
-  }: {
-    session: Session
-    interactionId: string
-    dAppIdentity: Curve25519
-  }): ResultAsync<WalletInteractionResponse, SdkError> =>
+  const waitForWalletResponse = (
+    interactionId: string,
+  ): ResultAsync<WalletInteractionResponse, SdkError> =>
     ResultAsync.fromPromise(
       new Promise(async (resolve, reject) => {
         let response: WalletInteractionResponse | undefined
         let error: SdkError | undefined
-        let retry = 0
-
-        const wait = (timer = 1500) =>
-          new Promise((resolve) => setTimeout(resolve, timer))
 
         logger?.debug({
           method: 'waitForWalletResponse',
-          sessionId: session.sessionId,
           interactionId,
         })
-
-        const getEncryptedWalletResponses = () =>
-          radixConnectRelayApiService.getResponses(session.sessionId)
-
-        const decryptWalletResponse = (
-          walletResponse: WalletResponse,
-        ): ResultAsync<WalletInteractionResponse, { reason: string }> => {
-          if ('error' in walletResponse) {
-            return errAsync({ reason: walletResponse.error })
-          }
-          return dAppIdentity.x25519
-            .calculateSharedSecret(
-              walletResponse.publicKey,
-              input.dAppDefinitionAddress,
-            )
-            .mapErr(() => ({ reason: 'FailedToDeriveSharedSecret' }))
-            .asyncAndThen((sharedSecret) =>
-              decryptWalletResponseData(sharedSecret, walletResponse.data),
-            )
-        }
 
         while (!response) {
           const requestItemResult =
@@ -251,41 +272,20 @@ export const RadixConnectRelayModule = (input: {
             }
           }
 
-          const encryptedWalletResponsesResult =
-            await getEncryptedWalletResponses()
+          const walletResponse =
+            await walletResponses.getItemById(interactionId)
 
-          if (encryptedWalletResponsesResult.isOk()) {
-            const encryptedWalletResponses =
-              encryptedWalletResponsesResult.value
-
-            for (const encryptedWalletResponse of encryptedWalletResponses) {
-              const walletResponseResult = await decryptWalletResponse(
-                encryptedWalletResponse,
-              )
-
-              if (walletResponseResult.isErr())
-                logger?.error({
-                  method: 'waitForWalletResponse.decryptWalletResponse.error',
-                  error: walletResponseResult.error,
-                  sessionId: session.sessionId,
-                  interactionId,
-                })
-
-              if (walletResponseResult.isOk()) {
-                const walletResponse = walletResponseResult.value
-
-                if (walletResponse.interactionId === interactionId) {
-                  response = walletResponse
-                  await requestItemModule.patch(walletResponse.interactionId, {
-                    walletResponse,
-                  })
-                }
-              }
+          if (walletResponse.isOk()) {
+            if (walletResponse.value) {
+              response = walletResponse.value
+              await walletResponses.removeItemById(interactionId)
+              await requestItemModule.patch(interactionId, {
+                walletResponse: walletResponse.value,
+              })
             }
           }
 
           if (!response) {
-            retry += 1
             await wait()
           }
         }
