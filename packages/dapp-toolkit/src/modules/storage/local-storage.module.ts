@@ -67,7 +67,7 @@ export const LocalStorageModule = <T extends object = any>(
   const removeItemById = (id: string): ResultAsync<void, Error> =>
     getItems().andThen((items) => {
       const { [id]: _, ...newItems } = items
-      return stringify({ ...newItems }).asyncAndThen((serialized) => {
+      return stringify(newItems).asyncAndThen((serialized) => {
         const result = ResultAsync.fromPromise(
           setDataAsync(serialized),
           typedError,
