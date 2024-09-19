@@ -262,6 +262,7 @@ export class ConnectButton extends LitElement {
     if (this.pristine) return ''
 
     return html` <radix-popover
+      ?isMobile=${this.isMobile}
       ?connected=${this.connected}
       ?compact=${this.compact}
       ?showCloseButton=${this.showPopoverCloseButton}
