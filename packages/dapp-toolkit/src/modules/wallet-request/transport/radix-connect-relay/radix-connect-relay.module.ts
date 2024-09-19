@@ -40,7 +40,8 @@ export const RadixConnectRelayModule = (input: {
   const { baseUrl, providers, walletUrl } = input
   const { requestItemModule, storageModule } = providers
 
-  const walletResponses = storageModule.getPartition('walletResponses')
+  const walletResponses: StorageModule<WalletInteractionResponse> =
+    storageModule.getPartition('walletResponses')
 
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
@@ -77,7 +78,7 @@ export const RadixConnectRelayModule = (input: {
 
   const subscriptions = new Subscription()
 
-  const wait = (timer = 1800) =>
+  const wait = (timer = 1500) =>
     new Promise((resolve) => setTimeout(resolve, timer))
 
   const decryptWalletResponse = (
