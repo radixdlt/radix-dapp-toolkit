@@ -96,6 +96,8 @@ export class ConnectButton extends LitElement {
 
   pristine = true
   initialBodyOverflow: string
+  initialBackdropFilter: string
+  parentElementWithBackdropFilter: HTMLElement | null
 
   windowClickEventHandler: (event: MouseEvent) => void
 
@@ -117,6 +119,8 @@ export class ConnectButton extends LitElement {
   constructor() {
     super()
     this.initialBodyOverflow = document.body.style.overflow
+    this.initialBackdropFilter = ''
+    this.parentElementWithBackdropFilter = null
     this.injectFontCSS()
     this.windowClickEventHandler = (event) => {
       if (!this.showPopoverMenu) return
@@ -170,6 +174,7 @@ export class ConnectButton extends LitElement {
     this.pristine = false
     this.showPopoverMenu = !this.showPopoverMenu
     this.toggleBodyOverflow()
+    this.toggleParentBackdropFilter()
     if (this.showPopoverMenu) {
       this.dispatchEvent(
         new CustomEvent('onShowPopover', {
@@ -186,6 +191,48 @@ export class ConnectButton extends LitElement {
       this.showPopoverMenu && this.isMobile
         ? 'hidden'
         : this.initialBodyOverflow
+  }
+
+  private toggleParentBackdropFilter() {
+    const OPACITY_TRANSITION_DURATION = 180
+    if (!this.isMobile) return
+
+    if (!this.showPopoverMenu && this.parentElementWithBackdropFilter) {
+      setTimeout(() => {
+        this.parentElementWithBackdropFilter?.style.setProperty(
+          'backdrop-filter',
+          this.initialBackdropFilter,
+        )
+        this.initialBackdropFilter = ''
+        this.parentElementWithBackdropFilter = null
+      }, OPACITY_TRANSITION_DURATION)
+
+      return
+    } else {
+      const parent = this.findParentWithBackdropFilter(this)
+      if (parent === null) {
+        return
+      }
+      this.initialBackdropFilter = parent.backdropFilter
+      this.parentElementWithBackdropFilter = parent.element
+
+      parent.element.style.backdropFilter = 'none'
+    }
+  }
+
+  private findParentWithBackdropFilter(
+    element: HTMLElement | null,
+  ): { element: HTMLElement; backdropFilter: string } | null {
+    if (!element) {
+      return null
+    }
+    const style = window.getComputedStyle(element)
+    const backdropFilter = style.getPropertyValue('backdrop-filter')
+    if (backdropFilter !== 'none') {
+      return { element, backdropFilter }
+    } else {
+      return this.findParentWithBackdropFilter(element.parentElement)
+    }
   }
 
   private connectButtonTemplate() {
