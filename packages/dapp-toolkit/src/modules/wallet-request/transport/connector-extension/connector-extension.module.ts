@@ -55,7 +55,7 @@ export const ConnectorExtensionModule = (input: {
 
   const subjects = input?.subjects ?? ConnectorExtensionSubjects()
   const subscription = new Subscription()
-  const extensionDetectionTime = input?.extensionDetectionTime ?? 100
+  const extensionDetectionTime = input?.extensionDetectionTime ?? 200
   const requestItemModule = input.providers.requestItemModule
   const storage =
     input.providers.storageModule.getPartition('connectorExtension')
@@ -239,9 +239,9 @@ export const ConnectorExtensionModule = (input: {
       filter((value): value is Err<never, SdkError> => !('eventType' in value)),
     )
 
-    const sendWalletRequest$ = of(
-      wrapOutgoingInteraction(walletInteraction),
-    ).pipe(
+    const sendWalletRequest$ = extensionStatus$.pipe(
+      filter((status) => status.isExtensionAvailable),
+      switchMap(() => of(wrapOutgoingInteraction(walletInteraction))),
       tap((result) => {
         result.map((message) => {
           subjects.outgoingMessageSubject.next(message)
