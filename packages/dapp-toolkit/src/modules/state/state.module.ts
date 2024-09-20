@@ -2,8 +2,7 @@ import { BehaviorSubject, Subscription, filter } from 'rxjs'
 import { RdtState, WalletData, walletDataDefault } from './types'
 import { Logger } from '../../helpers'
 import { StorageModule } from '../storage'
-import { SdkError } from '../../error'
-import { err, ok } from 'neverthrow'
+import { ok, okAsync } from 'neverthrow'
 
 export type StateModule = ReturnType<typeof StateModule>
 
@@ -23,12 +22,11 @@ export const StateModule = (input: {
   const getState = () =>
     storageModule
       .getState()
-      .andThen((state) =>
-        state ? ok(state) : err(SdkError('StateNotFound', '')),
-      )
-
+      .orElse(() => okAsync(defaultState))
+      .andThen((state) => (state ? ok(state) : ok(defaultState)))
+      
   const patchState = (state: Partial<RdtState>) =>
-    getState().andThen((oldState) => setState({ ...oldState, ...state }))
+    getState().andThen((oldState) => setState({ ...oldState, ...state } as RdtState))
 
   const defaultState = {
     walletData: walletDataDefault,
@@ -43,17 +41,8 @@ export const StateModule = (input: {
 
   const initializeState = () =>
     getState()
-      .mapErr(() => {
-        logger?.debug({
-          method: `initializeState.loadedCorruptedStateFromStorage`,
-        })
-        resetState().map(() => {
-          emitWalletData()
-        })
-      })
-      .map(() => {
-        emitWalletData()
-      })
+      .map(() => emitWalletData())
+      .orElse(() => resetState())
 
   initializeState()
 
