@@ -6,7 +6,12 @@
     <title>Simple dApp</title>
   </head>
   <body>
-    <header><radix-connect-button /></header>
+    <style>
+      .header {
+        backdrop-filter: blur(10px);
+      }
+    </style>
+    <header class="header"><radix-connect-button /></header>
     <div id="app"></div>
 
     <script type="module" src="/src/main.ts"></script>

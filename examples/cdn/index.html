@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RDT from CDN</title>
+  </head>
+  <body>
+    <style>
+      header {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+    <header><radix-connect-button /></header>
+    <div id="app"></div>
+
+    <script src="./radix-dapp-toolkit.bundle.umd.cjs"></script>
+    <script>
+      const rdt = window.RDT.RadixDappToolkit({
+        dAppDefinitionAddress:
+          'account_rdx12y7md4spfq5qy7e3mfjpa52937uvkxf0nmydsu5wydkkxw3qx6nghn',
+        networkId: RDT.RadixNetwork.Mainnet,
+        applicationName: 'Radix Web3 dApp',
+        applicationVersion: '1.0.0',
+        logger: window.RDT.Logger(1),
+      })
+      console.log(rdt);
+    </script>
+  </body>
+</html>

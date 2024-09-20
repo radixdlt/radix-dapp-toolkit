@@ -7,6 +7,8 @@
   - [Resources](#resources)
     - [Building a dApp frontend](#building-a-dapp-frontend)
 - [Installation](#installation)
+  - [Using NPM](#using-npm)
+  - [Using CDN](#using-cdn)
 - [Usage](#usage)
   - [Getting started](#getting-started)
   - [Login requests](#login-requests)
@@ -14,7 +16,7 @@
     - [Handle user authentication](#handle-user-authentication)
     - [User authentication management](#user-authentication-management)
   - [Wallet data requests](#wallet-data-requests)
-    - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
+      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
     - [Change requested data](#change-requested-data)
     - [Data request builder](#data-request-builder)
       - [`DataRequestBuilder.persona()`](#datarequestbuilderpersona)
@@ -64,10 +66,18 @@ RDT supports both desktop and mobile browser web apps. For desktop browsers, it 
 
 # Installation
 
-**Using NPM**
+## Using NPM
 
 ```bash
 npm install @radixdlt/radix-dapp-toolkit
+```
+
+## Using CDN
+
+Add following code to head section of your page. See example usage inside `examples/cdn/index.html`
+
+```html
+<script src="https://www.unpkg.com/@radixdlt/radix-dapp-toolkit@2.1.0/dist/radix-dapp-toolkit.bundle.umd.cjs"></script>
 ```
 
 # Usage
@@ -77,7 +87,7 @@ npm install @radixdlt/radix-dapp-toolkit
 Add the `<radix-connect-button />` element in your HTML code and instantiate `RadixDappToolkit`.
 
 ```typescript
-import { RadixDappToolkit, RadixNetwork } from '@radixdlt/radix-dapp-toolkit'
+import { RadixDappToolkit, RadixNetwork, Logger } from '@radixdlt/radix-dapp-toolkit'
 
 const rdt = RadixDappToolkit({
   dAppDefinitionAddress:
@@ -85,6 +95,7 @@ const rdt = RadixDappToolkit({
   networkId: RadixNetwork.Mainnet,
   applicationName: 'Radix Web3 dApp',
   applicationVersion: '1.0.0',
+  logger: Logger(1)
 })
 ```
 

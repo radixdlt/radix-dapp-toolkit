@@ -43,6 +43,8 @@ yarn-error.log*
 
 .envrc
 
+examples/cdn/radix-dapp-toolkit.bundle.umd.cjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

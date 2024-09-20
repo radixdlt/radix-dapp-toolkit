@@ -84,12 +84,12 @@ const gatewayApi = GatewayApiClient.initialize(
   dAppToolkit.gatewayApi.clientConfig,
 )
 
-dAppToolkit.walletApi.provideChallengeGenerator(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  return generateRolaChallenge()
-})
+dAppToolkit.walletApi.provideChallengeGenerator(async () => generateRolaChallenge())
 
-dAppToolkit.walletApi.setRequestData(DataRequestBuilder.persona().withProof())
+dAppToolkit.walletApi.setRequestData(
+  DataRequestBuilder.persona().withProof(),
+  DataRequestBuilder.accounts().atLeast(1),
+)
 
 gatewayConfig.innerHTML = `
 [Gateway]
