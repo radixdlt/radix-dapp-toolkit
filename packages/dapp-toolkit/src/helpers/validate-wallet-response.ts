@@ -11,7 +11,7 @@ export const validateWalletResponse = (
 ): ResultAsync<WalletInteractionSuccessResponse, SdkError> => {
   const fn = Result.fromThrowable(
     (_) => parse(WalletInteractionResponse, _),
-    (error) => error as ValiError,
+    (error) => error as ValiError<any>,
   )
 
   const result = fn(walletResponse)

@@ -1,10 +1,10 @@
 import { produce } from 'immer'
-import { boolean, object, Output, optional } from 'valibot'
+import { boolean, object, InferOutput, optional } from 'valibot'
 
 export type PersonaRequestBuilder = {
   withProof: (value?: boolean) => PersonaRequestBuilder
 }
-export type PersonaRequest = Output<typeof schema>
+export type PersonaRequest = InferOutput<typeof schema>
 
 const schema = object({
   withProof: optional(boolean()),

@@ -9,9 +9,9 @@ import { NumberOfValues } from '../../../../schemas'
 import { produce } from 'immer'
 import type { Result } from 'neverthrow'
 import { ok } from 'neverthrow'
-import { boolean, object, string, Output, optional } from 'valibot'
+import { boolean, object, string, InferOutput, optional } from 'valibot'
 
-export type TransformRdtDataRequestToWalletRequestInput = Output<
+export type TransformRdtDataRequestToWalletRequestInput = InferOutput<
   typeof TransformRdtDataRequestToWalletRequestInput
 >
 export const TransformRdtDataRequestToWalletRequestInput = object({
