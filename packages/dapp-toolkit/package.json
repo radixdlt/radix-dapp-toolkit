@@ -72,7 +72,7 @@
     "rxjs": "^7.8.1",
     "tslog": ">=4.8.0",
     "uuid": "^10.0.0",
-    "valibot": "0.30.0"
+    "valibot": "0.42.1"
   },
   "devDependencies": {
     "@radixdlt/connect-button": "*",

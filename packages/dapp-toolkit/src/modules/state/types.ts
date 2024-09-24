@@ -14,7 +14,7 @@ import {
   object,
   variant,
   string,
-  Output,
+  InferOutput,
 } from 'valibot'
 
 export const proofType = {
@@ -22,7 +22,7 @@ export const proofType = {
   account: 'account',
 } as const
 
-export type SignedChallengePersona = Output<typeof SignedChallengePersona>
+export type SignedChallengePersona = InferOutput<typeof SignedChallengePersona>
 export const SignedChallengePersona = object({
   challenge: string(),
   proof: Proof,
@@ -30,7 +30,7 @@ export const SignedChallengePersona = object({
   type: literal(proofType.persona),
 })
 
-export type SignedChallengeAccount = Output<typeof SignedChallengeAccount>
+export type SignedChallengeAccount = InferOutput<typeof SignedChallengeAccount>
 export const SignedChallengeAccount = object({
   challenge: string(),
   proof: Proof,
@@ -38,7 +38,7 @@ export const SignedChallengeAccount = object({
   type: literal(proofType.account),
 })
 
-export type SignedChallenge = Output<typeof SignedChallenge>
+export type SignedChallenge = InferOutput<typeof SignedChallenge>
 export const SignedChallenge = variant('type', [
   SignedChallengePersona,
   SignedChallengeAccount,
@@ -59,14 +59,14 @@ export const WalletDataPersonaDataPhoneNumbersAddresses = object({
   fields: array(string()),
 })
 
-export type WalletDataPersonaData = Output<typeof WalletDataPersonaData>
+export type WalletDataPersonaData = InferOutput<typeof WalletDataPersonaData>
 export const WalletDataPersonaData = variant('entry', [
   WalletDataPersonaDataFullName,
   WalletDataPersonaDataEmailAddresses,
   WalletDataPersonaDataPhoneNumbersAddresses,
 ])
 
-export type WalletData = Output<typeof WalletData>
+export type WalletData = InferOutput<typeof WalletData>
 export const WalletData = object({
   accounts: array(Account),
   personaData: array(WalletDataPersonaData),
@@ -74,7 +74,7 @@ export const WalletData = object({
   proofs: array(SignedChallenge),
 })
 
-export type SharedData = Output<typeof SharedData>
+export type SharedData = InferOutput<typeof SharedData>
 export const SharedData = object({
   persona: optional(object({ proof: boolean() })),
   ongoingAccounts: optional(
@@ -86,7 +86,7 @@ export const SharedData = object({
   ongoingPersonaData: optional(PersonaDataRequestItem),
 })
 
-export type RdtState = Output<typeof RdtState>
+export type RdtState = InferOutput<typeof RdtState>
 export const RdtState = object({
   loggedInTimestamp: string(),
   walletData: WalletData,

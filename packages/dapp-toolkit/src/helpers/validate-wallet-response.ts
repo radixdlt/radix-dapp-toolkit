@@ -4,14 +4,17 @@ import {
   WalletInteractionSuccessResponse,
 } from '../schemas'
 import { SdkError } from '../error'
-import { ValiError, parse } from 'valibot'
+import { parse } from 'valibot'
 
 export const validateWalletResponse = (
   walletResponse: unknown,
-): ResultAsync<WalletInteractionSuccessResponse, SdkError> => {
+): ResultAsync<
+  WalletInteractionSuccessResponse,
+  SdkError | { discriminator: 'failure'; interactionId: string; error: string }
+> => {
   const fn = Result.fromThrowable(
     (_) => parse(WalletInteractionResponse, _),
-    (error) => error as ValiError,
+    (error) => error,
   )
 
   const result = fn(walletResponse)
@@ -20,7 +23,7 @@ export const validateWalletResponse = (
   } else if (result.isOk()) {
     return result.value.discriminator === 'success'
       ? okAsync(result.value)
-      : errAsync(result.value as any)
+      : errAsync(result.value)
   }
 
   return errAsync(SdkError('walletResponseValidation', ''))

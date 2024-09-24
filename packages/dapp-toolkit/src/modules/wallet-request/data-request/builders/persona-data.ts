@@ -1,5 +1,5 @@
 import { produce } from 'immer'
-import { boolean, object, Output, partial } from 'valibot'
+import { boolean, object, InferOutput, partial } from 'valibot'
 import { NumberOfValues } from '../../../../schemas'
 
 export type PersonaDataRequestBuilder = {
@@ -13,7 +13,7 @@ export type OneTimePersonaDataRequestBuilder = {
   emailAddresses: (value?: boolean) => PersonaDataRequestBuilder
   phoneNumbers: (value?: boolean) => PersonaDataRequestBuilder
 }
-export type PersonaDataRequest = Output<typeof PersonaDataRequestSchema>
+export type PersonaDataRequest = InferOutput<typeof PersonaDataRequestSchema>
 
 export const PersonaDataRequestSchema = partial(
   object({

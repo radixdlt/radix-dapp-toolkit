@@ -1,5 +1,5 @@
 import { produce } from 'immer'
-import { boolean, object, Output, optional } from 'valibot'
+import { boolean, object, InferOutput, optional } from 'valibot'
 import { NumberOfValues } from '../../../../schemas'
 
 export type AccountsRequestBuilder = {
@@ -13,7 +13,7 @@ export type OneTimeAccountsRequestBuilder = {
   exactly: (n: number) => OneTimeAccountsRequestBuilder
   withProof: (value?: boolean) => OneTimeAccountsRequestBuilder
 }
-export type AccountsDataRequest = Output<typeof AccountsDataRequestSchema>
+export type AccountsDataRequest = InferOutput<typeof AccountsDataRequestSchema>
 
 export const AccountsDataRequestSchema = object({
   numberOfAccounts: NumberOfValues,
