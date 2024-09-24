@@ -132,7 +132,9 @@ export const RadixConnectRelayModule = (input: {
     checkRelayLoop()
   }
 
-  checkRelayLoop()
+  if (isMobile()) {
+    checkRelayLoop()
+  }
 
   const sendWalletInteractionRequest = ({
     session,
