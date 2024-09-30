@@ -9,6 +9,7 @@ import { ErrorType } from '../../../error'
 import { WalletInteraction } from '../../../schemas'
 import type { StorageModule } from '../../storage'
 import { ResultAsync, errAsync } from 'neverthrow'
+import { WalletData } from '../../state'
 export type RequestItemModuleInput = {
   logger?: Logger
   providers: { storageModule: StorageModule<RequestItem> }
@@ -70,11 +71,15 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     status,
     error,
     transactionIntentHash,
+    metadata = {},
+    walletData,
   }: {
     id: string
     status: RequestStatusTypes
     error?: string
     transactionIntentHash?: string
+    walletData?: WalletData
+    metadata?: Record<string, string | number | boolean>
   }): ResultAsync<void, { reason: string }> => {
     return storageModule
       .getItemById(id)
@@ -83,10 +88,16 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
         if (item) {
           const updated = {
             ...item,
+            walletData,
             status:
               item.status === RequestStatus.ignored ? item.status : status,
+            metadata: item.metadata
+              ? { ...item.metadata, ...metadata }
+              : metadata,
           } as RequestItem
+
           if (updated.status === 'fail') {
+            updated.transactionIntentHash = transactionIntentHash!
             updated.error = error!
           }
           if (
@@ -95,9 +106,10 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
           ) {
             updated.transactionIntentHash = transactionIntentHash!
           }
-          if (['success', 'fail', 'ignored', 'cancelled'].includes(updated.status)) {
+          if (
+            ['success', 'fail', 'ignored', 'cancelled'].includes(updated.status)
+          ) {
             delete updated.walletInteraction
-            delete updated.walletResponse
           }
           logger?.debug({ method: 'updateRequestItemStatus', updated })
           return storageModule

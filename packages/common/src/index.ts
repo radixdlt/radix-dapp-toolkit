@@ -59,6 +59,7 @@ export type WalletRequest<
   timestamp: number
   showCancel?: boolean
   transactionIntentHash?: string
+  transactionStatus?: string
   walletInteraction: any
   walletResponse?: any
   metadata: Record<string, string | number | boolean>
@@ -76,4 +77,6 @@ export type RequestItem = {
   walletResponse?: any
   sentToWallet?: boolean
   isOneTimeRequest?: boolean
+  metadata?: Record<string, string | number | boolean>
+  walletData?: any
 }

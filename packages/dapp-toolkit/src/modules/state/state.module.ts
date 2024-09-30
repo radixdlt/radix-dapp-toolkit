@@ -2,7 +2,7 @@ import { BehaviorSubject, Subscription, filter } from 'rxjs'
 import { RdtState, WalletData, walletDataDefault } from './types'
 import { Logger } from '../../helpers'
 import { StorageModule } from '../storage'
-import { ok, okAsync } from 'neverthrow'
+import { ok, okAsync, ResultAsync } from 'neverthrow'
 
 export type StateModule = ReturnType<typeof StateModule>
 
@@ -13,20 +13,22 @@ export const StateModule = (input: {
   }
 }) => {
   const logger = input?.logger?.getSubLogger({ name: 'StateModule' })
-  const storageModule = input.providers.storageModule
+  const storageModule: StorageModule<RdtState> = input.providers.storageModule
 
   const subscriptions = new Subscription()
 
   const setState = (state: RdtState) => storageModule.setState(state)
 
-  const getState = () =>
+  const getState = (): ResultAsync<RdtState, never> =>
     storageModule
       .getState()
       .orElse(() => okAsync(defaultState))
       .andThen((state) => (state ? ok(state) : ok(defaultState)))
-      
+
   const patchState = (state: Partial<RdtState>) =>
-    getState().andThen((oldState) => setState({ ...oldState, ...state } as RdtState))
+    getState().andThen((oldState) =>
+      setState({ ...oldState, ...state } as RdtState),
+    )
 
   const defaultState = {
     walletData: walletDataDefault,
