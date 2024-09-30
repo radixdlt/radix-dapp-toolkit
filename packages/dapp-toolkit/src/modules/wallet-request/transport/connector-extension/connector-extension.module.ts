@@ -7,6 +7,7 @@ import {
   filter,
   first,
   firstValueFrom,
+  from,
   map,
   merge,
   mergeMap,
@@ -26,14 +27,13 @@ import {
   MessageLifeCycleExtensionStatusEvent,
   WalletInteraction,
   WalletInteractionExtensionInteraction,
-  WalletInteractionResponse,
   eventType,
 } from '../../../../schemas'
-import { RequestItemModule } from '../../request-items'
 import { StorageModule } from '../../../storage'
 import { SdkError } from '../../../../error'
 import { TransportProvider } from '../../../../_types'
 import { v4 as uuidV4 } from 'uuid'
+import type { RequestResolverModule } from '../../request-resolver/request-resolver.module'
 
 export type ConnectorExtensionModule = ReturnType<
   typeof ConnectorExtensionModule
@@ -44,7 +44,7 @@ export const ConnectorExtensionModule = (input: {
   logger?: Logger
   extensionDetectionTime?: number
   providers: {
-    requestItemModule: RequestItemModule
+    requestResolverModule: RequestResolverModule
     storageModule: StorageModule<{ sessionId?: string }>
   }
 }) => {
@@ -56,7 +56,7 @@ export const ConnectorExtensionModule = (input: {
   const subjects = input?.subjects ?? ConnectorExtensionSubjects()
   const subscription = new Subscription()
   const extensionDetectionTime = input?.extensionDetectionTime ?? 200
-  const requestItemModule = input.providers.requestItemModule
+  const requestResolverModule = input.providers.requestResolverModule
   const storage =
     input.providers.storageModule.getPartition('connectorExtension')
 
@@ -74,6 +74,15 @@ export const ConnectorExtensionModule = (input: {
             subjects.responseSubject.next(message)
           }
         }),
+      )
+      .subscribe(),
+  )
+  subscription.add(
+    subjects.responseSubject
+      .pipe(
+        mergeMap((walletResponse) =>
+          from(requestResolverModule.addWalletResponses([walletResponse])),
+        ),
       )
       .subscribe(),
   )
@@ -137,22 +146,18 @@ export const ConnectorExtensionModule = (input: {
   ): ResultAsync<unknown, SdkError> => {
     const cancelRequestSubject = new Subject<Err<never, SdkError>>()
 
+    const maybeResolved$ = from(
+      requestResolverModule.getWalletResponseById(
+        walletInteraction.interactionId,
+      ),
+    ).pipe(filter((result) => result.isOk() && !!result.value))
+
     const walletResponse$ = subjects.responseSubject.pipe(
       filter(
         (response) =>
           response.interactionId === walletInteraction.interactionId,
       ),
-      mergeMap(
-        (walletResponse): ResultAsync<WalletInteractionResponse, SdkError> =>
-          requestItemModule
-            .patch(walletResponse.interactionId, {
-              walletResponse,
-            })
-            .mapErr(() =>
-              SdkError('requestItemPatchError', walletResponse.interactionId),
-            )
-            .map(() => walletResponse),
-      ),
+      map((walletResponse) => ok(walletResponse)),
     )
 
     const cancelResponse$ = subjects.messageLifeCycleEventSubject.pipe(
@@ -206,6 +211,7 @@ export const ConnectorExtensionModule = (input: {
       })
 
     const walletResponseOrCancelRequest$ = merge(
+      maybeResolved$,
       walletResponse$,
       cancelRequestSubject,
     ).pipe(first())

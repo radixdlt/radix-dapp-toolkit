@@ -5,18 +5,13 @@ import {
   filter,
   firstValueFrom,
   map,
-  mergeMap,
   switchMap,
   tap,
 } from 'rxjs'
 import { validateRolaChallenge, type Logger } from '../../helpers'
 import { TransactionStatus } from '../gateway'
-import { Result, ResultAsync, err, ok, okAsync } from 'neverthrow'
-import type {
-  MessageLifeCycleEvent,
-  WalletInteraction,
-  WalletInteractionResponse,
-} from '../../schemas'
+import { ResultAsync, err, ok, okAsync } from 'neverthrow'
+import type { MessageLifeCycleEvent, WalletInteraction } from '../../schemas'
 import { SdkError } from '../../error'
 import {
   DataRequestBuilderItem,
@@ -25,11 +20,9 @@ import {
   canDataRequestBeResolvedByRdtState,
   toWalletRequest,
   transformSharedDataToDataRequestState,
-  transformWalletRequestToSharedData,
-  transformWalletResponseToRdtWalletData,
 } from './data-request'
 import { StorageModule } from '../storage'
-import { StateModule, WalletData } from '../state'
+import type { StateModule, WalletData } from '../state'
 import {
   AwaitedWalletDataRequestResult,
   TransportProvider,
@@ -38,6 +31,12 @@ import {
 import { ConnectorExtensionModule, RadixConnectRelayModule } from './transport'
 import { GatewayModule } from '../gateway'
 import { RequestItemModule } from './request-items'
+import { RequestResolverModule } from './request-resolver/request-resolver.module'
+import {
+  dataResponseResolver,
+  failedResponseResolver,
+  sendTransactionResponseResolver,
+} from './request-resolver'
 
 type SendTransactionInput = {
   transactionManifest: string
@@ -63,6 +62,7 @@ export const WalletRequestModule = (input: {
     dataRequestStateModule?: DataRequestStateModule
     requestItemModule?: RequestItemModule
     walletRequestSdk?: WalletRequestSdk
+    requestResolverModule?: RequestResolverModule
   }
 }) => {
   const logger = input.logger?.getSubLogger({ name: 'WalletRequestModule' })
@@ -70,7 +70,9 @@ export const WalletRequestModule = (input: {
   const networkId = input.networkId
   const cancelRequestSubject = new Subject<string>()
   const ignoreTransactionSubject = new Subject<string>()
-  const interactionStatusChangeSubject = new Subject<'fail' | 'success'>()
+  const interactionStatusChangeSubject = new Subject<
+    'fail' | 'success' | 'pending'
+  >()
   const gatewayModule = input.providers.gatewayModule
   const dAppDefinitionAddress = input.dAppDefinitionAddress
 
@@ -89,10 +91,48 @@ export const WalletRequestModule = (input: {
       },
     })
 
+  const updateConnectButtonStatus = (
+    status: 'success' | 'fail' | 'pending',
+  ) => {
+    interactionStatusChangeSubject.next(status)
+  }
+
+  const requestResolverModule =
+    input.providers.requestResolverModule ??
+    RequestResolverModule({
+      logger,
+      providers: {
+        storageModule,
+        requestItemModule,
+        stateModule,
+        resolvers: [
+          sendTransactionResponseResolver({
+            gatewayModule,
+            requestItemModule,
+            updateConnectButtonStatus,
+          }),
+          failedResponseResolver({
+            requestItemModule,
+            updateConnectButtonStatus,
+          }),
+          dataResponseResolver({
+            requestItemModule,
+            getDataRequestController: () => dataRequestControl,
+            stateModule,
+            updateConnectButtonStatus,
+          }),
+        ],
+        updateConnectButtonStatus: (status) => {
+          interactionStatusChangeSubject.next(status)
+        },
+        gatewayModule,
+      },
+    })
+
   const transports: TransportProvider[] = input.providers.transports ?? [
     ConnectorExtensionModule({
       logger,
-      providers: { requestItemModule, storageModule },
+      providers: { storageModule, requestResolverModule },
     }),
     RadixConnectRelayModule({
       logger,
@@ -102,6 +142,7 @@ export const WalletRequestModule = (input: {
       providers: {
         requestItemModule,
         storageModule,
+        requestResolverModule,
       },
     }),
   ]
@@ -206,6 +247,24 @@ export const WalletRequestModule = (input: {
       }))
   }
 
+  const sendRequestAndAwaitResponse = (
+    walletInteraction: WalletInteraction,
+    type: 'transaction' | 'data',
+  ) => {
+    updateConnectButtonStatus('pending')
+    return ResultAsync.combine([
+      (type === 'data'
+        ? walletRequestSdk.request
+        : walletRequestSdk.sendTransaction)(
+        walletInteraction,
+        cancelRequestControl(walletInteraction.interactionId),
+      ),
+      requestResolverModule.waitForWalletResponse(
+        walletInteraction.interactionId,
+      ),
+    ]).map(([_, response]) => response)
+  }
+
   const sendOneTimeRequest = (...items: DataRequestBuilderItem[]) =>
     sendRequest({
       dataRequestState: dataRequestStateModule.toDataRequestState(...items),
@@ -213,62 +272,38 @@ export const WalletRequestModule = (input: {
       oneTime: true,
     })
 
-  const resolveWalletResponse = (
-    walletInteraction: WalletInteraction,
-    walletInteractionResponse: WalletInteractionResponse,
-  ) => {
-    if (
-      walletInteractionResponse.discriminator === 'success' &&
-      walletInteractionResponse.items.discriminator === 'authorizedRequest'
-    ) {
-      return ResultAsync.combine([
-        transformWalletResponseToRdtWalletData(walletInteractionResponse.items),
-        stateModule.getState(),
-      ]).andThen(([walletData, state]) => {
-        return stateModule
-          .setState({
-            loggedInTimestamp: Date.now().toString(),
-            walletData,
-            sharedData: transformWalletRequestToSharedData(
-              walletInteraction,
-              state!.sharedData,
-            ),
-          })
-          .andThen(() =>
-            requestItemModule.updateStatus({
-              id: walletInteractionResponse.interactionId,
-              status: 'success',
-            }),
-          )
-      })
-    }
-
-    return okAsync(undefined)
-  }
-
-  const sendDataRequest = (walletInteraction: WalletInteraction) => {
-    return walletRequestSdk
-      .request(
-        walletInteraction,
-        cancelRequestControl(walletInteraction.interactionId),
-      )
-      .map((response: WalletInteractionResponse) => {
+  const sendDataRequest = (walletInteraction: WalletInteraction) =>
+    sendRequestAndAwaitResponse(walletInteraction, 'data')
+      .andThen((response) => {
         logger?.debug({ method: 'sendDataRequest.successResponse', response })
-
-        return response
+        return ok(response.walletData! as WalletData)
       })
       .mapErr((error) => {
         logger?.debug({ method: 'sendDataRequest.errorResponse', error })
-
-        requestItemModule.updateStatus({
-          id: walletInteraction.interactionId,
-          status: 'fail',
-          error: error.error,
-        })
-
         return error
       })
-  }
+
+  const getRdtState = () =>
+    stateModule.getState().mapErr(() => SdkError('FailedToReadRdtState', ''))
+
+  const addNewRequest = (
+    type: 'loginRequest' | 'dataRequest' | 'proofRequest',
+    walletInteraction: WalletInteraction,
+    isOneTimeRequest: boolean,
+  ) =>
+    requestItemModule
+      .add({
+        type,
+        walletInteraction,
+        isOneTimeRequest,
+      })
+      .mapErr(({ message }) =>
+        SdkError(
+          'FailedToCreateRequestItem',
+          walletInteraction.interactionId,
+          message,
+        ),
+      )
 
   const sendRequest = ({
     isConnect,
@@ -278,146 +313,46 @@ export const WalletRequestModule = (input: {
     dataRequestState: DataRequestState
     isConnect: boolean
     oneTime: boolean
-  }): WalletDataRequestResult => {
-    return ResultAsync.combine([
+  }): WalletDataRequestResult =>
+    ResultAsync.combine([
       getChallenge(dataRequestState),
-      stateModule.getState().mapErr(() => SdkError('FailedToReadRdtState', '')),
-    ])
-      .andThen(([challenge, state]) =>
-        toWalletRequest({
-          dataRequestState,
-          isConnect,
-          oneTime,
-          challenge,
-          walletData: state.walletData,
-        })
-          .mapErr(() => SdkError('FailedToTransformWalletRequest', ''))
-          .asyncAndThen((walletDataRequest) => {
-            const walletInteraction: WalletInteraction =
-              walletRequestSdk.createWalletInteraction(walletDataRequest)
-
-            if (
-              canDataRequestBeResolvedByRdtState(walletDataRequest, state) &&
-              useCache
-            )
-              return okAsync(state.walletData)
-
-            const isLoginRequest =
-              !state.walletData.persona &&
-              walletDataRequest.discriminator === 'authorizedRequest'
-
-            const isProofOfOwnershipRequest =
-              !!walletDataRequest.proofOfOwnership
-
-            const requestItemType = isLoginRequest
-              ? 'loginRequest'
-              : isProofOfOwnershipRequest
-                ? 'proofRequest'
-                : 'dataRequest'
-
-            return requestItemModule
-              .add({
-                type: requestItemType,
-                walletInteraction,
-                isOneTimeRequest: oneTime,
-              })
-              .mapErr(({ message }) =>
-                SdkError(
-                  'FailedToCreateRequestItem',
-                  walletInteraction.interactionId,
-                  message,
-                ),
-              )
-              .andThen(() =>
-                sendDataRequest(walletInteraction)
-                  .andThen((walletInteractionResponse) => {
-                    if (
-                      walletInteractionResponse.discriminator === 'success' &&
-                      walletInteractionResponse.items.discriminator !==
-                        'transaction'
-                    )
-                      return ok(walletInteractionResponse.items)
-
-                    return err(
-                      SdkError(
-                        'WalletResponseFailure',
-                        walletInteractionResponse.interactionId,
-                        'expected data response',
-                      ),
-                    )
-                  })
-                  .andThen(transformWalletResponseToRdtWalletData)
-                  .andThen((transformedWalletResponse) => {
-                    if (dataRequestControl)
-                      return dataRequestControl(transformedWalletResponse)
-                        .andThen(() =>
-                          requestItemModule
-                            .updateStatus({
-                              id: walletInteraction.interactionId,
-                              status: 'success',
-                            })
-                            .mapErr((error) =>
-                              SdkError(
-                                error.reason,
-                                walletInteraction.interactionId,
-                              ),
-                            )
-                            .map(() => transformedWalletResponse),
-                        )
-                        .mapErr((error) => {
-                          requestItemModule.updateStatus({
-                            id: walletInteraction.interactionId,
-                            status: 'fail',
-                            error: error.error,
-                          })
-                          return SdkError(
-                            error.error,
-                            walletInteraction.interactionId,
-                          )
-                        })
-
-                    return requestItemModule
-                      .updateStatus({
-                        id: walletInteraction.interactionId,
-                        status: 'success',
-                      })
-                      .map(() => transformedWalletResponse)
-                      .mapErr((error) =>
-                        SdkError(error.reason, walletInteraction.interactionId),
-                      )
-                  })
-                  .map((transformedWalletResponse) => {
-                    interactionStatusChangeSubject.next('success')
-
-                    if (!oneTime) {
-                      stateModule
-                        .setState({
-                          loggedInTimestamp: Date.now().toString(),
-                          walletData: transformedWalletResponse,
-                          sharedData: transformWalletRequestToSharedData(
-                            walletInteraction,
-                            state.sharedData,
-                          ),
-                        })
-                        .map(() => {
-                          stateModule.emitWalletData()
-                        })
-                    }
-
-                    return transformedWalletResponse
-                  })
-                  .mapErr((err) => {
-                    interactionStatusChangeSubject.next('fail')
-                    return err
-                  }),
-              )
-          }),
-      )
-      .mapErr((error) => {
-        logger?.error(error)
-        return error
+      getRdtState(),
+    ]).andThen(([challenge, state]) =>
+      toWalletRequest({
+        dataRequestState,
+        isConnect,
+        oneTime,
+        challenge,
+        walletData: state.walletData,
       })
-  }
+        .mapErr(() => SdkError('FailedToTransformWalletRequest', ''))
+        .asyncAndThen((walletDataRequest) => {
+          const walletInteraction: WalletInteraction =
+            walletRequestSdk.createWalletInteraction(walletDataRequest)
+
+          if (
+            canDataRequestBeResolvedByRdtState(walletDataRequest, state) &&
+            useCache
+          )
+            return okAsync(state.walletData)
+
+          const isLoginRequest =
+            !state.walletData.persona &&
+            walletDataRequest.discriminator === 'authorizedRequest'
+
+          const isProofOfOwnershipRequest = !!walletDataRequest.proofOfOwnership
+
+          const requestType = isLoginRequest
+            ? 'loginRequest'
+            : isProofOfOwnershipRequest
+              ? 'proofRequest'
+              : 'dataRequest'
+
+          return addNewRequest(requestType, walletInteraction, oneTime).andThen(
+            () => sendDataRequest(walletInteraction),
+          )
+        }),
+    )
 
   const setRequestDataState = (...items: DataRequestBuilderItem[]) => {
     dataRequestStateModule.setState(...items)
@@ -454,25 +389,6 @@ export const WalletRequestModule = (input: {
 
   const subscriptions = new Subscription()
 
-  subscriptions.add(
-    requestItemModule.requests$
-      .pipe(
-        mergeMap((items) => {
-          const unresolvedItems = items
-            .filter((item) => item.status === 'pending' && item.walletResponse)
-            .map((item) =>
-              resolveWalletResponse(
-                item.walletInteraction,
-                item.walletResponse,
-              ),
-            )
-
-          return ResultAsync.combineWithAllErrors(unresolvedItems)
-        }),
-      )
-      .subscribe(),
-  )
-
   const sendTransaction = (
     value: SendTransactionInput,
   ): ResultAsync<
@@ -482,107 +398,45 @@ export const WalletRequestModule = (input: {
     },
     SdkError
   > => {
-    const walletInteraction = walletRequestSdk.createWalletInteraction({
-      discriminator: 'transaction',
-      send: {
-        blobs: value.blobs,
-        transactionManifest: value.transactionManifest,
-        message: value.message,
-        version: value.version ?? 1,
-      },
-    })
-
-    requestItemModule.add({
-      type: 'sendTransaction',
-      walletInteraction,
-      isOneTimeRequest: false,
-    })
-
-    return walletRequestSdk
-      .sendTransaction(
-        walletInteraction,
-        cancelRequestControl(walletInteraction.interactionId),
-      )
-      .mapErr((response): SdkError => {
-        requestItemModule.updateStatus({
-          id: walletInteraction.interactionId,
-          status: 'fail',
-          error: response.error,
-        })
-        interactionStatusChangeSubject.next('fail')
-        logger?.debug({ method: 'sendTransaction.errorResponse', response })
-        return response
-      })
-      .andThen(
-        (response): Result<{ transactionIntentHash: string }, SdkError> => {
-          logger?.debug({ method: 'sendTransaction.successResponse', response })
-          if (
-            response.discriminator === 'success' &&
-            response.items.discriminator === 'transaction'
-          )
-            return ok(response.items.send)
-
-          if (response.discriminator === 'failure')
-            return err(
-              SdkError(
-                response.error,
-                response.interactionId,
-                response.message,
-              ),
-            )
-
-          return err(SdkError('WalletResponseFailure', response.interactionId))
+    const createTransactionRequest = () => {
+      const walletInteraction = walletRequestSdk.createWalletInteraction({
+        discriminator: 'transaction',
+        send: {
+          blobs: value.blobs,
+          transactionManifest: value.transactionManifest,
+          message: value.message,
+          version: value.version ?? 1,
         },
-      )
-      .andThen(({ transactionIntentHash }) => {
-        if (value.onTransactionId) value.onTransactionId(transactionIntentHash)
-        return gatewayModule
-          .pollTransactionStatus(transactionIntentHash)
-          .map((transactionStatusResponse) => ({
-            transactionIntentHash,
-            status: transactionStatusResponse.status,
-          }))
       })
-      .andThen((response) => {
-        const failedTransactionStatus: TransactionStatus[] = [
-          TransactionStatus.Rejected,
-          TransactionStatus.CommittedFailure,
-        ]
 
-        const isFailedTransaction = failedTransactionStatus.includes(
-          response.status,
-        )
-
-        logger?.debug({
-          method: 'sendTransaction.pollTransactionStatus.completed',
-          response,
+      return requestItemModule
+        .add({
+          type: 'sendTransaction',
+          walletInteraction,
+          isOneTimeRequest: false,
         })
+        .mapErr(() =>
+          SdkError('FailedToAddRequestItem', walletInteraction.interactionId),
+        )
+        .map(() => walletInteraction)
+    }
 
-        const status = isFailedTransaction ? 'fail' : 'success'
+    return createTransactionRequest()
+      .andThen((walletInteraction) =>
+        sendRequestAndAwaitResponse(walletInteraction, 'transaction'),
+      )
+      .andThen(({ status, transactionIntentHash, metadata, interactionId }) => {
+        const output = {
+          transactionIntentHash: transactionIntentHash!,
+          status: metadata!.transactionStatus as TransactionStatus,
+        }
 
-        return requestItemModule
-          .updateStatus({
-            id: walletInteraction.interactionId,
-            status,
-            transactionIntentHash: response.transactionIntentHash,
-          })
-          .mapErr(() =>
-            SdkError(
-              'FailedToUpdateRequestItem',
-              walletInteraction.interactionId,
-            ),
-          )
-          .andThen(() => {
-            interactionStatusChangeSubject.next(status)
-            return isFailedTransaction
-              ? err(
-                  SdkError(
-                    'TransactionNotSuccessful',
-                    walletInteraction.interactionId,
-                  ),
-                )
-              : ok(response)
-          })
+        if (value.onTransactionId)
+          value.onTransactionId(output.transactionIntentHash)
+
+        return status === 'success'
+          ? ok(output)
+          : err(SdkError(output.status, interactionId))
       })
   }
 
@@ -595,6 +449,7 @@ export const WalletRequestModule = (input: {
     cancelRequestSubject.next(id)
     requestItemModule.cancel(id)
     interactionStatusChangeSubject.next('fail')
+    updateConnectButtonStatus('fail')
   }
 
   const ignoreTransaction = (id: string) => {
@@ -625,30 +480,27 @@ export const WalletRequestModule = (input: {
   const destroy = () => {
     stateModule.destroy()
     requestItemModule.destroy()
+    requestResolverModule.destroy()
     input.providers.transports?.forEach((transport) => transport.destroy())
 
     subscriptions.unsubscribe()
   }
 
   return {
-    sendRequest: (input: { isConnect: boolean; oneTime: boolean }) => {
-      const result = sendRequest({
+    sendRequest: (input: { isConnect: boolean; oneTime: boolean }) =>
+      sendRequest({
         isConnect: input.isConnect,
         oneTime: input.oneTime,
         dataRequestState: dataRequestStateModule.getState(),
       })
-
-      if (connectResponseCallback)
-        result
-          .map((result) => {
-            connectResponseCallback!(ok(result))
-          })
-          .mapErr((error) => {
-            connectResponseCallback!(err(error))
-          })
-
-      return result
-    },
+        .andThen((response) => {
+          if (connectResponseCallback) connectResponseCallback!(ok(response))
+          return ok(response)
+        })
+        .orElse((error) => {
+          if (connectResponseCallback) connectResponseCallback!(err(error))
+          return err(error)
+        }),
     sendTransaction,
     cancelRequest,
     ignoreTransaction,

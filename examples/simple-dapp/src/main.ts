@@ -11,7 +11,6 @@ import {
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
-const widgetUrl = import.meta.env.VITE_WIDGET_DAPP_URL
 const networkId = RadixNetwork.Stokenet
 const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
@@ -76,7 +75,6 @@ addCb.onclick = () => {
 const dAppToolkit = RadixDappToolkit({
   dAppDefinitionAddress,
   networkId,
-  featureFlags: ['ExperimentalMobileSupport'],
   logger,
 })
 
@@ -84,7 +82,9 @@ const gatewayApi = GatewayApiClient.initialize(
   dAppToolkit.gatewayApi.clientConfig,
 )
 
-dAppToolkit.walletApi.provideChallengeGenerator(async () => generateRolaChallenge())
+dAppToolkit.walletApi.provideChallengeGenerator(async () =>
+  generateRolaChallenge(),
+)
 
 dAppToolkit.walletApi.setRequestData(
   DataRequestBuilder.persona().withProof(),
@@ -107,16 +107,18 @@ resetButton.onclick = () => {
 
 sendTxButton.onclick = () => {
   dAppToolkit.walletApi.sendTransaction({
-    transactionManifest: `CALL_METHOD
-    Address("component_tdx_2_1cptxxxxxxxxxfaucetxxxxxxxxx000527798379xxxxxxxxxyulkzl")
-    "free"
-;
-CALL_METHOD
-    Address("account_tdx_2_12yfw30hdc445j4lnepw7dmrkjcqcswsrxlff5r07mrjq9f8mnnn2r5")
-    "try_deposit_batch_or_abort"
-    Expression("ENTIRE_WORKTOP")
-    Enum<0u8>()
-;`,
+    transactionManifest: `
+    CALL_METHOD
+      Address("component_tdx_2_1cptxxxxxxxxxfaucetxxxxxxxxx000527798379xxxxxxxxxyulkzl")
+      "free"
+    ;
+    
+    CALL_METHOD
+      Address("account_tdx_2_1299trm47s3x648jemhu3lfm4d6gt73289rd9s2hpdjm3tp5pdwq4m5")
+      "try_deposit_batch_or_abort"
+      Expression("ENTIRE_WORKTOP")
+      Enum<0u8>()
+    ;`,
   })
 }
 

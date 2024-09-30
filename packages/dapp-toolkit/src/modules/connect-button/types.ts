@@ -26,7 +26,6 @@ export type ConnectButtonModuleOutput = {
     type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet'
     data: string
   }>
-  setStatus: (value: RadixButtonStatus) => void
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
   setActiveTab: (value: 'sharing' | 'requests') => void

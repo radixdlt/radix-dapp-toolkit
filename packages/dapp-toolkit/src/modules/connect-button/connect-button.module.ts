@@ -1,7 +1,10 @@
 import {
+  concatMap,
+  delay,
   filter,
   finalize,
   first,
+  from,
   fromEvent,
   map,
   merge,
@@ -10,12 +13,10 @@ import {
   Subscription,
   switchMap,
   tap,
-  timer,
 } from 'rxjs'
 import { ConnectButton } from '@radixdlt/connect-button'
 import type {
   Account,
-  RadixButtonStatus,
   RadixButtonTheme,
   RequestItem,
 } from 'radix-connect-common'
@@ -314,7 +315,6 @@ export const ConnectButtonModule = (
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     onIgnoreTransactionItem$: subjects.onIgnoreTransactionItem.asObservable(),
     onLinkClick$: subjects.onLinkClick.asObservable(),
-    setStatus: (value: RadixButtonStatus) => subjects.status.next(value),
     setTheme: (value: RadixButtonTheme) => subjects.theme.next(value),
     setMode: (value: 'light' | 'dark') => subjects.mode.next(value),
     setActiveTab: (value: 'sharing' | 'requests') =>
@@ -385,12 +385,6 @@ export const ConnectButtonModule = (
     walletRequestModule.requestItems$
       .pipe(
         tap((items) => {
-          const hasPendingItem = items.find((item) => item.status === 'pending')
-
-          if (hasPendingItem) {
-            connectButtonApi.setStatus('pending')
-          }
-
           connectButtonApi.setRequestItems([...items].reverse())
         }),
       )
@@ -465,22 +459,27 @@ export const ConnectButtonModule = (
   subscriptions.add(
     walletRequestModule.interactionStatusChange$
       .pipe(
-        mergeMap((newStatus) => {
-          statusStorage.setState({
-            status: newStatus === 'success' ? 'success' : 'error',
-          })
-
-          return timer(2000).pipe(
-            tap(() => {
-              const result = walletRequestModule.getPendingRequests()
-              result.map((pendingItems) => {
-                statusStorage.setState({
-                  status: pendingItems.length ? 'pending' : 'default',
-                })
-              })
+        mergeMap((newStatus) =>
+          from(
+            statusStorage.setState({
+              status:
+                newStatus === 'success'
+                  ? 'success'
+                  : newStatus === 'fail'
+                    ? 'error'
+                    : 'pending',
             }),
-          )
-        }),
+          ).pipe(
+            delay(2000),
+            concatMap(() =>
+              walletRequestModule.getPendingRequests().andThen((items) =>
+                statusStorage.setState({
+                  status: items.length ? 'pending' : 'default',
+                }),
+              ),
+            ),
+          ),
+        ),
       )
       .subscribe(),
   )
