@@ -93,6 +93,16 @@ export class RadixRequestCard extends LitElement {
           'Open Your Radix Wallet App to complete the request',
         ),
       },
+      proofRequest: {
+        pending: 'Proof Request Pending',
+        fail: 'Proof Request Rejected',
+        cancelled: 'Proof Request Rejected',
+        success: 'Proof Request',
+        ignored: '',
+        content: this.getRequestContentTemplate(
+          'Open Your Radix Wallet App to complete the request',
+        ),
+      }
     }
 
     return html`<radix-card

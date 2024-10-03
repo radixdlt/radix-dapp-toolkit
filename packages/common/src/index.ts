@@ -39,6 +39,7 @@ export const RequestItemType = {
   loginRequest: 'loginRequest',
   dataRequest: 'dataRequest',
   sendTransaction: 'sendTransaction',
+  proofRequest: 'proofRequest',
 } as const
 
 export type RequestItemType = typeof RequestItemType

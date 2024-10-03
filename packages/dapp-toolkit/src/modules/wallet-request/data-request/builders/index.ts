@@ -11,6 +11,7 @@ import {
   PersonaDataRequestBuilder,
   personaData,
 } from './persona-data'
+import { proofOfOwnership, ProofOfOwnershipRequest, ProofOfOwnershipRequestBuilder } from './proof-of-ownership'
 
 export type DataRequestBuilderItem =
   | AccountsRequestBuilder
@@ -21,12 +22,14 @@ export type DataRequestBuilderItem =
 export type OneTimeDataRequestBuilderItem =
   | OneTimeAccountsRequestBuilder
   | OneTimePersonaDataRequestBuilder
+  | ProofOfOwnershipRequestBuilder
 
-export type DataRequestState = Partial<
-  { accounts: AccountsDataRequest } & { personaData: PersonaDataRequest } & {
-    persona: PersonaRequest
-  }
->
+export type DataRequestState = Partial<{
+  accounts: AccountsDataRequest
+  personaData: PersonaDataRequest
+  persona: PersonaRequest
+  proofOfOwnership: ProofOfOwnershipRequest
+}>
 
 export type ConfigRequestBuilder = {}
 
@@ -57,9 +60,11 @@ export const DataRequestBuilder: DataRequestBuilder = {
 export type OneTimeDataRequestBuilder = {
   accounts: () => OneTimeAccountsRequestBuilder
   personaData: (input?: PersonaDataRequest) => OneTimePersonaDataRequestBuilder
+  proofOfOwnership: () => ProofOfOwnershipRequestBuilder
 }
 
 export const OneTimeDataRequestBuilder: OneTimeDataRequestBuilder = {
   accounts,
   personaData,
+  proofOfOwnership,
 }

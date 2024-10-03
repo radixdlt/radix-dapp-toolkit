@@ -172,7 +172,9 @@ export const WalletRequestModule = (input: {
   ) => ResultAsync<any, { error: string; message: string }>
 
   const isChallengeNeeded = (dataRequestState: DataRequestState) =>
-    dataRequestState.accounts?.withProof || dataRequestState.persona?.withProof
+    dataRequestState.accounts?.withProof ||
+    dataRequestState.persona?.withProof ||
+    dataRequestState.proofOfOwnership
 
   const getChallenge = (
     dataRequestState: DataRequestState,
@@ -304,9 +306,18 @@ export const WalletRequestModule = (input: {
               !state.walletData.persona &&
               walletDataRequest.discriminator === 'authorizedRequest'
 
+            const isProofOfOwnershipRequest =
+              !!walletDataRequest.proofOfOwnership
+
+            const requestItemType = isLoginRequest
+              ? 'loginRequest'
+              : isProofOfOwnershipRequest
+                ? 'proofRequest'
+                : 'dataRequest'
+
             return requestItemModule
               .add({
-                type: isLoginRequest ? 'loginRequest' : 'dataRequest',
+                type: requestItemType,
                 walletInteraction,
                 isOneTimeRequest: oneTime,
               })
