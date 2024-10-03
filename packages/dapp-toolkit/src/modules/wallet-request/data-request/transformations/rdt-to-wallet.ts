@@ -10,7 +10,6 @@ import { produce } from 'immer'
 import type { Result } from 'neverthrow'
 import { ok } from 'neverthrow'
 import { boolean, object, string, InferOutput, optional, array } from 'valibot'
-import { T } from 'vitest/dist/reporters-P7C2ytIv.js'
 
 export type TransformRdtDataRequestToWalletRequestInput = InferOutput<
   typeof TransformRdtDataRequestToWalletRequestInput
