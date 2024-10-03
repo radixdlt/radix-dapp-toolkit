@@ -9,11 +9,13 @@
 - [Installation](#installation)
   - [Using NPM](#using-npm)
   - [Using CDN](#using-cdn)
+  - [Using `create-radix-dapp`](#using-create-radix-dapp)
 - [Usage](#usage)
   - [Getting started](#getting-started)
   - [Login requests](#login-requests)
     - [User authentication](#user-authentication)
     - [Handle user authentication](#handle-user-authentication)
+    - [Authenticate specific account or persona](#authenticate-specific-account-or-persona)
     - [User authentication management](#user-authentication-management)
   - [Wallet data requests](#wallet-data-requests)
       - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
@@ -24,6 +26,7 @@
       - [`OneTimeDataRequestBuilderItem.accounts()`](#onetimedatarequestbuilderitemaccounts)
       - [`DataRequestBuilder.personaData()`](#datarequestbuilderpersonadata)
       - [`OneTimeDataRequestBuilderItem.personaData()`](#onetimedatarequestbuilderitempersonadata)
+      - [`OneTimeDataRequestBuilderItem.proofOfOwnership()`](#onetimedatarequestbuilderitemproofofownership)
       - [`DataRequestBuilder.config(input: DataRequestState)`](#datarequestbuilderconfiginput-datarequeststate)
     - [Handle connect responses](#handle-connect-responses)
     - [One Time Data Request](#one-time-data-request)
@@ -80,6 +83,14 @@ Add following code to head section of your page. See example usage inside `examp
 <script src="https://www.unpkg.com/@radixdlt/radix-dapp-toolkit@2.1.0/dist/radix-dapp-toolkit.bundle.umd.cjs"></script>
 ```
 
+## Using `create-radix-dapp`
+
+You can easily start experimenting with Radix dApp Toolkit and various frameworks by using our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps!
+
+```bash
+npx create-radix-dapp@latest
+```
+
 # Usage
 
 ## Getting started
@@ -105,6 +116,9 @@ const rdt = RadixDappToolkit({
 - **requires** networkId - Target radix network ID.
 - _optional_ applicationName - Your dApp name. It's only used for statistics purposes on gateway side
 - _optional_ applicationVersion - Your dApp version. It's only used for statistics purposes on gateway side
+- _optional_ logger - Configure and provide `Logger` instance if you want to deep dive into what's happening in RDT
+
+There are more configuration options which are not described here. Please look up [`OptionalRadixDappToolkitOptions`](https://github.com/radixdlt/radix-dapp-toolkit/blob/c65fa2ad016b22e3b5a5410a0a1adc24bbee86fe/packages/dapp-toolkit/src/_types.ts#L48) to learn more.
 
 ## Login requests
 
@@ -156,6 +170,8 @@ In order to request a persona or account with proof of ownership a challenge is 
 
 A challenge is a random 32 bytes hex encoded string that looks something like: `4ccb0555d6b4faad0d7f5ed40bf4e4f0665c8ba35929c638e232e09775d0fa0e`
 
+If you're using JS for your backend you can use `generateRolaChallenge` function from Radix dApp Toolkit which will generate valid ROLA challenge for you. 
+
 **Why do we need a challenge?**
 
 The challenge plays an important role in the authentication flow, namely preventing replay attacks from bad actors. The challenge ensures that an authentication request payload sent from the client can only be used once. After a challenge is claimed by a request, the subsequent requests can no longer be resolved successfully with the same payload. As a security best practice, a stored challenge should have a short expiration time. In this case, just enough time for a user to interact with the wallet.
@@ -165,19 +181,11 @@ The challenge plays an important role in the authentication flow, namely prevent
 In order to request a proof, it is required to provide a function to RDT that produces a challenge.
 
 ```typescript
-// type requestChallengeFromDappBackendFn = () => Promise<string>
+// const requestChallengeFromDappBackendFn = (): Promise<string> => 
+//    http.get('/api/auth/challenge')
 
 rdt.walletApi.provideChallengeGenerator(requestChallengeFromDappBackendFn)
-
 rdt.walletApi.setRequestData(DataRequestBuilder.persona.withProof())
-
-// handle the wallet response
-rdt.walletApi.dataRequestControl(async (walletData) => {
-  const personaProof = walletData.proofs.find(
-    (proof) => proof.type === 'persona',
-  )
-  if (personaProof) await handleLogin(personaProof)
-})
 ```
 
 ### Handle user authentication
@@ -204,6 +212,30 @@ rdt.walletApi.dataRequestControl(async (walletData) => {
 ```
 
 See [ROLA example](https://github.com/radixdlt/rola-examples) for an end-to-end implementation.
+
+### Authenticate specific account or persona
+
+Sometimes you want to restrict access to some parts of the system. For example you have admin part of your dApp which only people with specific identities can access. On the other hand, you don't want every user to go through ROLA process every time they login. Here's where ["one-time proof of ownership"](#one-time-data-request) request comes handy. Radix dApp Toolkit gives you you a way to ask Radix Wallet about **specific account addresses and identity**.
+
+**Example:**
+
+```typescript
+  // const verifyProofInBackend = (proof: SignedChallenge): ResultAsync<T,E> => { ... }
+
+  rdt.walletApi.sendOneTimeRequest(
+    OneTimeDataRequestBuilder.proofOfOwnership().identity(
+      'identity_tdx_2_12g3f29r62450l03ejucc2cf0pz52uawkwwm4um3chqxjjl2ffhq6f8',
+    ),
+  ).andThen((response) => {
+    const proof = response.proofs.find((proof) => proof.address ==='identity_tdx_2_12g3f29r62450l03ejucc2cf0pz52uawkwwm4um3chqxjjl2ffhq6f8')
+    return verifyProofInBackend(proof)
+  })
+```
+
+> [!IMPORTANT]  
+> If you want to use that, you need to configure challenge generator with `provideChallengeGenerator`
+
+
 
 ### User authentication management
 
@@ -340,6 +372,24 @@ rdt.walletApi.sendOneTimeRequest(
 )
 ```
 
+#### `OneTimeDataRequestBuilderItem.proofOfOwnership()`
+
+```typescript
+accounts: (value: string[]) => ProofOfOwnershipRequestBuilder
+identity: (value: string) => ProofOfOwnershipRequestBuilder
+```
+
+Example: Prove that user who is trying access admin page right is owner of given identity
+
+```typescript
+// const currentUserState = { .... }
+rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.proofOfOwnership().identity(
+    currentUserState.identity
+  ),
+)
+```
+
 #### `DataRequestBuilder.config(input: DataRequestState)`
 
 Use this method if you prefer to provide a raw data request object.
@@ -369,7 +419,7 @@ rdt.walletApi.provideConnectResponseCallback((result) => {
 
 ### One Time Data Request
 
-One-time data requests do not have a Persona context, and so will always result in the Radix Wallet asking the user to select where to draw personal data from. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
+Sometimes you want to get some data from the Radix Wallet based on various user actions like custom button click, page event, route change etc. One-time data requests are perfect way of doing that. One time data requests neither need any "auth" context nor they keep any state. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data, choose account, prove identity etc.
 
 ```typescript
 const result = rdt.walletApi.sendOneTimeRequest(
