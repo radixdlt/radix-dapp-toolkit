@@ -20,6 +20,13 @@ export const toWalletRequest = ({
   transformRdtDataRequestToWalletRequest(
     isConnect,
     produce({}, (draft: TransformRdtDataRequestToWalletRequestInput) => {
+      if (dataRequestState.proofOfOwnership) {
+        draft.proofOfOwnership = {
+          ...dataRequestState.proofOfOwnership,
+          challenge,
+        }
+      }
+
       if (dataRequestState.accounts) {
         draft.accounts = {
           numberOfAccounts: dataRequestState.accounts.numberOfAccounts || {

@@ -39,6 +39,26 @@ export const AccountProof = object({
   proof: Proof,
 })
 
+export type PersonaProof = InferOutput<typeof PersonaProof>
+export const PersonaProof = object({
+  identityAddress: string(),
+  proof: Proof,
+})
+
+export type ProofOfOwnershipRequestItem = InferOutput<
+  typeof ProofOfOwnershipRequestItem
+>
+export const ProofOfOwnershipRequestItem = object({
+  challenge: string(),
+  identityAddress: optional(string()),
+  accountAddresses: optional(array(string())),
+})
+
+export const ProofOfOwnershipResponseItem = object({
+  challenge: string(),
+  proofs: array(union([AccountProof, PersonaProof])),
+})
+
 export type Persona = InferOutput<typeof Persona>
 export const Persona = object({ identityAddress: string(), label: string() })
 
@@ -133,6 +153,7 @@ export type WalletUnauthorizedRequestItems = InferOutput<
 >
 export const WalletUnauthorizedRequestItems = object({
   discriminator: literal('unauthorizedRequest'),
+  proofOfOwnership: optional(ProofOfOwnershipRequestItem),
   oneTimeAccounts: optional(AccountsRequestItem),
   oneTimePersonaData: optional(PersonaDataRequestItem),
 })
@@ -176,6 +197,7 @@ export const WalletAuthorizedRequestItems = object({
   discriminator: literal('authorizedRequest'),
   auth: AuthRequestItem,
   reset: optional(ResetRequestItem),
+  proofOfOwnership: optional(ProofOfOwnershipRequestItem),
   oneTimeAccounts: optional(AccountsRequestItem),
   ongoingAccounts: optional(AccountsRequestItem),
   oneTimePersonaData: optional(PersonaDataRequestItem),
@@ -249,6 +271,7 @@ export type WalletUnauthorizedRequestResponseItems = InferOutput<
 >
 const WalletUnauthorizedRequestResponseItems = object({
   discriminator: literal('unauthorizedRequest'),
+  proofOfOwnership: optional(ProofOfOwnershipResponseItem),
   oneTimeAccounts: optional(AccountsRequestResponseItem),
   oneTimePersonaData: optional(PersonaDataRequestResponseItem),
 })
@@ -298,6 +321,7 @@ export type WalletAuthorizedRequestResponseItems = InferOutput<
 export const WalletAuthorizedRequestResponseItems = object({
   discriminator: literal('authorizedRequest'),
   auth: AuthRequestResponseItem,
+  proofOfOwnership: optional(ProofOfOwnershipResponseItem),
   oneTimeAccounts: optional(AccountsRequestResponseItem),
   ongoingAccounts: optional(AccountsRequestResponseItem),
   oneTimePersonaData: optional(PersonaDataRequestResponseItem),

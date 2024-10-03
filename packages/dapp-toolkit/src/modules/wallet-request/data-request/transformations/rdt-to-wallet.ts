@@ -9,12 +9,20 @@ import { NumberOfValues } from '../../../../schemas'
 import { produce } from 'immer'
 import type { Result } from 'neverthrow'
 import { ok } from 'neverthrow'
-import { boolean, object, string, InferOutput, optional } from 'valibot'
+import { boolean, object, string, InferOutput, optional, array } from 'valibot'
+import { T } from 'vitest/dist/reporters-P7C2ytIv.js'
 
 export type TransformRdtDataRequestToWalletRequestInput = InferOutput<
   typeof TransformRdtDataRequestToWalletRequestInput
 >
 export const TransformRdtDataRequestToWalletRequestInput = object({
+  proofOfOwnership: optional(
+    object({
+      challenge: optional(string()),
+      accountAddresses: optional(array(string())),
+      identityAddress: optional(string()),
+    }),
+  ),
   accounts: optional(
     object({
       numberOfAccounts: NumberOfValues,
@@ -112,6 +120,36 @@ const withAccountRequestItem =
     return updatedRequestItems
   }
 
+const withProofOfOwnershipRequestItem =
+  (input: TransformRdtDataRequestToWalletRequestInput) =>
+  <T extends WalletUnauthorizedRequestItems | WalletAuthorizedRequestItems>(
+    requestItems: T,
+  ) => {
+    const updatedRequestItems = { ...requestItems }
+
+    if (input.proofOfOwnership) {
+      const { challenge, accountAddresses, identityAddress } =
+        input.proofOfOwnership
+
+      if (challenge) {
+        updatedRequestItems['proofOfOwnership'] = {
+          challenge,
+        }
+        if (accountAddresses) {
+          updatedRequestItems['proofOfOwnership'].accountAddresses =
+            accountAddresses
+        }
+
+        if (identityAddress) {
+          updatedRequestItems['proofOfOwnership'].identityAddress =
+            identityAddress
+        }
+      }
+    }
+
+    return updatedRequestItems
+  }
+
 const withPersonaDataRequestItem =
   (input: TransformRdtDataRequestToWalletRequestInput) =>
   <T extends WalletUnauthorizedRequestItems | WalletAuthorizedRequestItems>(
@@ -170,6 +208,7 @@ const createUnauthorizedRequestItems = (
   })
     .map(withAccountRequestItem(input))
     .map(withPersonaDataRequestItem(input))
+    .map(withProofOfOwnershipRequestItem(input))
 
 const createAuthorizedRequestItems = (
   input: TransformRdtDataRequestToWalletRequestInput,
@@ -181,6 +220,7 @@ const createAuthorizedRequestItems = (
     .map(withAccountRequestItem(input))
     .map(withPersonaDataRequestItem(input))
     .map(withResetRequestItem(input))
+    .map(withProofOfOwnershipRequestItem(input))
 
 const transformConnectRequest = (
   isConnect: boolean,

@@ -2,11 +2,14 @@ import { produce } from 'immer'
 import { okAsync, type ResultAsync } from 'neverthrow'
 import type {
   Account,
+  AccountProof,
   PersonaDataRequestResponseItem,
+  PersonaProof,
   WalletAuthorizedRequestResponseItems,
   WalletUnauthorizedRequestResponseItems,
 } from '../../../../schemas'
 import {
+  SignedChallenge,
   type SignedChallengeAccount,
   type WalletData,
   proofType,
@@ -60,6 +63,24 @@ const withPersonaDataEntries = (
     })
 
   return entries
+}
+
+const convertOwnershipProofsToSignedChallenge = (
+  challenge: string,
+  proofs: (PersonaProof | AccountProof)[],
+): SignedChallenge[] => {
+  return proofs.map((proof) => {
+    const type =
+      'identityAddress' in proof ? proofType.persona : proofType.account
+    const address =
+      'identityAddress' in proof ? proof.identityAddress : proof.accountAddress
+    return {
+      type,
+      challenge,
+      address,
+      proof: proof.proof,
+    }
+  })
 }
 
 const withPersonaData =
@@ -146,6 +167,14 @@ const withProofs =
           )
           draft.proofs.push(...accountProofs)
         }
+      }
+      if (input.proofOfOwnership) {
+        draft.proofs.push(
+          ...convertOwnershipProofsToSignedChallenge(
+            input.proofOfOwnership.challenge,
+            input.proofOfOwnership.proofs,
+          ),
+        )
       }
     })
 

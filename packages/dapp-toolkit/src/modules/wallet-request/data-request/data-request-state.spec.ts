@@ -1,3 +1,4 @@
+import { OneTimeDataRequestBuilder } from './builders'
 import { accounts } from './builders/accounts'
 import { persona } from './builders/persona'
 import { personaData } from './builders/persona-data'
@@ -14,6 +15,22 @@ describe('DataRequestStateModule', () => {
         reset: false,
         withProof: false,
       },
+    })
+  })
+
+  describe('toDataRequestState', () => {
+    it('should consume one time data request builder proofOfOwnership', () => {
+      const state = dataRequest.toDataRequestState(
+        OneTimeDataRequestBuilder.proofOfOwnership()
+          .identity('identity_abc')
+          .accounts(['account_abc']),
+      )
+      expect(state).toEqual({
+        proofOfOwnership: {
+          identityAddress: 'identity_abc',
+          accountAddresses: ['account_abc'],
+        },
+      })
     })
   })
 
