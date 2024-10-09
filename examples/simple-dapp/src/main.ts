@@ -28,7 +28,12 @@ content.innerHTML = `
   <button id="removeCb">Remove Connect Button</button>
   <button id="addCb">Add Connect Button</button>
 
-  <div class="mt-25"><button id="one-time-request">Send one time request</button></div>
+  <div class="mt-25">
+    <button id="one-time-request">Send one time request</button>
+  </div>
+  <div class="mt-25">
+    <button id="proof-of-ownership-request">Send proof of ownership request</button>
+  </div>
 
   <pre id="sessions"></pre>
   <pre id="requests"></pre>
@@ -49,6 +54,9 @@ const state = document.getElementById('state')!
 const gatewayConfig = document.getElementById('gatewayConfig')!
 const gatewayStatus = document.getElementById('gatewayStatus')!
 const oneTimeRequest = document.getElementById('one-time-request')!
+const proofOfOwnershipRequest = document.getElementById(
+  'proof-of-ownership-request',
+)!
 
 const logger = Logger()
 
@@ -126,6 +134,29 @@ oneTimeRequest.onclick = () => {
   dAppToolkit.walletApi.sendOneTimeRequest(
     OneTimeDataRequestBuilder.accounts().exactly(1),
   )
+}
+
+proofOfOwnershipRequest.onclick = async () => {
+  const connectedAccounts =
+    dAppToolkit.walletApi.getWalletData()?.accounts ?? []
+  const connectedPersona = dAppToolkit.walletApi.getWalletData()?.persona
+
+  if (connectedAccounts.length === 0 || !connectedPersona) {
+    alert('No connected account or persona')
+    return
+  }
+
+  const result = await dAppToolkit.walletApi
+    .sendOneTimeRequest(
+      OneTimeDataRequestBuilder.accounts().exactly(1),
+      OneTimeDataRequestBuilder.proofOfOwnership()
+        .accounts(connectedAccounts.map((account) => account.address))
+        .identity(connectedPersona.identityAddress),
+    )
+    .map(() => 'success')
+    .unwrapOr('error')
+
+  alert(result)
 }
 
 setInterval(() => {
