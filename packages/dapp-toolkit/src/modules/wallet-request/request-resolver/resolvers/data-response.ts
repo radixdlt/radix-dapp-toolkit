@@ -59,17 +59,19 @@ const handleAuthorizedRequestResponse = ({
   stateModule
     .getState()
     .andThen((state) =>
-      stateModule.setState({
-        loggedInTimestamp:
-          requestItem.type === 'loginRequest'
-            ? Date.now().toString()
-            : state!.loggedInTimestamp,
-        walletData,
-        sharedData: transformWalletRequestToSharedData(
-          walletInteraction,
-          state!.sharedData,
-        ),
-      }),
+      stateModule
+        .setState({
+          loggedInTimestamp:
+            requestItem.type === 'loginRequest'
+              ? Date.now().toString()
+              : state!.loggedInTimestamp,
+          walletData,
+          sharedData: transformWalletRequestToSharedData(
+            walletInteraction,
+            state!.sharedData,
+          ),
+        })
+        .andTee(() => stateModule.emitWalletData()),
     )
     .orElse(() =>
       err(SdkError('FailedToUpdateRdtState', walletInteraction.interactionId)),
