@@ -81,7 +81,7 @@
     "radix-connect-common": "*",
     "semantic-release": "^23.0.0",
     "semantic-release-replace-plugin": "^1.2.7",
-    "tsup": "^8.0.2",
+    "tsup": "^8.3.0",
     "typescript": "^5.4.4",
     "vite-plugin-singlefile": "^2.0.2",
     "vitest": "^1.4.0",
