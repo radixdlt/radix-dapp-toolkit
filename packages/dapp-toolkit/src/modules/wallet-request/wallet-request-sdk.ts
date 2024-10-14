@@ -80,11 +80,11 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
         })
   }
 
-  const request = (
+  const sendInteraction = (
     {
       interactionId = uuidV4(),
       items,
-    }: Pick<WalletInteraction, 'items'> & { interactionId?: string },
+    }: { interactionId?: string; items: WalletInteraction['items'] },
     callbackFns: Partial<CallbackFns> = {},
   ): ResultAsync<WalletInteractionResponse, SdkError> =>
     withInterceptor({
@@ -99,28 +99,8 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       ),
     )
 
-  const sendTransaction = (
-    {
-      interactionId = uuidV4(),
-      items,
-    }: { interactionId?: string; items: WalletInteraction['items'] },
-    callbackFns: Partial<CallbackFns> = {},
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
-    withInterceptor({
-      interactionId,
-      items,
-      metadata,
-    }).andThen((walletInteraction) =>
-      getTransport(interactionId).asyncAndThen((transport) =>
-        transport
-          .send(walletInteraction, callbackFns)
-          .andThen(validateWalletResponse),
-      ),
-    )
-
   return {
-    request,
-    sendTransaction,
+    sendInteraction,
     createWalletInteraction,
     getTransport,
   }
