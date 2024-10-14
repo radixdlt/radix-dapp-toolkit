@@ -244,11 +244,49 @@ export const CancelRequest = object({
   discriminator: literal('cancelRequest'),
 })
 
+export type ExpireAtTime = InferOutput<typeof ExpireAtTime>
+export const ExpireAtTime = object({
+  discriminator: literal('expireAtTime'),
+  value: string(),
+})
+
+export type ExpireAfterSignature = InferOutput<typeof ExpireAfterSignature>
+export const ExpireAfterSignature = object({
+  discriminator: literal('expireAfterSignature'),
+  value: string(),
+})
+
+export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
+export const SubintentRequestItem = object({
+  discriminator: literal('subintent'),
+  version: number(),
+  transactionManifest: string(),
+  blobs: optional(array(string())),
+  message: optional(string()),
+  childSubintentHashes: optional(array(string())),
+  expiration: optional(union([ExpireAtTime, ExpireAfterSignature])),
+})
+
+export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
+export const SubintentResponseItem = object({
+  discriminator: literal('subintent'),
+  signedPartialTransaction: string(),
+})
+
+export type WalletPreAuthorizationItems = InferOutput<
+  typeof WalletPreAuthorizationItems
+>
+export const WalletPreAuthorizationItems = object({
+  discriminator: literal('preAuthorizedRequest'),
+  subintent: optional(SubintentRequestItem),
+})
+
 export type WalletInteractionItems = InferOutput<typeof WalletInteractionItems>
 export const WalletInteractionItems = union([
   WalletRequestItems,
   WalletTransactionItems,
   CancelRequest,
+  WalletPreAuthorizationItems,
 ])
 
 export type Metadata = InferOutput<typeof Metadata>

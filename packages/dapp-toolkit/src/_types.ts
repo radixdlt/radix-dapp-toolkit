@@ -4,6 +4,8 @@ import type { Observable } from 'rxjs'
 import type { RadixButtonStatus, RadixButtonTheme } from 'radix-connect-common'
 import {
   CallbackFns,
+  ExpireAfterSignature,
+  ExpireAtTime,
   Persona,
   PersonaDataName,
   WalletInteraction,
@@ -39,7 +41,9 @@ export type ExplorerConfig = {
   accountsPath: string
 }
 
-export type WalletDataRequest = Parameters<WalletRequestSdk['request']>[0]
+export type WalletDataRequest = Parameters<
+  WalletRequestSdk['sendInteraction']
+>[0]
 
 export type WalletRequest =
   | { type: 'sendTransaction'; payload: WalletInteraction }
@@ -96,6 +100,15 @@ export type SendTransactionInput = {
   onTransactionId?: (transactionId: string) => void
 }
 
+export type SendPreAuthorizationRequestInput = {
+  transactionManifest: string
+  version?: number
+  blobs?: string[]
+  message?: string
+  childSubintentHashes: string[]
+  expiration: ExpireAtTime | ExpireAfterSignature
+}
+
 export type ButtonApi = {
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
@@ -128,6 +141,9 @@ export type WalletApi = {
   dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedAccounts: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
+  sendPreAuthorizationRequest: (
+    input: SendPreAuthorizationRequestInput,
+  ) => ResultAsync<{ signedPartialTransaction: string }, SdkError>
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult
   sendOneTimeRequest: (

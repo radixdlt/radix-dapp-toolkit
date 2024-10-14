@@ -34,6 +34,10 @@ content.innerHTML = `
   <div class="mt-25">
     <button id="proof-of-ownership-request">Send proof of ownership request</button>
   </div>
+  <hr/>
+    <textarea id="subintentManifest">YIELD_TO_PARENT;</textarea>
+    <button id="subintent">Send Pre Authorization</button>
+  <hr/>
 
   <pre id="sessions"></pre>
   <pre id="requests"></pre>
@@ -48,6 +52,10 @@ const sendTxButton = document.getElementById('sendTx')!
 const sessions = document.getElementById('sessions')!
 const removeCb = document.getElementById('removeCb')!
 const addCb = document.getElementById('addCb')!
+const subintentButton = document.getElementById('subintent')!
+const subintentManifest = document.getElementById(
+  'subintentManifest',
+)! as HTMLTextAreaElement
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
@@ -73,6 +81,20 @@ ${logs.innerHTML}`
 
 removeCb.onclick = () => {
   document.querySelector('radix-connect-button')?.remove()
+}
+
+subintentButton.onclick = async () => {
+  console.log(subintentManifest.value)
+  const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest({
+    transactionManifest: subintentManifest.value,
+    childSubintentHashes: [],
+    expiration: {
+      discriminator: 'expireAfterSignature',
+      value: '3600',
+    },
+  })
+
+  console.log(result);
 }
 
 addCb.onclick = () => {

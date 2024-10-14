@@ -102,7 +102,17 @@ export class RadixRequestCard extends LitElement {
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
         ),
-      }
+      },
+      preAuthorizationRequest: {
+        pending: 'Preauthorization Request Pending',
+        fail: 'Preauthorization Request Rejected',
+        cancelled: 'Preauthorization Request Rejected',
+        success: 'Preauthorization Request',
+        ignored: '',
+        content: this.getRequestContentTemplate(
+          'Open Your Radix Wallet App to complete the request',
+        ),
+      },
     }
 
     return html`<radix-card
