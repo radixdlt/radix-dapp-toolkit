@@ -12,8 +12,6 @@ import { validateRolaChallenge, type Logger } from '../../helpers'
 import { TransactionStatus } from '../gateway'
 import { ResultAsync, err, ok, okAsync } from 'neverthrow'
 import type {
-  ExpireAfterSignature,
-  ExpireAtTime,
   MessageLifeCycleEvent,
   WalletInteraction,
 } from '../../schemas'
@@ -311,7 +309,7 @@ export const WalletRequestModule = (input: {
     SdkError
   > => {
     const walletInteraction = walletRequestSdk.createWalletInteraction({
-      discriminator: 'preAuthorizedRequest',
+      discriminator: 'preAuthorizationRequest',
       subintent: {
         discriminator: 'subintent',
         blobs: value.blobs,

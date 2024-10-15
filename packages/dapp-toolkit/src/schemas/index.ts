@@ -247,13 +247,13 @@ export const CancelRequest = object({
 export type ExpireAtTime = InferOutput<typeof ExpireAtTime>
 export const ExpireAtTime = object({
   discriminator: literal('expireAtTime'),
-  value: string(),
+  value: number(),
 })
 
 export type ExpireAfterSignature = InferOutput<typeof ExpireAfterSignature>
 export const ExpireAfterSignature = object({
   discriminator: literal('expireAfterSignature'),
-  value: string(),
+  value: number(),
 })
 
 export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
@@ -277,7 +277,7 @@ export type WalletPreAuthorizationItems = InferOutput<
   typeof WalletPreAuthorizationItems
 >
 export const WalletPreAuthorizationItems = object({
-  discriminator: literal('preAuthorizedRequest'),
+  discriminator: literal('preAuthorizationRequest'),
   subintent: optional(SubintentRequestItem),
 })
 
@@ -332,6 +332,14 @@ export const AuthLoginWithChallengeRequestResponseItem = object({
   proof: Proof,
 })
 
+export type WalletPreAuthorizationResponseItems = InferOutput<
+  typeof WalletPreAuthorizationResponseItems
+>
+export const WalletPreAuthorizationResponseItems = object({
+  discriminator: literal('preAuthorizationRequest'),
+  subintent: optional(SubintentResponseItem),
+})
+
 export const AuthLoginRequestResponseItem = union([
   AuthLoginWithoutChallengeRequestResponseItem,
   AuthLoginWithChallengeRequestResponseItem,
@@ -380,6 +388,7 @@ export type WalletInteractionResponseItems = InferOutput<
 const WalletInteractionResponseItems = union([
   WalletRequestResponseItems,
   WalletTransactionResponseItems,
+  WalletPreAuthorizationResponseItems,
 ])
 
 export type WalletInteractionSuccessResponse = InferOutput<
