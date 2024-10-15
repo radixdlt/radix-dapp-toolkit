@@ -90,7 +90,7 @@ subintentButton.onclick = async () => {
     childSubintentHashes: [],
     expiration: {
       discriminator: 'expireAfterSignature',
-      value: '3600',
+      value: 3600,
     },
   })
 
