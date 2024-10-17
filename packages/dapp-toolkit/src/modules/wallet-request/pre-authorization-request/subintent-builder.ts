@@ -15,42 +15,7 @@ export type BuildableSubintentRequest = {
  *   .setExpiration('atTime', 1234567890)
  *   .addBlobs('blob1', 'blob2')
  *   .message('This is a message')
- *
- * @method setExpiration
- * Sets the expiration for the subintent request.
- *
- * @param type - The type of expiration, either 'atTime' or 'secondsAfterSignature'.
- * @param value - The value of the expiration. If type is 'atTime', this is a Unix timestamp. If type is 'secondsAfterSignature', this is the number of seconds after the signature is created.
- * @returns The API object for chaining.
- *
- * @method addBlobs
- * Adds blobs to the subintent request.
- *
- * @param values - The blobs to add.
- * @returns The API object for chaining.
- *
- * @method message
- * Sets a message for the subintent request.
- *
- * @param value - The message to set.
- * @returns The API object for chaining.
- *
- * @method manifest
- * Sets the transaction manifest for the subintent request.
- *
- * @param value - The transaction manifest to set.
- * @returns The API object for chaining.
- *
- * @method toRequestItem
- * Converts the current state to a SubintentRequestItem.
- *
- * @returns The SubintentRequestItem.
- *
- * @method rawConfig
- * Sets the raw configuration for the subintent request.
- *
- * @param rawConfig - The raw configuration object, excluding the discriminator.
- * @returns An object with the toRequestItem method.
+
  */
 export const SubintentRequestBuilder = () => {
   let state: Partial<SubintentRequestItem> = {
@@ -59,6 +24,13 @@ export const SubintentRequestBuilder = () => {
     transactionManifestVersion: 1,
   }
 
+  /**
+   * Sets the expiration for a request.
+   *
+   * @param type - The type of expiration. Can be 'atTime' for a specific time or 'secondsAfterSignature' for a duration after the signature.
+   * @param value - The value associated with the expiration type. For 'atTime', this is a timestamp. For 'secondsAfterSignature', this is the number of seconds.
+   * @returns The API object for chaining.
+   */
   const setExpiration = (
     type: 'atTime' | 'secondsAfterSignature',
     value: number,
@@ -71,23 +43,52 @@ export const SubintentRequestBuilder = () => {
     return api
   }
 
-  const addBlobs = (...values: string[]) => {
-    state.blobs = values
+  /**
+   * Adds the provided blobs to the state.
+   *
+   * @param blobs - A list of blob strings to be added to the state.
+   * @returns The API object for chaining.
+   */
+  const addBlobs = (...blobs: string[]) => {
+    state.blobs = blobs
     return api
   }
 
-  const message = (value: string) => {
-    state.message = value
+  /**
+   * Sets the message to be included in the subintent transaction.
+   *
+   * @param message - The message to be set in the state.
+   * @returns The API object for chaining further calls.
+   */
+  const message = (message: string) => {
+    state.message = message
     return api
   }
 
+  /**
+   * Sets the transaction manifest in the state and returns the API object.
+   *
+   * @param value - The transaction manifest to be set.
+   * @returns The API object for method chaining.
+   */
   const manifest = (value: string) => {
     state.transactionManifest = value
     return api
   }
 
+  /**
+   * Converts the current state to a SubintentRequestItem.
+   *
+   * @returns {SubintentRequestItem} The current state cast as a SubintentRequestItem.
+   */
   const toRequestItem = () => state as SubintentRequestItem
 
+  /**
+   * Sets the raw configuration for the builder.
+   *
+   * @param rawConfig - The raw configuration to set.
+   * @returns The API object for method chaining.
+   */
   const rawConfig = (
     rawConfig: Omit<SubintentRequestItem, 'discriminator'>,
   ) => {
