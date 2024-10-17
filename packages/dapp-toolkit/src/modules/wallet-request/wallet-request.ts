@@ -11,10 +11,7 @@ import {
 import { validateRolaChallenge, type Logger } from '../../helpers'
 import { TransactionStatus } from '../gateway'
 import { ResultAsync, err, ok, okAsync } from 'neverthrow'
-import type {
-  MessageLifeCycleEvent,
-  WalletInteraction,
-} from '../../schemas'
+import type { MessageLifeCycleEvent, WalletInteraction } from '../../schemas'
 import { SdkError } from '../../error'
 import {
   DataRequestBuilderItem,
@@ -310,13 +307,7 @@ export const WalletRequestModule = (input: {
   > => {
     const walletInteraction = walletRequestSdk.createWalletInteraction({
       discriminator: 'preAuthorizationRequest',
-      subintent: {
-        discriminator: 'subintent',
-        blobs: value.blobs,
-        transactionManifest: value.transactionManifest,
-        message: value.message,
-        version: value.version ?? 1,
-      },
+      subintent: value.toRequestItem(),
     })
 
     return addNewRequest('preAuthorizationRequest', walletInteraction, false)

@@ -8,6 +8,7 @@ import {
   OneTimeDataRequestBuilder,
   LocalStorageModule,
   generateRolaChallenge,
+  SubintentRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
@@ -85,16 +86,13 @@ removeCb.onclick = () => {
 
 subintentButton.onclick = async () => {
   console.log(subintentManifest.value)
-  const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest({
-    transactionManifest: subintentManifest.value,
-    childSubintentHashes: [],
-    expiration: {
-      discriminator: 'expireAfterSignature',
-      value: 3600,
-    },
-  })
+  const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+    SubintentRequestBuilder()
+      .manifest(subintentManifest.value)
+      .setExpiration('secondsAfterSignature', 3600),
+  )
 
-  console.log(result);
+  console.log(result)
 }
 
 addCb.onclick = () => {
