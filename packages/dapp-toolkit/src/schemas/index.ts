@@ -260,10 +260,10 @@ export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
 export const SubintentRequestItem = object({
   discriminator: literal('subintent'),
   version: number(),
+  transactionManifestVersion: number(),
   transactionManifest: string(),
   blobs: optional(array(string())),
   message: optional(string()),
-  childSubintentHashes: optional(array(string())),
   expiration: optional(union([ExpireAtTime, ExpireAfterSignature])),
 })
 

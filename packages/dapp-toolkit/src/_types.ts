@@ -26,6 +26,7 @@ import type {
   WalletRequestModule,
   ConnectButtonModule,
 } from './modules'
+import { BuildableSubintentRequest } from './modules/wallet-request/pre-authorization-request/subintent-builder'
 
 export type Providers = {
   connectButtonModule: ConnectButtonModule
@@ -100,14 +101,7 @@ export type SendTransactionInput = {
   onTransactionId?: (transactionId: string) => void
 }
 
-export type SendPreAuthorizationRequestInput = {
-  transactionManifest: string
-  version?: number
-  blobs?: string[]
-  message?: string
-  childSubintentHashes: string[]
-  expiration: ExpireAtTime | ExpireAfterSignature
-}
+export type SendPreAuthorizationRequestInput = BuildableSubintentRequest
 
 export type ButtonApi = {
   setMode: (value: 'light' | 'dark') => void
