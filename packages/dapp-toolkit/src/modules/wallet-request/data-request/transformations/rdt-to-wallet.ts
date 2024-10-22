@@ -51,7 +51,7 @@ export const TransformRdtDataRequestToWalletRequestInput = object({
 const isAuthorized = (
   input: TransformRdtDataRequestToWalletRequestInput,
 ): boolean => {
-  const { persona, accounts, personaData } = input
+  const { persona, accounts, personaData, proofOfOwnership } = input
 
   const isPersonaLogin = !!persona
   const shouldResetData = accounts?.reset || personaData?.reset
@@ -62,8 +62,9 @@ const isAuthorized = (
     shouldResetData ||
     isOngoingAccountsRequest ||
     isOngoingPersonaDataRequest ||
-    isPersonaLogin
-  )
+    isPersonaLogin ||
+    proofOfOwnership
+  ) 
 
   return isAuthorizedRequest
 }
@@ -130,7 +131,7 @@ const withProofOfOwnershipRequestItem =
       const { challenge, accountAddresses, identityAddress } =
         input.proofOfOwnership
 
-      if (challenge) {
+      if (challenge && updatedRequestItems.discriminator === 'authorizedRequest') {
         updatedRequestItems['proofOfOwnership'] = {
           challenge,
         }
