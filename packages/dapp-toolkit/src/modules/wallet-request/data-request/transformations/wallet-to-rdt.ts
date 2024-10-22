@@ -150,6 +150,15 @@ const withProofs =
           )
           draft.proofs.push(...accountProofs)
         }
+
+        if (input.proofOfOwnership) {
+          draft.proofs.push(
+            ...convertOwnershipProofsToSignedChallenge(
+              input.proofOfOwnership.challenge,
+              input.proofOfOwnership.proofs,
+            ),
+          )
+        }
       }
       if (input.discriminator === 'unauthorizedRequest') {
         if (
@@ -167,14 +176,6 @@ const withProofs =
           )
           draft.proofs.push(...accountProofs)
         }
-      }
-      if (input.proofOfOwnership) {
-        draft.proofs.push(
-          ...convertOwnershipProofsToSignedChallenge(
-            input.proofOfOwnership.challenge,
-            input.proofOfOwnership.proofs,
-          ),
-        )
       }
     })
 
