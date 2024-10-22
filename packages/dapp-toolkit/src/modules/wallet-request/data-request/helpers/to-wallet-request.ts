@@ -48,7 +48,7 @@ export const toWalletRequest = ({
           oneTime,
         }
 
-      if (!oneTime) {
+      if (!oneTime || dataRequestState.proofOfOwnership) {
         const persona = walletData.persona
 
         if (walletData.persona) draft.persona = persona
