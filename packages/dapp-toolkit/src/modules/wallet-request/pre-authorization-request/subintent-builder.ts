@@ -21,7 +21,7 @@ export const SubintentRequestBuilder = () => {
   let state: Partial<SubintentRequestItem> = {
     discriminator: 'subintent',
     version: 1,
-    transactionManifestVersion: 1,
+    manifestVersion: 2,
   }
 
   /**
@@ -35,11 +35,16 @@ export const SubintentRequestBuilder = () => {
     type: 'atTime' | 'secondsAfterSignature',
     value: number,
   ) => {
-    state.expiration = {
-      discriminator:
-        type === 'atTime' ? 'expireAtTime' : 'expireAfterSignature',
-      value,
-    }
+    state.expiration =
+      type === 'atTime'
+        ? {
+            discriminator: 'expireAtTime',
+            unixTimestampSeconds: value,
+          }
+        : {
+            discriminator: 'expireAfterDelay',
+            expireAfterSeconds: value,
+          }
     return api
   }
 
@@ -72,7 +77,7 @@ export const SubintentRequestBuilder = () => {
    * @returns The API object for method chaining.
    */
   const manifest = (value: string) => {
-    state.transactionManifest = value
+    state.subintentManifest = value
     return { setExpiration }
   }
 
