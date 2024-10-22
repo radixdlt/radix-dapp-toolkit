@@ -153,7 +153,6 @@ export type WalletUnauthorizedRequestItems = InferOutput<
 >
 export const WalletUnauthorizedRequestItems = object({
   discriminator: literal('unauthorizedRequest'),
-  proofOfOwnership: optional(ProofOfOwnershipRequestItem),
   oneTimeAccounts: optional(AccountsRequestItem),
   oneTimePersonaData: optional(PersonaDataRequestItem),
 })
@@ -309,7 +308,6 @@ export type WalletUnauthorizedRequestResponseItems = InferOutput<
 >
 const WalletUnauthorizedRequestResponseItems = object({
   discriminator: literal('unauthorizedRequest'),
-  proofOfOwnership: optional(ProofOfOwnershipResponseItem),
   oneTimeAccounts: optional(AccountsRequestResponseItem),
   oneTimePersonaData: optional(PersonaDataRequestResponseItem),
 })

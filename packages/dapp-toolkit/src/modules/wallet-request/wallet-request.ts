@@ -353,7 +353,9 @@ export const WalletRequestModule = (input: {
             !state.walletData.persona &&
             walletDataRequest.discriminator === 'authorizedRequest'
 
-          const isProofOfOwnershipRequest = !!walletDataRequest.proofOfOwnership
+          const isProofOfOwnershipRequest =
+            walletDataRequest.discriminator === 'authorizedRequest' &&
+            !!walletDataRequest.proofOfOwnership
 
           const requestType = isLoginRequest
             ? 'loginRequest'
