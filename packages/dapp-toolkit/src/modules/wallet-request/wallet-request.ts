@@ -307,14 +307,14 @@ export const WalletRequestModule = (input: {
   > => {
     const walletInteraction = walletRequestSdk.createWalletInteraction({
       discriminator: 'preAuthorizationRequest',
-      subintent: value.toRequestItem(),
+      request: value.toRequestItem(),
     })
 
     return addNewRequest('preAuthorizationRequest', walletInteraction, false)
       .andThen(() => sendRequestAndAwaitResponse(walletInteraction))
       .map((requestItem) => ({
         signedPartialTransaction:
-          requestItem.walletResponse.signedPartialTransaction,
+          requestItem.walletResponse.response.signedPartialTransaction,
       }))
   }
 
