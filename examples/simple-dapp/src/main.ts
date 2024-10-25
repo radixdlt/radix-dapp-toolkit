@@ -82,8 +82,7 @@ const proofOfOwnershipRequest = document.getElementById(
   'proof-of-ownership-request',
 )!
 
-let subintentExpiration: 'secondsAfterSignature' | 'atTime' =
-  'secondsAfterSignature'
+let subintentExpiration: 'afterDelay' | 'atTime' = 'afterDelay'
 
 document.querySelectorAll('input[name="option"]').forEach((radio) => {
   radio.addEventListener('change', () => {
@@ -92,9 +91,7 @@ document.querySelectorAll('input[name="option"]').forEach((radio) => {
     ) as HTMLInputElement
     if (selectedOption) {
       console.log(`Selected value: ${selectedOption.value}`)
-      subintentExpiration = selectedOption.value as
-        | 'secondsAfterSignature'
-        | 'atTime'
+      subintentExpiration = selectedOption.value as 'afterDelay' | 'atTime'
     }
   })
 })

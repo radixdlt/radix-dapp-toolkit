@@ -5,7 +5,7 @@ describe('SubintentRequestBuilder', () => {
   it('should build a subintent request', () => {
     const tx = SubintentRequestBuilder()
       .manifest('...')
-      .setExpiration('secondsAfterSignature', 60)
+      .setExpiration('afterDelay', 60)
       .addBlobs('deadbeef', 'beefdead')
       .message('hello')
       .toRequestItem()
