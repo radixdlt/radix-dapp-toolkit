@@ -264,7 +264,7 @@ export const SubintentRequestItem = object({
   transactionManifest: string(),
   blobs: optional(array(string())),
   message: optional(string()),
-  expiration: optional(union([ExpireAtTime, ExpireAfterSignature])),
+  expiration: union([ExpireAtTime, ExpireAfterSignature]),
 })
 
 export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
