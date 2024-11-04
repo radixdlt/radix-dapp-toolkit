@@ -73,7 +73,7 @@ export const SubintentRequestBuilder = () => {
    */
   const manifest = (value: string) => {
     state.transactionManifest = value
-    return api
+    return { setExpiration }
   }
 
   /**
@@ -97,7 +97,6 @@ export const SubintentRequestBuilder = () => {
   }
 
   const api = {
-    setExpiration,
     addBlobs,
     message,
     toRequestItem,
