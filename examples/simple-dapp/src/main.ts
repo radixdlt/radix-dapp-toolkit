@@ -121,7 +121,7 @@ subintentButton.onclick = async () => {
       .manifest(subintentManifest.value)
       .setExpiration(
         subintentExpiration,
-        subintentExpirationValue.value as unknown as number,
+        parseInt(subintentExpirationValue.value as string),
       ),
   )
 
