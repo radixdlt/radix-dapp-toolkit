@@ -4,8 +4,6 @@ import type { Observable } from 'rxjs'
 import type { RadixButtonStatus, RadixButtonTheme } from 'radix-connect-common'
 import {
   CallbackFns,
-  ExpireAfterSignature,
-  ExpireAtTime,
   Persona,
   PersonaDataName,
   WalletInteraction,

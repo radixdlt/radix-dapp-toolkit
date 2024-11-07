@@ -5,7 +5,7 @@ describe('SubintentRequestBuilder', () => {
   it('should build a subintent request', () => {
     const tx = SubintentRequestBuilder()
       .manifest('...')
-      .setExpiration('secondsAfterSignature', 60)
+      .setExpiration('afterDelay', 60)
       .addBlobs('deadbeef', 'beefdead')
       .message('hello')
       .toRequestItem()
@@ -13,14 +13,32 @@ describe('SubintentRequestBuilder', () => {
     expect(tx).toEqual({
       discriminator: 'subintent',
       version: 1,
-      transactionManifestVersion: 1,
-      transactionManifest: '...',
+      manifestVersion: 2,
+      subintentManifest: '...',
       expiration: {
-        discriminator: 'expireAfterSignature',
-        value: 60,
+        discriminator: 'expireAfterDelay',
+        expireAfterSeconds: 60,
       },
       blobs: ['deadbeef', 'beefdead'],
       message: 'hello',
+    })
+  })
+
+  it('should build a subintent request with expiration at time', () => {
+    const tx = SubintentRequestBuilder()
+      .manifest('...')
+      .setExpiration('atTime', 1970)
+      .toRequestItem()
+
+    expect(tx).toEqual({
+      discriminator: 'subintent',
+      version: 1,
+      manifestVersion: 2,
+      subintentManifest: '...',
+      expiration: {
+        discriminator: 'expireAtTime',
+        unixTimestampSeconds: 1970,
+      },
     })
   })
 
@@ -28,11 +46,11 @@ describe('SubintentRequestBuilder', () => {
     const tx = SubintentRequestBuilder()
       .rawConfig({
         version: 1,
-        transactionManifestVersion: 1,
-        transactionManifest: '...',
+        manifestVersion: 2,
+        subintentManifest: '...',
         expiration: {
-          discriminator: 'expireAfterSignature',
-          value: 60,
+          discriminator: 'expireAfterDelay',
+          expireAfterSeconds: 60,
         },
         blobs: ['deadbeef', 'beefdead'],
         message: 'hello',
@@ -42,11 +60,11 @@ describe('SubintentRequestBuilder', () => {
     expect(tx).toEqual({
       discriminator: 'subintent',
       version: 1,
-      transactionManifestVersion: 1,
-      transactionManifest: '...',
+      manifestVersion: 2,
+      subintentManifest: '...',
       expiration: {
-        discriminator: 'expireAfterSignature',
-        value: 60,
+        discriminator: 'expireAfterDelay',
+        expireAfterSeconds: 60,
       },
       blobs: ['deadbeef', 'beefdead'],
       message: 'hello',

@@ -3,6 +3,7 @@ import { errAsync, okAsync } from 'neverthrow'
 import { Logger, isMobile } from '../../../../helpers'
 import Bowser from 'bowser'
 import { SdkError } from '../../../../error'
+import { isTMA } from './helpers'
 
 export type DeepLinkModule = ReturnType<typeof DeepLinkModule>
 export const DeepLinkModule = (input: {
@@ -13,6 +14,7 @@ export const DeepLinkModule = (input: {
   const userAgent = Bowser.parse(window.navigator.userAgent)
   const { platform } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkModule' })
+  const isTelegramMiniApp = isTMA(globalThis)
 
   logger?.debug({
     platform,
@@ -34,8 +36,12 @@ export const DeepLinkModule = (input: {
       data: { ...values },
     })
 
-    if (isMobile() && globalThis.location?.href) {
-      globalThis.location.href = outboundUrl.toString()
+    if (isMobile()) {
+      const deepLink = outboundUrl.toString()
+
+      // Telegram Mini App does not support deep linking by changing location.href value
+      if (isTelegramMiniApp) globalThis.open(deepLink, '_blank')
+      else if (globalThis.location?.href) globalThis.location.href = deepLink
 
       return okAsync(undefined)
     }

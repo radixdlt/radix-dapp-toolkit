@@ -307,14 +307,14 @@ export const WalletRequestModule = (input: {
   > => {
     const walletInteraction = walletRequestSdk.createWalletInteraction({
       discriminator: 'preAuthorizationRequest',
-      subintent: value.toRequestItem(),
+      request: value.toRequestItem(),
     })
 
     return addNewRequest('preAuthorizationRequest', walletInteraction, false)
       .andThen(() => sendRequestAndAwaitResponse(walletInteraction))
       .map((requestItem) => ({
         signedPartialTransaction:
-          requestItem.walletResponse.signedPartialTransaction,
+          requestItem.walletResponse.response.signedPartialTransaction,
       }))
   }
 
@@ -353,7 +353,9 @@ export const WalletRequestModule = (input: {
             !state.walletData.persona &&
             walletDataRequest.discriminator === 'authorizedRequest'
 
-          const isProofOfOwnershipRequest = !!walletDataRequest.proofOfOwnership
+          const isProofOfOwnershipRequest =
+            walletDataRequest.discriminator === 'authorizedRequest' &&
+            !!walletDataRequest.proofOfOwnership
 
           const requestType = isLoginRequest
             ? 'loginRequest'

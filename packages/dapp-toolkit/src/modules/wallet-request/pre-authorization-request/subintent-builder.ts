@@ -21,25 +21,27 @@ export const SubintentRequestBuilder = () => {
   let state: Partial<SubintentRequestItem> = {
     discriminator: 'subintent',
     version: 1,
-    transactionManifestVersion: 1,
+    manifestVersion: 2,
   }
 
   /**
    * Sets the expiration for a request.
    *
-   * @param type - The type of expiration. Can be 'atTime' for a specific time or 'secondsAfterSignature' for a duration after the signature.
-   * @param value - The value associated with the expiration type. For 'atTime', this is a timestamp. For 'secondsAfterSignature', this is the number of seconds.
+   * @param type - The type of expiration. Can be 'atTime' for a specific time or 'afterDelay' for a duration after the signature.
+   * @param value - The value associated with the expiration type. For 'atTime', this is a timestamp. For 'afterDelay', this is the number of seconds.
    * @returns The API object for chaining.
    */
-  const setExpiration = (
-    type: 'atTime' | 'secondsAfterSignature',
-    value: number,
-  ) => {
-    state.expiration = {
-      discriminator:
-        type === 'atTime' ? 'expireAtTime' : 'expireAfterSignature',
-      value,
-    }
+  const setExpiration = (type: 'atTime' | 'afterDelay', value: number) => {
+    state.expiration =
+      type === 'atTime'
+        ? {
+            discriminator: 'expireAtTime',
+            unixTimestampSeconds: value,
+          }
+        : {
+            discriminator: 'expireAfterDelay',
+            expireAfterSeconds: value,
+          }
     return api
   }
 
@@ -72,7 +74,7 @@ export const SubintentRequestBuilder = () => {
    * @returns The API object for method chaining.
    */
   const manifest = (value: string) => {
-    state.transactionManifest = value
+    state.subintentManifest = value
     return { setExpiration }
   }
 

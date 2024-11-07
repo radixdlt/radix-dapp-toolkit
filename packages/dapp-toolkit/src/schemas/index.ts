@@ -153,7 +153,6 @@ export type WalletUnauthorizedRequestItems = InferOutput<
 >
 export const WalletUnauthorizedRequestItems = object({
   discriminator: literal('unauthorizedRequest'),
-  proofOfOwnership: optional(ProofOfOwnershipRequestItem),
   oneTimeAccounts: optional(AccountsRequestItem),
   oneTimePersonaData: optional(PersonaDataRequestItem),
 })
@@ -247,24 +246,30 @@ export const CancelRequest = object({
 export type ExpireAtTime = InferOutput<typeof ExpireAtTime>
 export const ExpireAtTime = object({
   discriminator: literal('expireAtTime'),
-  value: number(),
+  unixTimestampSeconds: number(),
 })
 
-export type ExpireAfterSignature = InferOutput<typeof ExpireAfterSignature>
-export const ExpireAfterSignature = object({
-  discriminator: literal('expireAfterSignature'),
-  value: number(),
+export type ExpireAfterDelay = InferOutput<typeof ExpireAfterDelay>
+export const ExpireAfterDelay = object({
+  discriminator: literal('expireAfterDelay'),
+  expireAfterSeconds: number(),
 })
 
 export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
 export const SubintentRequestItem = object({
   discriminator: literal('subintent'),
+  /**
+   * Version of the message interface
+   */
   version: number(),
-  transactionManifestVersion: number(),
-  transactionManifest: string(),
+  /**
+   * Version of the Transaction Manifest
+   */
+  manifestVersion: number(),
+  subintentManifest: string(),
   blobs: optional(array(string())),
   message: optional(string()),
-  expiration: union([ExpireAtTime, ExpireAfterSignature]),
+  expiration: union([ExpireAtTime, ExpireAfterDelay]),
 })
 
 export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
@@ -278,7 +283,7 @@ export type WalletPreAuthorizationItems = InferOutput<
 >
 export const WalletPreAuthorizationItems = object({
   discriminator: literal('preAuthorizationRequest'),
-  subintent: optional(SubintentRequestItem),
+  request: optional(SubintentRequestItem),
 })
 
 export type WalletInteractionItems = InferOutput<typeof WalletInteractionItems>
@@ -309,7 +314,6 @@ export type WalletUnauthorizedRequestResponseItems = InferOutput<
 >
 const WalletUnauthorizedRequestResponseItems = object({
   discriminator: literal('unauthorizedRequest'),
-  proofOfOwnership: optional(ProofOfOwnershipResponseItem),
   oneTimeAccounts: optional(AccountsRequestResponseItem),
   oneTimePersonaData: optional(PersonaDataRequestResponseItem),
 })
@@ -336,8 +340,8 @@ export type WalletPreAuthorizationResponseItems = InferOutput<
   typeof WalletPreAuthorizationResponseItems
 >
 export const WalletPreAuthorizationResponseItems = object({
-  discriminator: literal('preAuthorizationRequest'),
-  subintent: optional(SubintentResponseItem),
+  discriminator: literal('preAuthorizationResponse'),
+  response: optional(SubintentResponseItem),
 })
 
 export const AuthLoginRequestResponseItem = union([
