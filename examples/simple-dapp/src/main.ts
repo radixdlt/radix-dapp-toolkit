@@ -37,6 +37,18 @@ content.innerHTML = `
   </div>
   <hr/>
     <textarea id="subintentManifest">YIELD_TO_PARENT;</textarea>
+
+  <div class="mt-25">
+    <label>
+      <input checked type="radio" name="option" value="secondsAfterSignature"> afterDelay
+    </label>
+    <label>
+      <input type="radio" name="option" value="atTime"> atTime
+    </label>
+  </div>
+
+   <input id="subintentExpirationValue" type="text" value="3600"/>
+    
     <button id="subintent">Send Pre Authorization</button>
   <hr/>
 
@@ -57,6 +69,9 @@ const subintentButton = document.getElementById('subintent')!
 const subintentManifest = document.getElementById(
   'subintentManifest',
 )! as HTMLTextAreaElement
+const subintentExpirationValue = document.getElementById(
+  'subintentExpirationValue',
+)! as HTMLInputElement
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
@@ -66,6 +81,23 @@ const oneTimeRequest = document.getElementById('one-time-request')!
 const proofOfOwnershipRequest = document.getElementById(
   'proof-of-ownership-request',
 )!
+
+let subintentExpiration: 'secondsAfterSignature' | 'atTime' =
+  'secondsAfterSignature'
+
+document.querySelectorAll('input[name="option"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const selectedOption = document.querySelector(
+      'input[name="option"]:checked',
+    ) as HTMLInputElement
+    if (selectedOption) {
+      console.log(`Selected value: ${selectedOption.value}`)
+      subintentExpiration = selectedOption.value as
+        | 'secondsAfterSignature'
+        | 'atTime'
+    }
+  })
+})
 
 const logger = Logger()
 
@@ -86,10 +118,14 @@ removeCb.onclick = () => {
 
 subintentButton.onclick = async () => {
   console.log(subintentManifest.value)
+  console.log(subintentExpirationValue.value)
   const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
     SubintentRequestBuilder()
       .manifest(subintentManifest.value)
-      .setExpiration('secondsAfterSignature', 3600),
+      .setExpiration(
+        subintentExpiration,
+        subintentExpirationValue.value as unknown as number,
+      ),
   )
 
   console.log(result)
