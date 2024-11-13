@@ -274,7 +274,6 @@ export const SubintentRequestItem = object({
 
 export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
 export const SubintentResponseItem = object({
-  discriminator: literal('subintent'),
   signedPartialTransaction: string(),
 })
 
