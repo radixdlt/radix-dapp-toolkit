@@ -37,6 +37,7 @@ import { RequestResolverModule } from './request-resolver/request-resolver.modul
 import {
   dataResponseResolver,
   failedResponseResolver,
+  preAuthorizationResponseResolver,
   sendTransactionResponseResolver,
 } from './request-resolver'
 import { RequestItemTypes } from 'radix-connect-common'
@@ -103,6 +104,10 @@ export const WalletRequestModule = (input: {
         resolvers: [
           sendTransactionResponseResolver({
             gatewayModule,
+            requestItemModule,
+            updateConnectButtonStatus,
+          }),
+          preAuthorizationResponseResolver({
             requestItemModule,
             updateConnectButtonStatus,
           }),
@@ -313,8 +318,8 @@ export const WalletRequestModule = (input: {
     return addNewRequest('preAuthorizationRequest', walletInteraction, false)
       .andThen(() => sendRequestAndAwaitResponse(walletInteraction))
       .map((requestItem) => ({
-        signedPartialTransaction:
-          requestItem.walletResponse.response.signedPartialTransaction,
+        signedPartialTransaction: requestItem.metadata
+          ?.signedPartialTransaction as string,
       }))
   }
 

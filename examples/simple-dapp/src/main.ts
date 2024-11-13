@@ -36,7 +36,58 @@ content.innerHTML = `
     <button id="proof-of-ownership-request">Send proof of ownership request</button>
   </div>
   <hr/>
-    <textarea id="subintentManifest">YIELD_TO_PARENT;</textarea>
+    <textarea id="subintentManifest" cols="50" rows="10">ASSERT_WORKTOP_RESOURCES_INCLUDE
+    Map<Address, Enum>(
+        Address("resource_tdx_2_1t5cjs290gd2v4pm5rys02ty372zapefjejqm3w6ktcxj9aw3e7t4jw") => Enum<ResourceConstraint::General>(
+            Tuple(
+                Array<NonFungibleLocalId>(),
+                Enum<LowerBound::NonZero>(),
+                Enum<UpperBound::Unbounded>(),
+                Enum<AllowedIds::Any>()
+            )
+        ),
+        Address("resource_tdx_2_1t5dapa24l4xvwqtqe2jrdphtn7ga46gw67wr9fwn4gp532myfjqpck") => Enum<ResourceConstraint::General>(
+            Tuple(
+                Array<NonFungibleLocalId>(),
+                Enum<LowerBound::Inclusive>(Decimal("6")),
+                Enum<UpperBound::Unbounded>(),
+                Enum<AllowedIds::Any>()
+            )
+        ),
+        Address("resource_tdx_2_1th9k30slgu9uekfu42llstgcq80dx8d59hxgexe5hdaqzyp8etc2dv") => Enum<ResourceConstraint::General>(
+            Tuple(
+                Array<NonFungibleLocalId>(),
+                Enum<LowerBound::NonZero>(),
+                Enum<UpperBound::Inclusive>(Decimal("10")),
+                Enum<AllowedIds::Any>()
+            )
+        ),
+        Address("resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc") => Enum<ResourceConstraint::General>(
+            Tuple(
+                Array<NonFungibleLocalId>(),
+                Enum<LowerBound::Inclusive>(Decimal("2")),
+                Enum<UpperBound::Inclusive>(Decimal("5")),
+                Enum<AllowedIds::Any>()
+            )
+        ),
+        Address("resource_tdx_2_1thjlp88pc28eyfg3f2alq8zkggnr273j0saye4nj70vfnga6ldy7ru") => Enum<ResourceConstraint::General>(
+            Tuple(
+                Array<NonFungibleLocalId>(),
+                Enum<LowerBound::Inclusive>(Decimal("3")),
+                Enum<UpperBound::Inclusive>(Decimal("3")),
+                Enum<AllowedIds::Any>()
+            )
+        ),
+    )
+;
+
+CALL_METHOD
+    Address("account_tdx_2_12xuly5lqj0vzqctehs7a3c9wdjduh5sjelp2ywydw2ur4v3kjwlaly")
+    "deposit_batch"
+    Expression("ENTIRE_WORKTOP")
+;
+
+YIELD_TO_PARENT;</textarea>
 
   <div class="mt-25">
     <label>
@@ -125,7 +176,7 @@ subintentButton.onclick = async () => {
       ),
   )
 
-  console.log(result)
+  console.log('result', result.isOk() && result.value)
 }
 
 addCb.onclick = () => {
