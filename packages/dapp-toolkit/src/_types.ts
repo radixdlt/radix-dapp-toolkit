@@ -24,6 +24,7 @@ import type {
   WalletRequestModule,
   ConnectButtonModule,
 } from './modules'
+import { BuildableSubintentRequest } from './modules/wallet-request/pre-authorization-request/subintent-builder'
 
 export type Providers = {
   connectButtonModule: ConnectButtonModule
@@ -39,7 +40,9 @@ export type ExplorerConfig = {
   accountsPath: string
 }
 
-export type WalletDataRequest = Parameters<WalletRequestSdk['request']>[0]
+export type WalletDataRequest = Parameters<
+  WalletRequestSdk['sendInteraction']
+>[0]
 
 export type WalletRequest =
   | { type: 'sendTransaction'; payload: WalletInteraction }
@@ -96,6 +99,8 @@ export type SendTransactionInput = {
   onTransactionId?: (transactionId: string) => void
 }
 
+export type SendPreAuthorizationRequestInput = BuildableSubintentRequest
+
 export type ButtonApi = {
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
@@ -128,6 +133,9 @@ export type WalletApi = {
   dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedAccounts: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
+  sendPreAuthorizationRequest: (
+    input: SendPreAuthorizationRequestInput,
+  ) => ResultAsync<{ signedPartialTransaction: string }, SdkError>
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult
   sendOneTimeRequest: (

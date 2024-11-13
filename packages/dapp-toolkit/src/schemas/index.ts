@@ -243,11 +243,55 @@ export const CancelRequest = object({
   discriminator: literal('cancelRequest'),
 })
 
+export type ExpireAtTime = InferOutput<typeof ExpireAtTime>
+export const ExpireAtTime = object({
+  discriminator: literal('expireAtTime'),
+  unixTimestampSeconds: number(),
+})
+
+export type ExpireAfterDelay = InferOutput<typeof ExpireAfterDelay>
+export const ExpireAfterDelay = object({
+  discriminator: literal('expireAfterDelay'),
+  expireAfterSeconds: number(),
+})
+
+export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
+export const SubintentRequestItem = object({
+  discriminator: literal('subintent'),
+  /**
+   * Version of the message interface
+   */
+  version: number(),
+  /**
+   * Version of the Transaction Manifest
+   */
+  manifestVersion: number(),
+  subintentManifest: string(),
+  blobs: optional(array(string())),
+  message: optional(string()),
+  expiration: union([ExpireAtTime, ExpireAfterDelay]),
+})
+
+export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
+export const SubintentResponseItem = object({
+  discriminator: literal('subintent'),
+  signedPartialTransaction: string(),
+})
+
+export type WalletPreAuthorizationItems = InferOutput<
+  typeof WalletPreAuthorizationItems
+>
+export const WalletPreAuthorizationItems = object({
+  discriminator: literal('preAuthorizationRequest'),
+  request: optional(SubintentRequestItem),
+})
+
 export type WalletInteractionItems = InferOutput<typeof WalletInteractionItems>
 export const WalletInteractionItems = union([
   WalletRequestItems,
   WalletTransactionItems,
   CancelRequest,
+  WalletPreAuthorizationItems,
 ])
 
 export type Metadata = InferOutput<typeof Metadata>
@@ -290,6 +334,14 @@ export const AuthLoginWithChallengeRequestResponseItem = object({
   persona: Persona,
   challenge: string(),
   proof: Proof,
+})
+
+export type WalletPreAuthorizationResponseItems = InferOutput<
+  typeof WalletPreAuthorizationResponseItems
+>
+export const WalletPreAuthorizationResponseItems = object({
+  discriminator: literal('preAuthorizationResponse'),
+  response: optional(SubintentResponseItem),
 })
 
 export const AuthLoginRequestResponseItem = union([
@@ -340,6 +392,7 @@ export type WalletInteractionResponseItems = InferOutput<
 const WalletInteractionResponseItems = union([
   WalletRequestResponseItems,
   WalletTransactionResponseItems,
+  WalletPreAuthorizationResponseItems,
 ])
 
 export type WalletInteractionSuccessResponse = InferOutput<

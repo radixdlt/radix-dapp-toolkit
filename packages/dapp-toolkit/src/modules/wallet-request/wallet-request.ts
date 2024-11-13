@@ -25,6 +25,8 @@ import { StorageModule } from '../storage'
 import type { StateModule, WalletData } from '../state'
 import {
   AwaitedWalletDataRequestResult,
+  SendPreAuthorizationRequestInput,
+  SendTransactionInput,
   TransportProvider,
   WalletDataRequestResult,
 } from '../../_types'
@@ -37,14 +39,7 @@ import {
   failedResponseResolver,
   sendTransactionResponseResolver,
 } from './request-resolver'
-
-type SendTransactionInput = {
-  transactionManifest: string
-  version?: number
-  blobs?: string[]
-  message?: string
-  onTransactionId?: (transactionId: string) => void
-}
+import { RequestItemTypes } from 'radix-connect-common'
 
 export type WalletRequestModule = ReturnType<typeof WalletRequestModule>
 export const WalletRequestModule = (input: {
@@ -199,7 +194,7 @@ export const WalletRequestModule = (input: {
           ),
         )
       },
-    } satisfies Parameters<WalletRequestSdk['request']>[1]
+    } satisfies Parameters<WalletRequestSdk['sendInteraction']>[1]
   }
 
   let challengeGeneratorFn: () => Promise<string> = () => Promise.resolve('')
@@ -249,13 +244,10 @@ export const WalletRequestModule = (input: {
 
   const sendRequestAndAwaitResponse = (
     walletInteraction: WalletInteraction,
-    type: 'transaction' | 'data',
   ) => {
     updateConnectButtonStatus('pending')
     return ResultAsync.combine([
-      (type === 'data'
-        ? walletRequestSdk.request
-        : walletRequestSdk.sendTransaction)(
+      walletRequestSdk.sendInteraction(
         walletInteraction,
         cancelRequestControl(walletInteraction.interactionId),
       ),
@@ -273,7 +265,7 @@ export const WalletRequestModule = (input: {
     })
 
   const sendDataRequest = (walletInteraction: WalletInteraction) =>
-    sendRequestAndAwaitResponse(walletInteraction, 'data')
+    sendRequestAndAwaitResponse(walletInteraction)
       .andThen((response) => {
         logger?.debug({ method: 'sendDataRequest.successResponse', response })
         return ok(response.walletData! as WalletData)
@@ -287,7 +279,7 @@ export const WalletRequestModule = (input: {
     stateModule.getState().mapErr(() => SdkError('FailedToReadRdtState', ''))
 
   const addNewRequest = (
-    type: 'loginRequest' | 'dataRequest' | 'proofRequest',
+    type: RequestItemTypes,
     walletInteraction: WalletInteraction,
     isOneTimeRequest: boolean,
   ) =>
@@ -304,6 +296,27 @@ export const WalletRequestModule = (input: {
           message,
         ),
       )
+
+  const sendPreAuthorizationRequest = (
+    value: SendPreAuthorizationRequestInput,
+  ): ResultAsync<
+    {
+      signedPartialTransaction: string
+    },
+    SdkError
+  > => {
+    const walletInteraction = walletRequestSdk.createWalletInteraction({
+      discriminator: 'preAuthorizationRequest',
+      request: value.toRequestItem(),
+    })
+
+    return addNewRequest('preAuthorizationRequest', walletInteraction, false)
+      .andThen(() => sendRequestAndAwaitResponse(walletInteraction))
+      .map((requestItem) => ({
+        signedPartialTransaction:
+          requestItem.walletResponse.response.signedPartialTransaction,
+      }))
+  }
 
   const sendRequest = ({
     isConnect,
@@ -425,7 +438,7 @@ export const WalletRequestModule = (input: {
 
     return createTransactionRequest()
       .andThen((walletInteraction) =>
-        sendRequestAndAwaitResponse(walletInteraction, 'transaction'),
+        sendRequestAndAwaitResponse(walletInteraction),
       )
       .andThen(({ status, transactionIntentHash, metadata, interactionId }) => {
         const output = {
@@ -504,6 +517,7 @@ export const WalletRequestModule = (input: {
           return err(error)
         }),
     sendTransaction,
+    sendPreAuthorizationRequest,
     cancelRequest,
     ignoreTransaction,
     requestItemModule,

@@ -8,6 +8,7 @@ import {
   OneTimeDataRequestBuilder,
   LocalStorageModule,
   generateRolaChallenge,
+  SubintentRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
@@ -34,6 +35,22 @@ content.innerHTML = `
   <div class="mt-25">
     <button id="proof-of-ownership-request">Send proof of ownership request</button>
   </div>
+  <hr/>
+    <textarea id="subintentManifest">YIELD_TO_PARENT;</textarea>
+
+  <div class="mt-25">
+    <label>
+      <input checked type="radio" name="option" value="secondsAfterSignature"> afterDelay
+    </label>
+    <label>
+      <input type="radio" name="option" value="atTime"> atTime
+    </label>
+  </div>
+
+   <input id="subintentExpirationValue" type="text" value="3600"/>
+    
+    <button id="subintent">Send Pre Authorization</button>
+  <hr/>
 
   <pre id="sessions"></pre>
   <pre id="requests"></pre>
@@ -48,6 +65,13 @@ const sendTxButton = document.getElementById('sendTx')!
 const sessions = document.getElementById('sessions')!
 const removeCb = document.getElementById('removeCb')!
 const addCb = document.getElementById('addCb')!
+const subintentButton = document.getElementById('subintent')!
+const subintentManifest = document.getElementById(
+  'subintentManifest',
+)! as HTMLTextAreaElement
+const subintentExpirationValue = document.getElementById(
+  'subintentExpirationValue',
+)! as HTMLInputElement
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
@@ -57,6 +81,20 @@ const oneTimeRequest = document.getElementById('one-time-request')!
 const proofOfOwnershipRequest = document.getElementById(
   'proof-of-ownership-request',
 )!
+
+let subintentExpiration: 'afterDelay' | 'atTime' = 'afterDelay'
+
+document.querySelectorAll('input[name="option"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const selectedOption = document.querySelector(
+      'input[name="option"]:checked',
+    ) as HTMLInputElement
+    if (selectedOption) {
+      console.log(`Selected value: ${selectedOption.value}`)
+      subintentExpiration = selectedOption.value as 'afterDelay' | 'atTime'
+    }
+  })
+})
 
 const logger = Logger()
 
@@ -73,6 +111,21 @@ ${logs.innerHTML}`
 
 removeCb.onclick = () => {
   document.querySelector('radix-connect-button')?.remove()
+}
+
+subintentButton.onclick = async () => {
+  console.log(subintentManifest.value)
+  console.log(subintentExpirationValue.value)
+  const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+    SubintentRequestBuilder()
+      .manifest(subintentManifest.value)
+      .setExpiration(
+        subintentExpiration,
+        parseInt(subintentExpirationValue.value as string),
+      ),
+  )
+
+  console.log(result)
 }
 
 addCb.onclick = () => {
