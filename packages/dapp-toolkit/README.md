@@ -45,14 +45,6 @@ Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a 
 npx create-radix-dapp@latest
 ```
 
-## Using `create-radix-dapp`
-
-You can easily start experimenting with Radix dApp Toolkit and various frameworks by using our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps!
-
-```bash
-npx create-radix-dapp@latest
-```
-
 # Usage
 
 ## Getting started
@@ -491,6 +483,28 @@ const transactionIntentHash = result.value.transactionIntentHash
 ```
 
 </details>
+
+## Preauthorization Requests
+
+It is very similar to a transaction request, but it describes only a part of a final transaction – specifically the part that the user cares about, such as a swap they wish to perform within certain acceptable bounds. The pre-authorization is signed and returned to the dApp, which can then include it in a full transaction. A time bound is put on the pre-authorization, so the user knows for how long their pre-authorization is usable.
+
+Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set exipration date in two modes:
+- delay in **seconds after preauthorization is signed** by using `.setExpiration('afterDelay', 3600)`
+- provided **exact unix timestamp** to function call `.setExpiration('atTime', 1234567890)`
+
+**Example:**
+```typescript
+ const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+    SubintentRequestBuilder()
+      .manifest(subintentManifest)
+      .setExpiration(
+        'afterDelay',
+        3600,
+      )
+      // .addBlobs('blob1', 'blob2')
+      .message('This is a message')
+  )
+```
 
 # ROLA (Radix Off-Ledger Authentication)
 
