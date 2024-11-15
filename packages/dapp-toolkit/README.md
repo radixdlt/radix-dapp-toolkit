@@ -2,52 +2,6 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-- [ Radix dApp toolkit](#-radix-dapp-toolkit)
-- [What is Radix dApp Toolkit?](#what-is-radix-dapp-toolkit)
-  - [Resources](#resources)
-    - [Building a dApp frontend](#building-a-dapp-frontend)
-- [Installation](#installation)
-  - [Using NPM](#using-npm)
-  - [Using CDN](#using-cdn)
-  - [Using `create-radix-dapp`](#using-create-radix-dapp)
-- [Usage](#usage)
-  - [Getting started](#getting-started)
-  - [Login requests](#login-requests)
-    - [User authentication](#user-authentication)
-    - [Handle user authentication](#handle-user-authentication)
-    - [Authenticate specific account or persona](#authenticate-specific-account-or-persona)
-    - [User authentication management](#user-authentication-management)
-  - [Wallet data requests](#wallet-data-requests)
-      - [Trigger wallet data request programmatically](#trigger-wallet-data-request-programmatically)
-    - [Change requested data](#change-requested-data)
-    - [Data request builder](#data-request-builder)
-      - [`DataRequestBuilder.persona()`](#datarequestbuilderpersona)
-      - [`DataRequestBuilder.accounts()`](#datarequestbuilderaccounts)
-      - [`OneTimeDataRequestBuilderItem.accounts()`](#onetimedatarequestbuilderitemaccounts)
-      - [`DataRequestBuilder.personaData()`](#datarequestbuilderpersonadata)
-      - [`OneTimeDataRequestBuilderItem.personaData()`](#onetimedatarequestbuilderitempersonadata)
-      - [`OneTimeDataRequestBuilderItem.proofOfOwnership()`](#onetimedatarequestbuilderitemproofofownership)
-      - [`DataRequestBuilder.config(input: DataRequestState)`](#datarequestbuilderconfiginput-datarequeststate)
-    - [Handle connect responses](#handle-connect-responses)
-    - [One Time Data Request](#one-time-data-request)
-    - [Data Requests Sandbox](#data-requests-sandbox)
-  - [State changes](#state-changes)
-  - [Transaction requests](#transaction-requests)
-    - [Build transaction manifest](#build-transaction-manifest)
-    - [sendTransaction](#sendtransaction)
-- [ROLA (Radix Off-Ledger Authentication)](#rola-radix-off-ledger-authentication)
-- [√ Connect Button](#-connect-button)
-  - [Styling](#styling)
-    - [Themes](#themes)
-    - [Modes](#modes)
-    - [CSS variables](#css-variables)
-    - [Compact mode](#compact-mode)
-    - [Sandbox](#sandbox)
-- [Setting up your dApp Definition](#setting-up-your-dapp-definition)
-  - [Setting up a dApp Definition on the Radix Dashboard](#setting-up-a-dapp-definition-on-the-radix-dashboard)
-- [Data storage](#data-storage)
-- [Examples](#examples)
-- [License](#license)
 
 # What is Radix dApp Toolkit?
 
@@ -80,7 +34,15 @@ npm install @radixdlt/radix-dapp-toolkit
 Add following code to head section of your page. See example usage inside `examples/cdn/index.html`
 
 ```html
-<script src="https://www.unpkg.com/@radixdlt/radix-dapp-toolkit@2.1.0/dist/radix-dapp-toolkit.bundle.umd.cjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@radixdlt/radix-dapp-toolkit@2.2.0-dev.10/dist/radix-dapp-toolkit.bundle.umd.js" integrity="sha256-JovDn3asdbgkH7NsCN9iebOTU6yxYCYUCO4Q2JffSF0=" crossorigin="anonymous"></script>
+```
+
+## Using `create-radix-dapp`
+
+Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps!
+
+```bash
+npx create-radix-dapp@latest
 ```
 
 ## Using `create-radix-dapp`
