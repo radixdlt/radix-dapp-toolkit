@@ -3,25 +3,12 @@ import { Result } from 'neverthrow'
 import { readBuffer } from './buffer-reader'
 
 export type SealedBoxProps = {
-  ciphertext: Buffer
   iv: Buffer
   authTag: Buffer
   combined: Buffer
+  ciphertext: Buffer
   ciphertextAndAuthTag: Buffer
 }
-
-const combineSealboxToBuffer = ({
-  iv,
-  ciphertext,
-  authTag,
-}: Pick<SealedBoxProps, 'iv' | 'ciphertext' | 'authTag'>): Buffer =>
-  Buffer.concat([iv, ciphertext, authTag])
-
-const combineCiphertextAndAuthtag = ({
-  ciphertext,
-  authTag,
-}: Pick<SealedBoxProps, 'ciphertext' | 'authTag'>): Buffer =>
-  Buffer.concat([ciphertext, authTag])
 
 export const transformBufferToSealbox = (
   buffer: Buffer,
@@ -39,10 +26,7 @@ export const transformBufferToSealbox = (
     iv,
     ciphertext,
     authTag,
-    combined: combineSealboxToBuffer({ iv, ciphertext, authTag }),
-    ciphertextAndAuthTag: combineCiphertextAndAuthtag({
-      ciphertext,
-      authTag,
-    }),
+    combined: Buffer.concat([iv, ciphertext, authTag]),
+    ciphertextAndAuthTag: Buffer.concat([ciphertext, authTag]),
   }))
 }
