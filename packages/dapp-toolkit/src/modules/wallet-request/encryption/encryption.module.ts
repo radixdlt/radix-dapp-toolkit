@@ -61,7 +61,7 @@ export const EncryptionModule = () => {
    *
    * @param {Buffer} data - payload to be encrypted
    * @param {Buffer} encryptionKey - key used for encryption
-   * @param {Buffer} iv - optional initialization vector
+   * @param {Buffer=} iv - optional initialization vector
    * @returns encrypted data wrapped inside ResultAsync
    */
   const encrypt = (
