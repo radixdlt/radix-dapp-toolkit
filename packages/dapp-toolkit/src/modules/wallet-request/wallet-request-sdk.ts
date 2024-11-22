@@ -86,16 +86,14 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       items,
     }: { interactionId?: string; items: WalletInteraction['items'] },
     callbackFns: Partial<CallbackFns> = {},
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
+  ): ResultAsync<unknown, SdkError> =>
     withInterceptor({
       items,
       interactionId,
       metadata,
     }).andThen((walletInteraction) =>
       getTransport(walletInteraction.interactionId).asyncAndThen((transport) =>
-        transport
-          .send(walletInteraction, callbackFns)
-          .andThen(validateWalletResponse),
+        transport.send(walletInteraction, callbackFns),
       ),
     )
 

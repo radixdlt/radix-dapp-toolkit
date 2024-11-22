@@ -1,4 +1,4 @@
-import { ResultAsync, errAsync } from 'neverthrow'
+import { ResultAsync, errAsync, okAsync } from 'neverthrow'
 import { Subscription } from 'rxjs'
 import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
 import { Session, SessionModule } from '../../session/session.module'
@@ -158,7 +158,7 @@ export const RadixConnectRelayModule = (input: {
   const sendToWallet = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
+  ): ResultAsync<unknown, SdkError> =>
     ResultAsync.combine([
       sessionModule
         .getCurrentSession()
@@ -191,7 +191,11 @@ export const RadixConnectRelayModule = (input: {
             publicKey: dAppIdentity.x25519.getPublicKey(),
           }),
         )
-        .andThen(() => waitForWalletResponse(walletInteraction.interactionId)),
+        .andThen(() =>
+          requestResolverModule.waitForWalletResponse(
+            walletInteraction.interactionId,
+          ),
+        )
     )
 
   const decryptWalletResponseData = (
@@ -216,54 +220,6 @@ export const RadixConnectRelayModule = (input: {
         reason: 'FailedToDecryptWalletResponseData',
         jsError: error,
       }))
-
-  const waitForWalletResponse = (
-    interactionId: string,
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
-    ResultAsync.fromPromise(
-      new Promise(async (resolve, reject) => {
-        let response: WalletInteractionResponse | undefined
-        let error: SdkError | undefined
-
-        logger?.debug({
-          method: 'waitForWalletResponse',
-          interactionId,
-        })
-
-        while (!response) {
-          const requestItemResult =
-            await requestItemModule.getById(interactionId)
-
-          const requestItem =
-            requestItemResult.isOk() && requestItemResult.value
-
-          if (requestItem) {
-            logger?.trace({
-              method: 'waitForWalletResponse.requestItemResult',
-              requestItem,
-            })
-
-            if (requestItem.status !== 'pending') {
-              error = SdkError(
-                'RequestItemNotPending',
-                interactionId,
-                'request not in pending state',
-              )
-              break
-            } else if (requestItem.walletResponse) {
-              response = requestItem.walletResponse
-            }
-          }
-
-          if (!response) {
-            await wait()
-          }
-        }
-
-        return response ? resolve(response) : reject(error)
-      }),
-      (err) => err as SdkError,
-    )
 
   return {
     id: 'radix-connect-relay' as const,
