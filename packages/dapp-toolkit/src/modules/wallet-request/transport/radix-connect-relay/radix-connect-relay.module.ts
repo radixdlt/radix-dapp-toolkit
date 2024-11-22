@@ -11,7 +11,6 @@ import { Logger, isMobile, parseJSON } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
-import { RequestItemModule } from '../../request-items/request-item.module'
 import { StorageModule } from '../../../storage'
 import { Curve25519 } from '../../crypto'
 import {
@@ -29,7 +28,6 @@ export const RadixConnectRelayModule = (input: {
   walletUrl: string
   dAppDefinitionAddress: string
   providers: {
-    requestItemModule: RequestItemModule
     storageModule: StorageModule
     requestResolverModule: RequestResolverModule
     encryptionModule?: EncryptionModule
@@ -40,7 +38,7 @@ export const RadixConnectRelayModule = (input: {
 }): TransportProvider => {
   const logger = input.logger?.getSubLogger({ name: 'RadixConnectRelayModule' })
   const { baseUrl, providers, walletUrl } = input
-  const { requestItemModule, storageModule, requestResolverModule } = providers
+  const { storageModule, requestResolverModule } = providers
 
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
@@ -158,7 +156,7 @@ export const RadixConnectRelayModule = (input: {
   const sendToWallet = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
+  ): ResultAsync<unknown, SdkError> =>
     ResultAsync.combine([
       sessionModule
         .getCurrentSession()
@@ -191,7 +189,11 @@ export const RadixConnectRelayModule = (input: {
             publicKey: dAppIdentity.x25519.getPublicKey(),
           }),
         )
-        .andThen(() => waitForWalletResponse(walletInteraction.interactionId)),
+        .andThen(() =>
+          requestResolverModule.waitForWalletResponse(
+            walletInteraction.interactionId,
+          ),
+        )
     )
 
   const decryptWalletResponseData = (
@@ -216,54 +218,6 @@ export const RadixConnectRelayModule = (input: {
         reason: 'FailedToDecryptWalletResponseData',
         jsError: error,
       }))
-
-  const waitForWalletResponse = (
-    interactionId: string,
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
-    ResultAsync.fromPromise(
-      new Promise(async (resolve, reject) => {
-        let response: WalletInteractionResponse | undefined
-        let error: SdkError | undefined
-
-        logger?.debug({
-          method: 'waitForWalletResponse',
-          interactionId,
-        })
-
-        while (!response) {
-          const requestItemResult =
-            await requestItemModule.getById(interactionId)
-
-          const requestItem =
-            requestItemResult.isOk() && requestItemResult.value
-
-          if (requestItem) {
-            logger?.trace({
-              method: 'waitForWalletResponse.requestItemResult',
-              requestItem,
-            })
-
-            if (requestItem.status !== 'pending') {
-              error = SdkError(
-                'RequestItemNotPending',
-                interactionId,
-                'request not in pending state',
-              )
-              break
-            } else if (requestItem.walletResponse) {
-              response = requestItem.walletResponse
-            }
-          }
-
-          if (!response) {
-            await wait()
-          }
-        }
-
-        return response ? resolve(response) : reject(error)
-      }),
-      (err) => err as SdkError,
-    )
 
   return {
     id: 'radix-connect-relay' as const,

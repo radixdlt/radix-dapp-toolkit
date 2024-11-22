@@ -140,7 +140,6 @@ export const WalletRequestModule = (input: {
       baseUrl: 'https://radix-connect-relay.radixdlt.com',
       dAppDefinitionAddress: input.dAppDefinitionAddress,
       providers: {
-        requestItemModule,
         storageModule,
         requestResolverModule,
       },

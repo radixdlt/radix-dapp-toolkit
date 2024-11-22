@@ -250,17 +250,16 @@ proofOfOwnershipRequest.onclick = async () => {
     return
   }
 
-  const result = await dAppToolkit.walletApi
-    .sendOneTimeRequest(
-      OneTimeDataRequestBuilder.accounts().exactly(1),
-      OneTimeDataRequestBuilder.proofOfOwnership()
-        .accounts(connectedAccounts.map((account) => account.address))
-        .identity(connectedPersona.identityAddress),
-    )
-    .map(() => 'success')
-    .unwrapOr('error')
+  const result = await dAppToolkit.walletApi.sendOneTimeRequest(
+    OneTimeDataRequestBuilder.accounts().exactly(1),
+    OneTimeDataRequestBuilder.proofOfOwnership()
+      .accounts(connectedAccounts.map((account) => account.address))
+      .identity(connectedPersona.identityAddress),
+  )
 
-  alert(result)
+  console.log(result)
+
+  alert(`Result is ok: ${result.isOk()}`)
 }
 
 setInterval(() => {
