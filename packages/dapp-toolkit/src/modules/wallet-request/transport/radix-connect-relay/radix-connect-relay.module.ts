@@ -1,4 +1,4 @@
-import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { ResultAsync, errAsync } from 'neverthrow'
 import { Subscription } from 'rxjs'
 import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
 import { Session, SessionModule } from '../../session/session.module'
@@ -11,7 +11,6 @@ import { Logger, isMobile, parseJSON } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
-import { RequestItemModule } from '../../request-items/request-item.module'
 import { StorageModule } from '../../../storage'
 import { Curve25519 } from '../../crypto'
 import {
@@ -29,7 +28,6 @@ export const RadixConnectRelayModule = (input: {
   walletUrl: string
   dAppDefinitionAddress: string
   providers: {
-    requestItemModule: RequestItemModule
     storageModule: StorageModule
     requestResolverModule: RequestResolverModule
     encryptionModule?: EncryptionModule
@@ -40,7 +38,7 @@ export const RadixConnectRelayModule = (input: {
 }): TransportProvider => {
   const logger = input.logger?.getSubLogger({ name: 'RadixConnectRelayModule' })
   const { baseUrl, providers, walletUrl } = input
-  const { requestItemModule, storageModule, requestResolverModule } = providers
+  const { storageModule, requestResolverModule } = providers
 
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
