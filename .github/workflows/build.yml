@@ -36,11 +36,11 @@ jobs:
       - uses: RDXWorks-actions/checkout@main
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
-          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
           app_name: 'radix-dapp-toolkit'
           step_name: 'snyk-scan-deps-licenses'
           secret_prefix: 'SNYK'
-          secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
           parse_json: true
       - name: Run Snyk to check for deps vulnerabilities
         uses: RDXWorks-actions/snyk-actions/node@master
@@ -58,11 +58,11 @@ jobs:
       - uses: RDXWorks-actions/checkout@main
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
-          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
           app_name: 'radix-dapp-toolkit'
           step_name: 'snyk-scan-code'
           secret_prefix: 'SNYK'
-          secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
           parse_json: true
       - name: Run Snyk to check for code vulnerabilities
         uses: RDXWorks-actions/snyk-actions/node@master
@@ -85,11 +85,11 @@ jobs:
       - uses: RDXWorks-actions/checkout@main
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
-          role_name: ${{ secrets.AWS_ROLE_NAME_SNYK_SECRET }}
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
           app_name: 'radix-dapp-toolkit'
           step_name: 'snyk-sbom'
           secret_prefix: 'SNYK'
-          secret_name: ${{ secrets.AWS_SECRET_NAME_SNYK }}
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
           parse_json: true
       - name: Generate SBOM # check SBOM can be generated but nothing is done with it
         uses: RDXWorks-actions/snyk-actions/node@master
@@ -102,6 +102,9 @@ jobs:
     needs:
       - snyk-scan-deps-licences
       - snyk-scan-code
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: RDXWorks-actions/checkout@main
 
@@ -110,8 +113,17 @@ jobs:
         with:
           node-version: '20.x'
 
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-radix-dapp-toolkit-secrets-read-access'
+          app_name: 'dapp-toolkit'
+          step_name: 'npm'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/radixdlt/radix-dapp-toolkit/npm-token-A52rl3'
+          parse_json: true
+
       - name: Authenticate with private NPM package
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPMJS_TOKEN }}" > ~/.npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ env.GH_NPMJS_TOKEN }}" > ~/.npmrc
 
       - name: Install dependencies
         run: npm ci
@@ -122,5 +134,18 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Dump context
-        uses: RDXWorks-actions/ghaction-dump-context@master
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'dapp-toolkit'
+          step_name: 'build'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/sonar-token-CgrUGD'
+          parse_json: true
+      
+      - name: SonarCloud Scan
+        uses: RDXWorks-actions/sonarcloud-github-action@master
+        with:
+          projectBaseDir: ./packages/dapp-toolkit
+        env:
+          SONAR_TOKEN: ${{ env.GH_SONAR_TOKEN }}
