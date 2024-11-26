@@ -2,8 +2,9 @@ name: 'Connect button CI/CD'
 
 on:
   pull_request:
-    # branches:
-    #   - develop
+    branches:
+      - develop
+      - main
   push:
     branches:
       - develop
@@ -47,7 +48,7 @@ jobs:
       snyk_target_ref: ${{ github.ref_name }}
 
   deploy_pull_request:
-    if: ${{ github.event.pull_request }}
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-pr') }}
     name: Deploy PR
     permissions:
       id-token: write

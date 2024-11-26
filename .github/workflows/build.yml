@@ -146,6 +146,6 @@ jobs:
       - name: SonarCloud Scan
         uses: RDXWorks-actions/sonarcloud-github-action@master
         with:
-          projectBaseDir: ./packages/radix-dapp-toolkit
+          projectBaseDir: ./packages/dapp-toolkit
         env:
           SONAR_TOKEN: ${{ env.GH_SONAR_TOKEN }}
