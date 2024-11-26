@@ -115,22 +115,6 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
-        with:
-          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
-          app_name: 'dapp-toolkit'
-          step_name: 'build'
-          secret_prefix: 'GH'
-          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/sonar-token-CgrUGD'
-          parse_json: true
-      
-      - name: SonarCloud Scan
-        uses: RDXWorks-actions/sonarcloud-github-action@master
-        with:
-          projectBaseDir: ./packages/dapp-toolkit
-        env:
-          SONAR_TOKEN: ${{ env.GH_SONAR_TOKEN }}
-
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -162,3 +146,19 @@ jobs:
           files: sbom.json
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-tag: ${{ env.RELEASE_VERSION }}
+
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'dapp-toolkit'
+          step_name: 'build'
+          secret_prefix: 'GH'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/sonar-token-CgrUGD'
+          parse_json: true
+      
+      - name: SonarCloud Scan
+        uses: RDXWorks-actions/sonarcloud-github-action@master
+        with:
+          projectBaseDir: ./packages/dapp-toolkit
+        env:
+          SONAR_TOKEN: ${{ env.GH_SONAR_TOKEN }}
