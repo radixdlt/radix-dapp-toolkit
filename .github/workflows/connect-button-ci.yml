@@ -45,9 +45,6 @@ jobs:
       enable_gcr: 'false'
       scan_image: true
       snyk_target_ref: ${{ github.ref_name }}
-    secrets:
-      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDP }}
-      service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
   deploy_pull_request:
     if: ${{ github.event.pull_request }}
@@ -142,13 +139,21 @@ jobs:
       contents: read
       deployments: write
     steps:
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'cnct-button'
+          step_name: 'snyk-monitor'
+          secret_prefix: 'SNY'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          parse_json: true
       - uses: radixdlt/public-iac-resuable-artifacts/snyk-container-monitor@main
         with:
           role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
           app_name: 'cnct-button'
           dockerhub_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/dockerhub-credentials'
           snyk_secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
-          snyk_org_id: ${{ secrets.SNYK_ORG_ID }}
+          snyk_org_id: ${{ env.SNY_ORG_ID }}
           image: docker.io/radixdlt/connect-button-storybook:${{ fromJSON(needs.build_push_container.outputs.json).labels['org.opencontainers.image.version'] }}
           target_ref: ${{ github.ref_name }}
 
