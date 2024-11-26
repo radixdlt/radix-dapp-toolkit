@@ -27,7 +27,6 @@ jobs:
       add_report_comment_to_pull_request: true
 
   snyk-scan-deps-licences:
-    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -50,7 +49,6 @@ jobs:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --severity-threshold=critical
 
   snyk-scan-code:
-    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -75,7 +73,6 @@ jobs:
           command: code test
 
   build:
-    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     needs:
       - snyk-scan-deps-licences
