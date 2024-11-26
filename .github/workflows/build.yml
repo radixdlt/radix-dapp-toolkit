@@ -88,6 +88,8 @@ jobs:
       contents: read
     steps:
       - uses: RDXWorks-actions/checkout@main
+        with:
+          fetch-depth: 0
 
       - name: Use Node.js
         uses: RDXWorks-actions/setup-node@main
