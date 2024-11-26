@@ -5,6 +5,7 @@ on:
     branches:
       - '**'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   phylum-analyze:
@@ -26,6 +27,7 @@ jobs:
       add_report_comment_to_pull_request: true
 
   snyk-scan-deps-licences:
+    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -48,6 +50,7 @@ jobs:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --severity-threshold=critical
 
   snyk-scan-code:
+    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -71,33 +74,8 @@ jobs:
           args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --severity-threshold=high
           command: code test
 
-  snyk-sbom:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      pull-requests: read
-      contents: read
-      deployments: write
-    needs:
-      - snyk-scan-deps-licences
-      - snyk-scan-code
-    steps:
-      - uses: RDXWorks-actions/checkout@main
-      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
-        with:
-          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
-          app_name: 'radix-dapp-toolkit'
-          step_name: 'snyk-sbom'
-          secret_prefix: 'SNYK'
-          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
-          parse_json: true
-      - name: Generate SBOM # check SBOM can be generated but nothing is done with it
-        uses: RDXWorks-actions/snyk-actions/node@master
-        with:
-          args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json > sbom.json
-          command: sbom
-
   build:
+    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
     needs:
       - snyk-scan-deps-licences
@@ -149,3 +127,35 @@ jobs:
           projectBaseDir: ./packages/dapp-toolkit
         env:
           SONAR_TOKEN: ${{ env.GH_SONAR_TOKEN }}
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ env.GH_NPMJS_TOKEN }}
+        run: |
+          cd packages/dapp-toolkit
+          npx semantic-release | tee out
+          echo "RELEASE_VERSION=$(grep 'Created tag ' out | awk -F 'Created tag ' '{print $2}')" >> $GITHUB_ENV
+
+      # Snyk SBOM
+      - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
+        with:
+          role_name: 'arn:aws:iam::${{ secrets.SECRETS_ACCOUNT_ID }}:role/gh-common-secrets-read-access'
+          app_name: 'radix-dapp-toolkit'
+          step_name: 'snyk-sbom'
+          secret_prefix: 'SNYK'
+          secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
+          parse_json: true
+
+      - name: Generate SBOM
+        uses: RDXWorks-actions/snyk-actions/node@master
+        with:
+          args: --all-projects --org=${{ env.SNYK_PROJECTS_ORG_ID }} --format=cyclonedx1.4+json > sbom.json
+          command: sbom
+
+      - name: Upload SBOM
+        uses: RDXWorks-actions/upload-release-assets@c94805dc72e4b20745f543da0f62eaee7722df7a
+        with:
+          files: sbom.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: ${{ env.RELEASE_VERSION }}
