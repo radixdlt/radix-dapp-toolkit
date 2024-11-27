@@ -1,4 +1,4 @@
-name: 'Connect button CI/CD'
+name: 'Connect Button Storybook'
 
 on:
   pull_request:
