@@ -23,15 +23,18 @@
   <a href="RADIX-SOFTWARE-EULA">
     <img src="https://img.shields.io/badge/EULA-red" alt="eula" />
   </a>
+  <a href="https://sonarcloud.io/project/overview?id=radix-dapp-toolkit">
+    <img src="https://img.shields.io/sonar/coverage/radix-dapp-toolkit?server=https%3A%2F%2Fsonarcloud.io" alt="coverage" />
+  </a>
   <br/>
   <a href="https://www.npmjs.com/@radixdlt/radix-dapp-toolkit">
-    <img src="https://img.shields.io/npm/v/@radixdlt/radix-dapp-toolkit.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen" alt="RDT on NPM" />
+    <img src="https://img.shields.io/npm/v/@radixdlt/radix-dapp-toolkit.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen" alt="NPM version" />
   </a>
   <a href="http://discord.gg/radixdlt">
     <img src="https://img.shields.io/discord/417762285172555786.svg?logo=discord&logoColor=fff&label=Discord&color=7389d8" alt="Discord conversation" />
   </a>
   <a href="https://www.npmjs.com/@radixdlt/radix-dapp-toolkit">
-    <img src="https://img.shields.io/npm/dm/@radixdlt/radix-dapp-toolkit" alt="Discord conversation" />
+    <img src="https://img.shields.io/npm/dm/@radixdlt/radix-dapp-toolkit" alt="NPM downloads" />
   </a>
 </p>
 
