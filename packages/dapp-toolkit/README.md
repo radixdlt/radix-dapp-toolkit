@@ -1,13 +1,8 @@
-# <img src="../../docs/radix-logo.png" alt="Radix Logo" width="35" height="35"> Radix dApp toolkit
-
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-
-
 # What is Radix dApp Toolkit?
 
 Radix dApp Toolkit (RDT) is a TypeScript library that automates getting users logged in to your dApp using a Persona, maintains a browser session for that login, and provides a local cache of data the user has given permission to your app to access associated with their Persona. It also provides an interface to request accounts and personal data from the user's wallet, either as a permission for ongoing access or as a one-time request, as well as to submit transaction manifest stubs for the user to review, sign, and submit in their wallet.
 
-RDT supports both desktop and mobile browser web apps. For desktop browsers, it uses the Radix Wallet Connector browser extension. For mobile browsers, it employs deep linking, while maintaining the same essential interface for both. 
+RDT supports both desktop and mobile browser web apps. For desktop browsers, it uses the Radix Wallet Connector browser extension. For mobile browsers, it employs deep linking, while maintaining the same essential interface for both.
 
 **RDT is composed of:**
 
@@ -16,10 +11,6 @@ RDT supports both desktop and mobile browser web apps. For desktop browsers, it 
 - **Tools** – Abstractions over lower level APIs for developers to build their radix dApps at lightning speed.
 
 - **State management** – Handles wallet responses, caching and provides data to √ Connect button.
-
-## Resources
-
-### [Building a dApp frontend](https://docs.radixdlt.com/docs/building-a-frontend-dapp)
 
 # Installation
 
@@ -34,7 +25,11 @@ npm install @radixdlt/radix-dapp-toolkit
 Add following code to head section of your page. See example usage inside `examples/cdn/index.html`
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@radixdlt/radix-dapp-toolkit@2.2.0-dev.10/dist/radix-dapp-toolkit.bundle.umd.js" integrity="sha256-JovDn3asdbgkH7NsCN9iebOTU6yxYCYUCO4Q2JffSF0=" crossorigin="anonymous"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/@radixdlt/radix-dapp-toolkit@2.2.0-dev.10/dist/radix-dapp-toolkit.bundle.umd.js"
+  integrity="sha256-JovDn3asdbgkH7NsCN9iebOTU6yxYCYUCO4Q2JffSF0="
+  crossorigin="anonymous"
+></script>
 ```
 
 ## Using `create-radix-dapp`
@@ -52,7 +47,11 @@ npx create-radix-dapp@latest
 Add the `<radix-connect-button />` element in your HTML code and instantiate `RadixDappToolkit`.
 
 ```typescript
-import { RadixDappToolkit, RadixNetwork, Logger } from '@radixdlt/radix-dapp-toolkit'
+import {
+  RadixDappToolkit,
+  RadixNetwork,
+  Logger,
+} from '@radixdlt/radix-dapp-toolkit'
 
 const rdt = RadixDappToolkit({
   dAppDefinitionAddress:
@@ -60,14 +59,14 @@ const rdt = RadixDappToolkit({
   networkId: RadixNetwork.Mainnet,
   applicationName: 'Radix Web3 dApp',
   applicationVersion: '1.0.0',
-  logger: Logger(1)
+  logger: Logger(1),
 })
 ```
 
 **Input**
 
-- **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-your-dapp-definition)
-- **requires** networkId - Target radix network ID.
+- **requires** dAppDefinitionAddress - Specifies the dApp that is interacting with the wallet. Used in dApp verification process on the wallet side. [Read more](#setting-up-dapp-definition)
+- **requires** networkId - Target radix network ID (for development use `RadixNetwork.Stokenet`).
 - _optional_ applicationName - Your dApp name. It's only used for statistics purposes on gateway side
 - _optional_ applicationVersion - Your dApp version. It's only used for statistics purposes on gateway side
 - _optional_ logger - Configure and provide `Logger` instance if you want to deep dive into what's happening in RDT
@@ -110,13 +109,13 @@ A signature produced by the wallet used to verify that the wallet is in control 
 
 The signature is composed of:
 
-|                                       |                                                                                                                                                      |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **prefix**                            | "R" (as in ROLA) in ascii encoding                                                                                                                   |
-| **challenge**                         | 32 random bytes provided by the dApp                                                                                                                 |
-| **length of dApp definition address** | String length of the dApp definition address                                                                                                         |
-| **dApp definition address**           | The dApp definition address of the requesting dApp                                                                                                   |
-| **origin**                            | The origin of the dApp (e.g. `https://dashboard.radixdlt.com`). This is a value that is added to the wallet data request by the Connector extension. |
+| Item                                  |  Explanation                                                   |
+| ------------------------------------- | -------------------------------------------------------------- |
+| **prefix**                            | "R" (as in ROLA) in ascii encoding                             |
+| **challenge**                         | 32 random bytes provided by the dApp                           |
+| **length of dApp definition address** | String length of the dApp definition address                   |
+| **dApp definition address**           | The dApp definition address of the requesting dApp             |
+| **origin**                            | The origin of the dApp (e.g. `https://dashboard.radixdlt.com`) |
 
 **Challenge**
 
@@ -206,6 +205,16 @@ rdt.disconnect()
 The `disconnect` method resets the RDT state, to login anew, a wallet data request needs to be triggered.
 
 ## Wallet data requests
+
+To provide a consistent user experience RDT stores data to the browser’s local storage. This will enable state rehydration and keep state between page reloads.
+
+To understand which wallet responses that get stored we need to understand the difference between one-time and regular data requests.
+
+One-time data requests do not register the dApp in the wallet and the connect button does not display that data in the UI. The data is meant to be used temporarily by the dApp and discarded thereafter.
+
+A user connecting her wallet will be the first user flow in the majority of dApps. The connect flow is a bit different from subsequent data request flows. Its purpose is to provide the dApp with a minimal amount of user data in order for the user to be able to use the dApp, e.g. the minimal amount of data for a DEX dApp is an account.
+
+RDT handles writing and reading data to the browser’s local storage so that it will be persisted between page loads. The dApp frontend logic can at any time ask RDT to provide the stored data by subscribing to the `walletApi.walletData$` observable or calling `walletApi.getWalletData`. One time data requests or requests that can not be resolved by the internal state are sent as data requests to the wallet.
 
 For your dApp to access data from a user's wallet, whether account information or personal data, a request must be sent to the wallet. By default, the request will be "ongoing", meaning that the user will be asked for permission to share the information whenever they login to your dApp with their current Persona. A request may also be "one time" if it is for transient use and you do not require the permission to be retained by the user's wallet.
 
@@ -432,7 +441,7 @@ Get the latest wallet data by calling `walletApi.getWalletData()`.
 const walletData = rdt.walletApi.getWalletData()
 ```
 
-## Transaction requests
+## Transactions
 
 Your dApp can send transactions to the user's Radix Wallet for them to review, sign, and submit them to the Radix Network.
 
@@ -506,41 +515,30 @@ Creation of preauthorization request object is abstracted away into `SubintentRe
   )
 ```
 
-# ROLA (Radix Off-Ledger Authentication)
-
-ROLA is method of authenticating something claimed by the user connected to your dApp with the Radix Wallet. It uses the capabilities of the Radix Network to make this possible in a way that is decentralized and flexible for the user.
-
-ROLA is intended for use in the server backend portion of a Full Stack dApp. It runs "off-ledger" alongside backend business and user management logic, providing reliable authentication of claims of user control using "on-ledger" data from the Radix Network.
-
-The primary use for ROLA is to authenticate the user's Persona login with the user's control of account(s) on Radix. Let's say that Alice is subscribed to an online streaming service on the Radix network called Radflix, which requires a subscription badge to enter the website. Alice logs in with her Persona to Radflix and now needs to prove that she owns an account that contains a Radflix subscription badge. By using Rola we can verify that Alice is the owner of the account that contains the Radflix subscription badge. Once we have verified that Alice is the owner of the account, we can then use the account to check for the Radflix subscription badge and verify that Alice has a valid subscription.
-
-**Read more**
-
-- [ROLA example](https://github.com/radixdlt/rola-examples)
-- [Full-stack dApp](https://docs.radixdlt.com/docs/building-a-full-stack-dapp)
-
 # √ Connect Button
 
-Provides a consistent and delightful user experience between radix dApps. Although complex by itself, RDT is off-loading the developer burden of having to handle the logic of all its internal states.
+Radix dApp Toolkit provides a consistent and delightful user experience between radix dApps thanks to `<radix-connect-button />` [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements). Although complex by itself, RDT is off-loading the developer burden of having to handle the logic of all its internal states.
 
-Just add the HTML element in your code, and you're all set.
+Place following HTML element wherever you like in your HTML structure and you're all set. RDT will take care of finding element in DOM and make sure it's reactive to user clicks as well as provide data about current RDT state and wallet interactions.
 
 ```html
 <radix-connect-button />
 ```
 
+> [!IMPORTANT]
+> **If you want to learn more about √ Connect Button, go to its [README](../connect-button/README.md)**
+
 ## Styling
 
-Configure the √ Connect Button to fit your dApp's branding.
+Play around with the different configurations using the [√ Connect Button storybook](https://connect-button-storybook.radixdlt.com/)
 
 ### Themes
 
-Available themes:
+<div align="center">
+<img src="docs/themes.jpeg" alt="Connect Button Themes"> 
+</div>
 
-- `radix-blue` (default)
-- `black`
-- `white-with-outline`
-- `white`
+There are four themes you can choose from by default: `radix-blue` (default), `black`, `white-with-outline`, `white`. In order to do that, call following function after RDT instantiation
 
 ```typescript
 rdt.buttonApi.setTheme('black')
@@ -548,10 +546,11 @@ rdt.buttonApi.setTheme('black')
 
 ### Modes
 
-Available modes:
+<div align="center">
+<img src="docs/modes.png" alt="Connect Button Modes"> 
+</div>
 
-- `light` (default)
-- `dark`
+You can choose between two modes: `dark` and `light` (default). In order to change mode you need execute following code.
 
 ```typescript
 rdt.buttonApi.setMode('dark')
@@ -573,58 +572,50 @@ body {
 }
 ```
 
-### Compact mode
+> [!NOTE]
+> Setting `--radix-connect-button-width` below `138px` will enable compact mode and cause persona label to hide
 
-Setting `--radix-connect-button-width` below `138px` will enable compact mode.
+## Replacing the Connect Button
 
-### Sandbox
+As RDT is built with dependency injection in mind you can replace Connect Button module with completely custom implementation of yours. In order to provide the same functionality you need to implement all the same methods. Please check [ConnectButtonModule implementation](src/modules/connect-button/connect-button.module.ts) for inspiration and [ConnectButtonNoopModule](src/modules/connect-button/connect-button-noop.module.ts) to clearly see the required interface. You start with providing your own module and then go wherever your imagination leads you
 
-Play around with the different configurations on the
-[sandbox environment](https://connect-button-storybook.radixdlt.com/)
+```typescript
+const rdt = RadixDappToolkit({
+  // usual RDT configuration...
+  providers: {
+    connectButtonModule: MyCustomConnectButtonModule({})
+  }
+})
+```
 
-# Setting up your dApp Definition
+# Further Reading
 
-A dApp Definition account should be created after you’ve built your dApp’s components and resources, and created a website front end for it. dApp Definition account is a special account on the Radix Network with some metadata set on it that does some nice things, like:
+## ROLA (Radix Off-Ledger Authentication)
 
-- Provides the necessary unique identifier (the dApp Definition’s address) that the Radix Wallet needs to let users login to your dApp and save sharing preferences for it.
+ROLA is a method of generating proof that certain user owns an identity or an account. It uses Radix Wallet to generate signature for dApp generated challenge and Radix Gateway to verify public keys of given identity or an account.
 
-- Defines things like name, description, and icon so the Radix Wallet can inform users what they are interacting with.
+**Read more**
 
-- Lets you link together everything associated with your dApp – like websites, resources, and components – so that the Radix Wallet knows what they all belong to.
+- [ROLA Monorepository](https://github.com/radixdlt/rola)
+- [Typescript Full Stack Example](https://github.com/radixdlt/rola/tree/main/examples/typescript-full-stack)
+- [Full-stack dApp](https://docs.radixdlt.com/docs/building-a-full-stack-dapp)
 
-Creating a dApp Definition for your dApp will provide the necessary information for clients like the Radix Wallet to let users interact with your dApp in a way that is easy, safe, and informative. It also acts as a hub that connects all your dApp pieces together.
+## Setting up dApp definition
+
+Creating a dApp Definition account for your dApp will provide the necessary information for clients like the Radix Wallet to let users interact with your dApp in a way that is easy, safe, and informative. It also acts as a hub that connects all your dApp pieces together.
 
 You can read more about dApp Definitions [here](https://docs.radixdlt.com/docs/metadata-for-verification).
+You can read more about how to setup dApp definition [here](https://docs.radixdlt.com/docs/dapp-definition-setup)
 
-## Setting up a dApp Definition on the Radix Dashboard
+## Building a dApp frontend
 
-1. **Create a new account in the Radix Wallet.** This is the account which we will convert to a dApp Definition account.
+Go to Radix Documentation ["Building a Frontend dApp" article](https://docs.radixdlt.com/docs/building-a-frontend-dapp) to have a step-by-step walkthrough how to build your first decentralized application. You'll learn how to deploy your own smart contract on ledger and iteract with it using RDT
 
-2. **Head to the Radix Dashboard’s Manage dApp Definitions page**. This page provides a simple interface to set the metadata on an account to make it a dApp Definition.
+## Gateway SDK
 
-3. **Connect your Radix Wallet to the Dashboard** and make sure you share the account that you just created to be a dApp Definition. Select that account on the Dashboard page.
+When you want to start querying data about the ledger the easiest solution is using Gateway SDK. It provides a bunch of useful functions which you can use before you get in-depth understanding of ledger data as well as auto-generated (from open api spec) functions for every HTTP endpoint there is on Radix Gateway.
 
-4. **Now check the box for “Set this account as a dApp Definition”, and fill in the name and description you want to use for your dApp.** Later you’ll also be able to specify an icon image, but that’s not ready just yet.
-
-5. **Click “Update”** and an approve transaction should appear in your Radix Wallet. Done!
-
-Provide account address as the the dApp Definition address that you just created, and it will be sent to the Radix Wallet whenever a user connects or receives a transaction from your dApp. The Wallet will then look up that dApp Definition address on the Radix Network, pull the latest metadata, and show it to the user. When a user logins to your dApp, an entry in the wallet’s preferences for your dApp will appear too. Try it out for yourself!
-
-# Data storage
-
-To provide a consistent user experience RDT stores data to the browser’s local storage. This will enable state rehydration and keep state between page reloads.
-
-To understand which wallet responses that get stored we need to understand the difference between one-time and regular data requests.
-
-One-time data requests do not register the dApp in the wallet and the connect button does not display that data in the UI. The data is meant to be used temporarily by the dApp and discarded thereafter.
-
-A user connecting her wallet will be the first user flow in the majority of dApps. The connect flow is a bit different from subsequent data request flows. Its purpose is to provide the dApp with a minimal amount of user data in order for the user to be able to use the dApp, e.g. the minimal amount of data for a DEX dApp is an account.
-
-RDT handles writing and reading data to the browser’s local storage so that it will be persisted between page loads. The dApp frontend logic can at any time ask RDT to provide the stored data by subscribing to the `walletApi.walletData$` observable or calling `walletApi.getWalletData`. One time data requests or requests that can not be resolved by the internal state are sent as data requests to the wallet.
-
-# Examples
-
-The `examples` directory contains a react dApp that consumes RDT. Its main purpose is to be used by us internally for debugging but can also serve as a source of inspiration.
+[@radixdlt/babylon-gateway-api-sdk](https://www.npmjs.com/package/@radixdlt/babylon-gateway-api-sdk?activeTab=readme)
 
 # License
 
