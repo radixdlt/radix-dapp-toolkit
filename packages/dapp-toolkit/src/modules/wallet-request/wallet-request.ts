@@ -429,11 +429,14 @@ export const WalletRequestModule = (input: {
       })
 
       return requestItemModule
-        .add({
-          type: 'sendTransaction',
-          walletInteraction,
-          isOneTimeRequest: false,
-        })
+        .add(
+          {
+            type: 'sendTransaction',
+            walletInteraction,
+            isOneTimeRequest: false,
+          },
+          value.onTransactionId,
+        )
         .mapErr(() =>
           SdkError('FailedToAddRequestItem', walletInteraction.interactionId),
         )
@@ -449,9 +452,6 @@ export const WalletRequestModule = (input: {
           transactionIntentHash: transactionIntentHash!,
           status: metadata!.transactionStatus as TransactionStatus,
         }
-
-        if (value.onTransactionId)
-          value.onTransactionId(output.transactionIntentHash)
 
         return status === 'success'
           ? ok(output)

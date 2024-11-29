@@ -19,6 +19,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
   const logger = input?.logger?.getSubLogger({ name: 'RequestItemModule' })
   const subscriptions = new Subscription()
   const storageModule = input.providers.storageModule
+  const signals = new Map<string, (val: string) => void>()
 
   const createItem = ({
     type,
@@ -38,19 +39,34 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     isOneTimeRequest,
   })
 
-  const add = (value: {
-    type: RequestItem['type']
-    walletInteraction: WalletInteraction
-    isOneTimeRequest: boolean
-  }) => {
+  const add = (
+    value: {
+      type: RequestItem['type']
+      walletInteraction: WalletInteraction
+      isOneTimeRequest: boolean
+    },
+    onSignal?: (signalValue: string) => void,
+  ) => {
     const item = createItem(value)
     logger?.debug({
       method: 'addRequestItem',
       item,
     })
+    if (onSignal) {
+      signals.set(item.interactionId, onSignal)
+    }
+
     return storageModule
       .setItems({ [item.interactionId]: item })
       .map(() => item)
+  }
+
+  const maybeGetSignal = (interactionId: string) => {
+    if (signals.has(interactionId)) {
+      const signal = signals.get(interactionId)
+      signals.delete(interactionId)
+      return signal
+    }
   }
 
   const patch = (id: string, partialValue: Partial<RequestItem>) => {
@@ -138,6 +154,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     cancel,
     updateStatus,
     patch,
+    maybeGetSignal,
     getById: (id: string) => storageModule.getItemById(id),
     getPending,
     requests$,
