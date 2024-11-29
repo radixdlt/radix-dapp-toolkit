@@ -4,9 +4,7 @@ import type { WalletInteractionResponse } from '../../../schemas'
 import type { StorageModule } from '../../storage'
 import type { RequestItemModule } from '../request-items'
 import { SdkError } from '../../../error'
-import { StateModule } from '../../state'
 import { filter, firstValueFrom, map } from 'rxjs'
-import { GatewayModule } from '../../gateway'
 import { WalletResponseResolver } from './type'
 import { RequestItem } from 'radix-connect-common'
 
@@ -14,11 +12,8 @@ export type RequestResolverModule = ReturnType<typeof RequestResolverModule>
 export const RequestResolverModule = (input: {
   logger?: Logger
   providers: {
-    stateModule: StateModule
     storageModule: StorageModule
     requestItemModule: RequestItemModule
-    updateConnectButtonStatus: (status: 'fail' | 'success') => void
-    gatewayModule: GatewayModule
     resolvers: WalletResponseResolver[]
   }
 }) => {

@@ -1,17 +1,21 @@
 import { err, okAsync } from 'neverthrow'
-import { WalletInteractionResponse } from '../../../../schemas'
+import {
+  SubintentResponseItem,
+  WalletInteractionResponse,
+} from '../../../../schemas'
 import { RequestItemModule } from '../../request-items'
 import { SdkError } from '../../../../error'
 import { UpdateConnectButtonStatus, WalletResponseResolver } from '../type'
+import { RequestStatus } from 'radix-connect-common'
 
 const matchResponse = (
   input: WalletInteractionResponse,
-): string | undefined => {
+): SubintentResponseItem | undefined => {
   if (
     input.discriminator === 'success' &&
     input.items.discriminator === 'preAuthorizationResponse'
   ) {
-    return input.items.response?.signedPartialTransaction
+    return input.items.response
   }
 }
 
@@ -21,8 +25,10 @@ export const preAuthorizationResponseResolver =
     updateConnectButtonStatus: UpdateConnectButtonStatus
   }): WalletResponseResolver =>
   ({ walletInteraction, walletInteractionResponse }) => {
-    const signedPartialTransaction = matchResponse(walletInteractionResponse)
-    if (!signedPartialTransaction) return okAsync(undefined)
+    const response = matchResponse(walletInteractionResponse)
+    if (!response) return okAsync(undefined)
+    const { signedPartialTransaction, expirationTimestamp, subintentHash } =
+      response
 
     const { interactionId } = walletInteraction
 
@@ -34,6 +40,8 @@ export const preAuthorizationResponseResolver =
         status: 'success',
         metadata: {
           signedPartialTransaction,
+          expirationTimestamp,
+          subintentHash,
         },
       })
       .orElse((error) => {
