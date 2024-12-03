@@ -1,4 +1,4 @@
-import { EntityMetadataItem, TransactionStatus } from './types'
+import { EntityMetadataItem, SubintentStatus, TransactionStatus } from './types'
 import { fetchWrapper } from '../../helpers'
 import { __VERSION__ } from '../../version'
 import { GatewayApiClientConfig } from '../../_types'
@@ -32,12 +32,21 @@ export const GatewayApiService = ({
       intent_hash: transactionIntentHash,
     })
 
+  const getSubintentStatus = (subintentHash: string) =>
+    fetchWithHeaders<{ subintent_status: SubintentStatus }>(
+      '/transaction/subintent-status',
+      {
+        subintent_hash: subintentHash,
+      },
+    )
+
   const getEntityMetadataPage = (address: string) =>
     fetchWithHeaders<{
       items: EntityMetadataItem[]
     }>('/state/entity/page/metadata', { address })
 
   return {
+    getSubintentStatus,
     getTransactionStatus,
     getEntityMetadataPage,
   }

@@ -6,6 +6,7 @@ import {
 import { RequestItemModule } from '../../request-items'
 import { SdkError } from '../../../../error'
 import { UpdateConnectButtonStatus, WalletResponseResolver } from '../type'
+import { RequestStatus } from 'radix-connect-common'
 
 const matchResponse = (
   input: WalletInteractionResponse,
@@ -36,7 +37,8 @@ export const preAuthorizationResponseResolver =
     return requestItemModule
       .updateStatus({
         id: interactionId,
-        status: 'success',
+        status: RequestStatus.lookup,
+        transactionIntentHash: subintentHash,
         metadata: {
           signedPartialTransaction,
           expirationTimestamp,

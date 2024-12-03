@@ -11,7 +11,11 @@ import {
 import { validateRolaChallenge, type Logger } from '../../helpers'
 import { TransactionStatus } from '../gateway'
 import { ResultAsync, err, ok, okAsync } from 'neverthrow'
-import type { MessageLifeCycleEvent, WalletInteraction } from '../../schemas'
+import type {
+  MessageLifeCycleEvent,
+  SubintentResponseItem,
+  WalletInteraction,
+} from '../../schemas'
 import { SdkError } from '../../error'
 import {
   DataRequestBuilderItem,
@@ -41,6 +45,7 @@ import {
   sendTransactionResponseResolver,
 } from './request-resolver'
 import { RequestItemTypes } from 'radix-connect-common'
+import { PreauthorizationPollingModule } from './pre-authorization-request/preauthorization-polling-module'
 
 export type WalletRequestModule = ReturnType<typeof WalletRequestModule>
 export const WalletRequestModule = (input: {
@@ -83,9 +88,19 @@ export const WalletRequestModule = (input: {
     RequestItemModule({
       logger,
       providers: {
+        gatewayModule,
         storageModule: storageModule.getPartition('requests'),
       },
     })
+
+  const preauthorizationPollingModule = PreauthorizationPollingModule({
+    logger,
+    providers: {
+      gatewayModule,
+      requestItemModule,
+      ignoreTransactionSubject,
+    },
+  })
 
   const updateConnectButtonStatus = (
     status: 'success' | 'fail' | 'pending',
@@ -166,7 +181,11 @@ export const WalletRequestModule = (input: {
             filter((event) => event === 'receivedByWallet'),
             map(() => getRequest()),
             tap((request) => {
-              if (request.items.discriminator === 'transaction')
+              if (
+                ['transaction', 'preAuthorizationRequest'].includes(
+                  request.items.discriminator,
+                )
+              )
                 requestItemModule.patch(id, { showCancel: false })
             }),
           ),
@@ -281,13 +300,17 @@ export const WalletRequestModule = (input: {
     type: RequestItemTypes,
     walletInteraction: WalletInteraction,
     isOneTimeRequest: boolean,
+    signal?: (signalValue?: string) => void,
   ) =>
     requestItemModule
-      .add({
-        type,
-        walletInteraction,
-        isOneTimeRequest,
-      })
+      .add(
+        {
+          type,
+          walletInteraction,
+          isOneTimeRequest,
+        },
+        signal,
+      )
       .mapErr(({ message }) =>
         SdkError(
           'FailedToCreateRequestItem',
@@ -298,23 +321,25 @@ export const WalletRequestModule = (input: {
 
   const sendPreAuthorizationRequest = (
     value: SendPreAuthorizationRequestInput,
-  ): ResultAsync<
-    {
-      signedPartialTransaction: string
-    },
-    SdkError
-  > => {
+  ): ResultAsync<SubintentResponseItem, SdkError> => {
     const walletInteraction = walletRequestSdk.createWalletInteraction({
       discriminator: 'preAuthorizationRequest',
       request: value.toRequestItem(),
     })
 
-    return addNewRequest('preAuthorizationRequest', walletInteraction, false)
+    return addNewRequest(
+      'preAuthorizationRequest',
+      walletInteraction,
+      false,
+      value.getOnSubmittedSuccessFn?.(),
+    )
       .andThen(() => sendRequestAndAwaitResponse(walletInteraction))
-      .map((requestItem) => ({
-        signedPartialTransaction: requestItem.metadata
-          ?.signedPartialTransaction as string,
-      }))
+      .map(
+        (requestItem) =>
+          ({
+            ...requestItem.metadata,
+          }) as SubintentResponseItem,
+      )
   }
 
   const sendRequest = ({
@@ -495,6 +520,7 @@ export const WalletRequestModule = (input: {
     stateModule.destroy()
     requestItemModule.destroy()
     requestResolverModule.destroy()
+    preauthorizationPollingModule.destroy()
     input.providers.transports?.forEach((transport) => transport.destroy())
 
     subscriptions.unsubscribe()

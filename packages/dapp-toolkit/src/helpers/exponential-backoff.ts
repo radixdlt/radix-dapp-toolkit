@@ -6,7 +6,7 @@ import { map, merge, of, Subject, switchMap, timer } from 'rxjs'
 export type ExponentialBackoffInput = {
   multiplier?: number
   maxDelayTime?: number
-  timeout?: number
+  timeout?: number | Date
   interval?: number
 }
 export type ExponentialBackoff = typeof ExponentialBackoff
@@ -17,6 +17,7 @@ export const ExponentialBackoff = ({
   interval = 2_000,
 }: ExponentialBackoffInput = {}) => {
   const trigger = new Subject<void>()
+  const stop = new Subject<void>()
   let numberOfRetries = 0
 
   const backoff$ = merge(
@@ -36,12 +37,19 @@ export const ExponentialBackoff = ({
   )
 
   const withBackoffAndTimeout$: Observable<Result<number, { error: string }>> =
-    timeout
-      ? merge(
-          backoff$,
-          timer(timeout).pipe(map(() => err({ error: 'timeout' }))),
-        )
-      : backoff$
+    merge(
+      stop.asObservable().pipe(map(() => err({ error: 'stopped' }))),
+      timeout
+        ? merge(
+            backoff$,
+            timer(timeout).pipe(map(() => err({ error: 'timeout' }))),
+          )
+        : backoff$,
+    )
 
-  return { trigger, withBackoff$: withBackoffAndTimeout$ }
+  return {
+    trigger,
+    withBackoff$: withBackoffAndTimeout$,
+    stop: () => stop.next(),
+  }
 }

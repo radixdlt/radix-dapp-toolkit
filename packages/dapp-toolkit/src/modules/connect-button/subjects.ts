@@ -31,7 +31,7 @@ export const ConnectButtonSubjects = () => ({
   personaData: new BehaviorSubject<{ value: string; field: string }[]>([]),
   dAppName: new BehaviorSubject<string>(''),
   onLinkClick: new Subject<{
-    type: 'account' | 'transaction' | 'setupGuide' | 'showQrCode' | 'getWallet'
+    type: 'account' | 'transaction' | 'setupGuide' | 'showQrCode' | 'getWallet' | 'subintent'
     data: string
   }>(),
 })

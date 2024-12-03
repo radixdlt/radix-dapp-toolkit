@@ -55,7 +55,7 @@ export const sendTransactionResponseResolver =
         ),
       )
       .andThen(() => gatewayModule.pollTransactionStatus(transactionIntentHash))
-      .andThen(({ status }) => {
+      .andThen((status) => {
         const isFailedTransaction = determineFailedTransaction(status)
         const requestItemStatus = isFailedTransaction ? 'fail' : 'success'
 

@@ -1,7 +1,8 @@
+import { GatewayModule } from './../../gateway/gateway.module'
 import {
   RequestStatus,
   type RequestItem,
-  type RequestStatusTypes,
+  RequestStatusTypes,
 } from 'radix-connect-common'
 import { Subscription, filter, map, switchMap } from 'rxjs'
 import { Logger } from '../../../helpers'
@@ -12,13 +13,17 @@ import { ResultAsync, errAsync } from 'neverthrow'
 import { WalletData } from '../../state'
 export type RequestItemModuleInput = {
   logger?: Logger
-  providers: { storageModule: StorageModule<RequestItem> }
+  providers: {
+    gatewayModule: GatewayModule
+    storageModule: StorageModule<RequestItem>
+  }
 }
 export type RequestItemModule = ReturnType<typeof RequestItemModule>
 export const RequestItemModule = (input: RequestItemModuleInput) => {
   const logger = input?.logger?.getSubLogger({ name: 'RequestItemModule' })
   const subscriptions = new Subscription()
   const storageModule = input.providers.storageModule
+
   const signals = new Map<string, (val: string) => void>()
 
   const createItem = ({
@@ -82,6 +87,9 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     return patch(id, { status: 'fail', error: ErrorType.canceledByUser })
   }
 
+  const isWalletInteractionRequired = (status: RequestStatusTypes) =>
+    ([RequestStatus.pending, RequestStatus.lookup] as string[]).includes(status)
+
   const updateStatus = ({
     id,
     status,
@@ -102,9 +110,17 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
       .mapErr(() => ({ reason: 'couldNotReadFromStore' }))
       .andThen((item) => {
         if (item) {
+          if (status === RequestStatus.ignored && signals.has(id)) {
+            signals.delete(id)
+          }
+          if (status === RequestStatus.success) {
+            getAndRemoveSignal(id)?.('')
+          }
           const updated = {
             ...item,
             walletData,
+            transactionIntentHash,
+            error,
             status:
               item.status === RequestStatus.ignored ? item.status : status,
             metadata: item.metadata
@@ -112,21 +128,10 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
               : metadata,
           } as RequestItem
 
-          if (updated.status === 'fail') {
-            updated.transactionIntentHash = transactionIntentHash!
-            updated.error = error!
-          }
-          if (
-            updated.status === 'success' &&
-            updated.type === 'sendTransaction'
-          ) {
-            updated.transactionIntentHash = transactionIntentHash!
-          }
-          if (
-            ['success', 'fail', 'ignored', 'cancelled'].includes(updated.status)
-          ) {
+          if (!isWalletInteractionRequired(updated.status)) {
             delete updated.walletInteraction
           }
+
           logger?.debug({ method: 'updateRequestItemStatus', updated })
           return storageModule
             .setItems({ [id]: updated })
@@ -135,6 +140,11 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
         return errAsync({ reason: 'itemNotFound' })
       })
   }
+
+  const getLookedUp = () =>
+    storageModule
+      .getItemList()
+      .map((items) => items.filter((item) => item.status === 'lookup'))
 
   const getPending = () =>
     storageModule
@@ -156,6 +166,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     patch,
     getAndRemoveSignal,
     getById: (id: string) => storageModule.getItemById(id),
+    getLookedUp,
     getPending,
     requests$,
     clear: storageModule.clear,

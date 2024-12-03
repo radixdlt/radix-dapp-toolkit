@@ -66,11 +66,13 @@ export const ConnectButtonModule = (
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
   const subjects = input.subjects || ConnectButtonSubjects()
   const dAppDefinitionAddress = input.dAppDefinitionAddress
-  const { baseUrl, accountsPath, transactionPath } = input.explorer ?? {
-    baseUrl: RadixNetworkConfigById[input.networkId].dashboardUrl,
-    transactionPath: '/transaction/',
-    accountsPath: '/account/',
-  }
+  const { baseUrl, accountsPath, transactionPath, subintentPath } =
+    input.explorer ?? {
+      baseUrl: RadixNetworkConfigById[input.networkId].dashboardUrl,
+      transactionPath: '/transaction/',
+      subintentPath: '/subintent/',
+      accountsPath: '/account/',
+    }
   const statusStorage = input.providers.storageModule
 
   const stateModule = input.providers.stateModule
@@ -287,11 +289,15 @@ export const ConnectButtonModule = (
     subjects.onLinkClick
       .pipe(
         tap(({ type, data }) => {
-          if (['account', 'transaction'].includes(type)) {
+          if (['account', 'transaction', 'subintent'].includes(type)) {
             if (!baseUrl || !window) return
 
             const url = `${baseUrl}${
-              type === 'transaction' ? transactionPath : accountsPath
+              type === 'transaction'
+                ? transactionPath
+                : type === 'subintent'
+                  ? subintentPath
+                  : accountsPath
             }${data}`
 
             window.open(url)

@@ -8,7 +8,7 @@ import {
   ExponentialBackoff,
 } from '../../helpers'
 import { SdkError } from '../../error'
-import { TransactionStatus, TransactionStatusResponse } from './types'
+import { SubintentStatus, TransactionStatus } from './types'
 import { GatewayApiClientConfig } from '../../_types'
 
 export type GatewayModule = ReturnType<typeof GatewayModule>
@@ -25,17 +25,12 @@ export const GatewayModule = (input: {
   const gatewayApi =
     input?.providers?.gatewayApiService ?? GatewayApiService(input.clientConfig)
 
-  const pollTransactionStatus = (
-    transactionIntentHash: string,
-  ): ResultAsync<TransactionStatusResponse, SdkError> => {
-    const retry = ExponentialBackoff(input.retryConfig)
-
-    const completedTransactionStatus = new Set<TransactionStatus>([
-      'CommittedSuccess',
-      'CommittedFailure',
-      'Rejected',
-    ])
-
+  const poll = (
+    hash: string,
+    apiCall: (hash: string) => ResultAsync<string, { reason: string }>,
+    completedStatus: Set<string>,
+    retry = ExponentialBackoff(input.retryConfig),
+  ): ResultAsync<string, SdkError> => {
     return ResultAsync.fromPromise(
       firstValueFrom(
         retry.withBackoff$.pipe(
@@ -43,22 +38,20 @@ export const GatewayModule = (input: {
             if (result.isErr())
               return [
                 err(
-                  SdkError('failedToPollSubmittedTransaction', '', undefined, {
+                  SdkError('failedToPoll', '', undefined, {
                     error: result.error,
                     context:
-                      'GatewayModule.pollTransactionStatus.retry.withBackoff$',
-                    transactionIntentHash,
+                      'GatewayModule.poll.retry.withBackoff$',
+                    hash,
                   }),
                 ),
               ]
 
-            logger?.debug(`pollingTxStatus retry #${result.value + 1}`)
+            logger?.debug(`Polling ${hash} retry #${result.value + 1}`)
 
-            return gatewayApi
-              .getTransactionStatus(transactionIntentHash)
+            return apiCall(hash)
               .map((response) => {
-                if (completedTransactionStatus.has(response.status))
-                  return response
+                if (completedStatus.has(response)) return response
 
                 retry.trigger.next()
                 return
@@ -75,17 +68,16 @@ export const GatewayModule = (input: {
 
                 logger?.debug(response)
                 return err(
-                  SdkError('failedToPollSubmittedTransaction', '', undefined, {
+                  SdkError('failedToPoll', '', undefined, {
                     error: response,
-                    transactionIntentHash,
-                    context:
-                      'GatewayModule.pollTransactionStatus.getTransactionStatus',
+                    hash,
+                    context: 'GatewayModule.poll',
                   }),
                 )
               })
           }),
           filter(
-            (result): result is Result<TransactionStatusResponse, SdkError> =>
+            (result): result is Result<string, SdkError> =>
               (result.isOk() && !!result.value) || result.isErr(),
           ),
           first(),
@@ -95,7 +87,46 @@ export const GatewayModule = (input: {
     ).andThen((result) => result)
   }
 
+  const pollTransactionStatus = (
+    transactionIntentHash: string,
+  ): ResultAsync<TransactionStatus, SdkError> =>
+    poll(
+      transactionIntentHash,
+      (hash) =>
+        gatewayApi.getTransactionStatus(hash).map(({ status }) => status),
+      new Set<TransactionStatus>([
+        'CommittedSuccess',
+        'CommittedFailure',
+        'Rejected',
+      ]),
+    ) as ResultAsync<TransactionStatus, SdkError>
+
+  const pollSubintentStatus = (
+    subintentHash: string,
+    expirationTimestamp: number,
+  ) => {
+    const backoff = ExponentialBackoff({
+      ...input.retryConfig,
+      maxDelayTime: 60_000,
+      timeout: new Date(expirationTimestamp * 1000),
+    })
+
+    return {
+      stop: backoff.stop,
+      result: poll(
+        subintentHash,
+        (hash) =>
+          gatewayApi
+            .getSubintentStatus(hash)
+            .map(({ subintent_status }) => subintent_status),
+        new Set<SubintentStatus>(['CommittedSuccess']),
+        backoff,
+      ) as ResultAsync<SubintentStatus, SdkError>,
+    }
+  }
+
   return {
+    pollSubintentStatus,
     pollTransactionStatus,
     gatewayApi,
     configuration: input.clientConfig,

@@ -1,7 +1,6 @@
-import { Logger } from './../../helpers/logger'
 import { describe, expect, it, vi } from 'vitest'
 import { WalletRequestModule } from './wallet-request'
-import { GatewayModule, RadixNetwork, TransactionStatus } from '../gateway'
+import { RadixNetwork, TransactionStatus } from '../gateway'
 import { LocalStorageModule } from '../storage'
 import { ok, okAsync, ResultAsync } from 'neverthrow'
 import { WalletInteractionItems } from '../../schemas'
@@ -14,17 +13,19 @@ import { delayAsync } from '../../test-helpers/delay-async'
 
 const createMockEnvironment = () => {
   const storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`)
-  const requestItemModule = RequestItemModule({
-    providers: {
-      storageModule,
-    },
-  })
   const gatewayModule = {
     pollTransactionStatus: (hash: string) =>
       ResultAsync.fromSafePromise(delayAsync(2000)).map(() =>
         ok({ status: 'success' as TransactionStatus }),
       ),
   } as any
+  const requestItemModule = RequestItemModule({
+    providers: {
+      gatewayModule,
+      storageModule,
+    },
+  })
+
   const updateConnectButtonStatus = () => {}
   return {
     storageModule,

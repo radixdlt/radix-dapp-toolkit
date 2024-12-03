@@ -45,7 +45,7 @@ export class RadixRequestCard extends LitElement {
   @property({
     type: String,
   })
-  transactionIntentHash: string = ''
+  hash: string = ''
 
   render() {
     const icon = this.getIconFromStatus()
@@ -57,8 +57,10 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Transaction Cancelled',
         ignored: 'Transaction Ignored',
         success: 'Send transaction',
+        lookup: '',
+        timedOut: '',
         content: html`
-          ${this.renderTxIntentHash()}
+          ${this.renderHash()}
           ${this.status === 'pending'
             ? html`<div class="request-content">
                 Open your Radix Wallet app to review the transaction
@@ -73,11 +75,41 @@ export class RadixRequestCard extends LitElement {
             : ''}
         `,
       },
+      preAuthorizationRequest: {
+        pending: 'Preauthorization Pending',
+        fail: 'Preauthorization Failed',
+        cancelled: 'Preauthorization Cancelled',
+        success: 'Preauthorization Request',
+        ignored: 'Preauthorization Ignored',
+        lookup: 'Preauthorization Lookup',
+        timedOut: 'Preauthorization Timed Out',
+        content: html`
+          ${this.renderHash()}
+          ${this.status === 'pending'
+            ? html`<div class="request-content">
+                Open your Radix Wallet app to review the preauthorization
+                ${this.showCancel
+                  ? html`<div class="cancel" @click=${this.onCancel}>
+                      Cancel
+                    </div>`
+                  : html`<div class="cancel" @click=${this.onIgnore}>
+                      Ignore
+                    </div>`}
+              </div>`
+            : this.status === 'lookup'
+              ? html`<div class="request-content">
+                  <div class="cancel" @click=${this.onIgnore}>Ignore</div>
+                </div>`
+              : ''}
+        `,
+      },
       dataRequest: {
         pending: 'Data Request Pending',
         fail: 'Data Request Rejected',
         cancelled: 'Data Request Rejected',
         ignored: '',
+        lookup: '',
+        timedOut: '',
         success: 'Data Request',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
@@ -89,6 +121,8 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Login Request Rejected',
         success: 'Login Request',
         ignored: '',
+        lookup: '',
+        timedOut: '',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
         ),
@@ -99,16 +133,8 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Proof Request Rejected',
         success: 'Proof Request',
         ignored: '',
-        content: this.getRequestContentTemplate(
-          'Open Your Radix Wallet App to complete the request',
-        ),
-      },
-      preAuthorizationRequest: {
-        pending: 'Preauthorization Request Pending',
-        fail: 'Preauthorization Request Rejected',
-        cancelled: 'Preauthorization Request Rejected',
-        success: 'Preauthorization Request',
-        ignored: '',
+        lookup: '',
+        timedOut: '',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
         ),
@@ -136,7 +162,7 @@ export class RadixRequestCard extends LitElement {
       : ''
   }
 
-  private isErrorStatus(status: RequestStatusTypes) {
+  private hasErrorIcon(status: RequestStatusTypes) {
     return (
       [
         RequestStatus.cancelled,
@@ -146,19 +172,31 @@ export class RadixRequestCard extends LitElement {
     ).includes(status)
   }
 
+  private hasPendingIcon(status: RequestStatusTypes) {
+    return ([RequestStatus.pending, RequestStatus.lookup] as string[]).includes(
+      status,
+    )
+  }
+
+  private hasIgnoredIcon(status: RequestStatusTypes) {
+    return (
+      [RequestStatus.ignored, RequestStatus.timedOut] as string[]
+    ).includes(status)
+  }
+
   private getIconFromStatus() {
-    return this.status === RequestStatus.pending
+    return this.hasPendingIcon(this.status)
       ? 'pending'
-      : this.status === RequestStatus.ignored
+      : this.hasIgnoredIcon(this.status)
         ? 'ignored'
-        : this.isErrorStatus(this.status)
+        : this.hasErrorIcon(this.status)
           ? 'error'
           : 'checked'
   }
 
   private getStylingFromStatus() {
     return classMap({
-      dimmed: this.isErrorStatus(this.status),
+      dimmed: this.hasErrorIcon(this.status),
       inverted: this.status === 'pending',
     })
   }
@@ -189,12 +227,12 @@ export class RadixRequestCard extends LitElement {
     )
   }
 
-  private renderTxIntentHash() {
-    return this.transactionIntentHash
+  private renderHash() {
+    return this.hash
       ? html`<div class="transaction">
           <span class="text-dimmed">ID:</span>
           <radix-link
-            displayText="${shortenAddress(this.transactionIntentHash)}"
+            displayText="${shortenAddress(this.hash)}"
             @click=${(event: MouseEvent) => {
               event.preventDefault()
               this.dispatchEvent(
@@ -202,8 +240,11 @@ export class RadixRequestCard extends LitElement {
                   bubbles: true,
                   composed: true,
                   detail: {
-                    type: 'transaction',
-                    data: this.transactionIntentHash,
+                    type:
+                      this.type === 'sendTransaction'
+                        ? 'transaction'
+                        : 'subintent',
+                    data: this.hash,
                   },
                 }),
               )
