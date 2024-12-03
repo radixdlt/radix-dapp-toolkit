@@ -15,6 +15,7 @@ export type PreauthorizationPollingModuleInput = {
     ignoreTransactionSubject: Subject<string>
   }
 }
+export type PreauthorizationPollingModule = ReturnType<typeof PreauthorizationPollingModule>
 export const PreauthorizationPollingModule = (
   input: PreauthorizationPollingModuleInput,
 ) => {

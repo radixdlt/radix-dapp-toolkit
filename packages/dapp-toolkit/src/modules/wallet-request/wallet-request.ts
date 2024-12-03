@@ -64,6 +64,7 @@ export const WalletRequestModule = (input: {
     requestItemModule?: RequestItemModule
     walletRequestSdk?: WalletRequestSdk
     requestResolverModule?: RequestResolverModule
+    preauthorizationPollingModule?: PreauthorizationPollingModule
   }
 }) => {
   const logger = input.logger?.getSubLogger({ name: 'WalletRequestModule' })
@@ -93,14 +94,16 @@ export const WalletRequestModule = (input: {
       },
     })
 
-  const preauthorizationPollingModule = PreauthorizationPollingModule({
-    logger,
-    providers: {
-      gatewayModule,
-      requestItemModule,
-      ignoreTransactionSubject,
-    },
-  })
+  const preauthorizationPollingModule =
+    input.providers.preauthorizationPollingModule ??
+    PreauthorizationPollingModule({
+      logger,
+      providers: {
+        gatewayModule,
+        requestItemModule,
+        ignoreTransactionSubject,
+      },
+    })
 
   const updateConnectButtonStatus = (
     status: 'success' | 'fail' | 'pending',
