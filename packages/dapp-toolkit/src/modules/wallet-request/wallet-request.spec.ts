@@ -26,13 +26,11 @@ const createMockEnvironment = () => {
       ),
   } as any
   const updateConnectButtonStatus = () => {}
-  const stateModule = {} as any
   return {
     storageModule,
     requestItemModule,
     gatewayModule,
     updateConnectButtonStatus,
-    stateModule,
   }
 }
 
@@ -45,13 +43,10 @@ describe('WalletRequestModule', () => {
         requestItemModule,
         gatewayModule,
         updateConnectButtonStatus,
-        stateModule,
       } = createMockEnvironment()
 
       const requestResolverModule = RequestResolverModule({
         providers: {
-          stateModule,
-          gatewayModule,
           storageModule,
           requestItemModule,
           resolvers: [
@@ -61,7 +56,6 @@ describe('WalletRequestModule', () => {
               updateConnectButtonStatus,
             }),
           ],
-          updateConnectButtonStatus,
         },
       })
 
