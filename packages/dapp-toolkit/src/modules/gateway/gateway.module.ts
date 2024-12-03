@@ -25,23 +25,21 @@ export const GatewayModule = (input: {
   const gatewayApi =
     input?.providers?.gatewayApiService ?? GatewayApiService(input.clientConfig)
 
-  const poll = (
+  const poll = <T>(
     hash: string,
-    apiCall: (hash: string) => ResultAsync<string, { reason: string }>,
-    completedStatus: Set<string>,
-    retry = ExponentialBackoff(input.retryConfig),
-  ): ResultAsync<string, SdkError> => {
+    apiCall: () => ResultAsync<T | undefined, { reason: string }>,
+    exponentialBackoff: ReturnType<ExponentialBackoff>,
+  ): ResultAsync<T, SdkError> => {
     return ResultAsync.fromPromise(
       firstValueFrom(
-        retry.withBackoff$.pipe(
+        exponentialBackoff.withBackoff$.pipe(
           switchMap((result) => {
             if (result.isErr())
               return [
                 err(
                   SdkError('failedToPoll', '', undefined, {
                     error: result.error,
-                    context:
-                      'GatewayModule.poll.retry.withBackoff$',
+                    context: 'GatewayModule.poll.retry.withBackoff$',
                     hash,
                   }),
                 ),
@@ -49,35 +47,28 @@ export const GatewayModule = (input: {
 
             logger?.debug(`Polling ${hash} retry #${result.value + 1}`)
 
-            return apiCall(hash)
-              .map((response) => {
-                if (completedStatus.has(response)) return response
+            return apiCall().orElse((response) => {
+              if (response.reason === 'FailedToFetch') {
+                logger?.debug({
+                  error: response,
+                  context: 'unexpected error, retrying',
+                })
+                exponentialBackoff.trigger.next()
+                return ok(undefined)
+              }
 
-                retry.trigger.next()
-                return
-              })
-              .orElse((response) => {
-                if (response.reason === 'FailedToFetch') {
-                  logger?.debug({
-                    error: response,
-                    context: 'unexpected error, retrying',
-                  })
-                  retry.trigger.next()
-                  return ok(undefined)
-                }
-
-                logger?.debug(response)
-                return err(
-                  SdkError('failedToPoll', '', undefined, {
-                    error: response,
-                    hash,
-                    context: 'GatewayModule.poll',
-                  }),
-                )
-              })
+              logger?.debug(response)
+              return err(
+                SdkError('failedToPoll', '', undefined, {
+                  error: response,
+                  hash,
+                  context: 'GatewayModule.poll',
+                }),
+              )
+            })
           }),
           filter(
-            (result): result is Result<string, SdkError> =>
+            (result): result is Result<T, SdkError> =>
               (result.isOk() && !!result.value) || result.isErr(),
           ),
           first(),
@@ -89,39 +80,64 @@ export const GatewayModule = (input: {
 
   const pollTransactionStatus = (
     transactionIntentHash: string,
-  ): ResultAsync<TransactionStatus, SdkError> =>
-    poll(
+  ): ResultAsync<TransactionStatus, SdkError> => {
+    const exponentialBackoff = ExponentialBackoff(input.retryConfig)
+    return poll<TransactionStatus>(
       transactionIntentHash,
-      (hash) =>
-        gatewayApi.getTransactionStatus(hash).map(({ status }) => status),
-      new Set<TransactionStatus>([
-        'CommittedSuccess',
-        'CommittedFailure',
-        'Rejected',
-      ]),
-    ) as ResultAsync<TransactionStatus, SdkError>
+      () =>
+        gatewayApi
+          .getTransactionStatus(transactionIntentHash)
+          .map(({ status }) => {
+            const completedStatus = new Set<TransactionStatus>([
+              'CommittedSuccess',
+              'CommittedFailure',
+              'Rejected',
+            ])
+            if (completedStatus.has(status)) return status
+
+            exponentialBackoff.trigger.next()
+            return
+          }),
+      exponentialBackoff,
+    )
+  }
 
   const pollSubintentStatus = (
     subintentHash: string,
     expirationTimestamp: number,
   ) => {
-    const backoff = ExponentialBackoff({
+    const exponentialBackoff = ExponentialBackoff({
       ...input.retryConfig,
       maxDelayTime: 60_000,
       timeout: new Date(expirationTimestamp * 1000),
     })
 
     return {
-      stop: backoff.stop,
-      result: poll(
+      stop: exponentialBackoff.stop,
+      result: poll<{
+        subintentStatus: SubintentStatus
+        transactionIntentHash: string
+      }>(
         subintentHash,
-        (hash) =>
+        () =>
           gatewayApi
-            .getSubintentStatus(hash)
-            .map(({ subintent_status }) => subintent_status),
-        new Set<SubintentStatus>(['CommittedSuccess']),
-        backoff,
-      ) as ResultAsync<SubintentStatus, SdkError>,
+            .getSubintentStatus(subintentHash)
+            .map(
+              ({ subintent_status, finalized_at_transaction_intent_hash }) => {
+                if (subintent_status === 'CommittedSuccess') {
+                  return {
+                    subintentStatus: subintent_status,
+                    transactionIntentHash: finalized_at_transaction_intent_hash,
+                  }
+                }
+
+                exponentialBackoff.trigger.next()
+                return
+              },
+            ),
+
+        exponentialBackoff,
+      ),
     }
   }
 

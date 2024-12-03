@@ -15,7 +15,9 @@ export type PreauthorizationPollingModuleInput = {
     ignoreTransactionSubject: Subject<string>
   }
 }
-export type PreauthorizationPollingModule = ReturnType<typeof PreauthorizationPollingModule>
+export type PreauthorizationPollingModule = ReturnType<
+  typeof PreauthorizationPollingModule
+>
 export const PreauthorizationPollingModule = (
   input: PreauthorizationPollingModuleInput,
 ) => {
@@ -44,7 +46,7 @@ export const PreauthorizationPollingModule = (
   )
 
   const preauthorizationPollingLoop = async () => {
-    await requestItemModule.getLookedUp().andThen((lookedUpItems) => {
+    await requestItemModule.getPendingCommit().andThen((lookedUpItems) => {
       const timedOutItems: RequestItem[] = []
       const lookupItems: RequestItem[] = []
 
@@ -63,12 +65,19 @@ export const PreauthorizationPollingModule = (
             item.metadata?.expirationTimestamp as number,
           )
           activePolling.set(item.interactionId, polling)
-          polling.result.andTee((result) => {
-            requestItemModule.updateStatus({
-              id: item.interactionId,
-              status: RequestStatus.success,
+          polling.result
+            .andTee((result) =>
+              requestItemModule.updateStatus({
+                id: item.interactionId,
+                status: RequestStatus.success,
+                metadata: {
+                  parentTransactionIntentHash: result.transactionIntentHash,
+                },
+              }),
+            )
+            .mapErr(() => {
+              activePolling.delete(item.interactionId)
             })
-          })
         }
       })
 

@@ -29,12 +29,15 @@ export type PersonaData = { field: string; value: string }
 
 export const RequestStatus = {
   fail: 'fail',
-  lookup: 'lookup',
   ignored: 'ignored',
   pending: 'pending',
   success: 'success',
   timedOut: 'timedOut',
   cancelled: 'cancelled',
+  /**
+   * Pending commit status is for preauthorization which was signed but not yet successfully committed to the network
+   */
+  pendingCommit: 'pendingCommit',
 } as const
 
 export const RequestItemType = {

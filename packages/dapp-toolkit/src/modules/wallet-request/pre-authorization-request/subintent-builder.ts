@@ -2,7 +2,7 @@ import { SubintentRequestItem } from '../../../schemas'
 
 export type BuildableSubintentRequest = {
   toRequestItem: () => SubintentRequestItem
-  getOnSubmittedSuccessFn?: () => () => void
+  getOnSubmittedSuccessFn?: () => (transactionIntentHash: string) => void
 }
 /**
  * A builder function for creating a SubintentRequest.
@@ -24,15 +24,18 @@ export const SubintentRequestBuilder = () => {
     version: 1,
     manifestVersion: 2,
   }
-  let onSubmittedSuccessFn: () => void
+  let onSubmittedSuccessFn: (transactionIntentHash: string) => void
 
   /**
    * Adds a callback to be called when the preauthorization is included in successfully committed on ledger transaction.
-   * 
+   * This will be called with the committed transaction intent hash.
+   *
    * @param callback - function to be called when the preauthorization is included in successfully committed on ledger transaction
    * @returns The API object for chaining.
    */
-  const onSubmittedSuccess = (callback: () => void) => {
+  const onSubmittedSuccess = (
+    callback: (transactionIntentHash: string) => void,
+  ) => {
     onSubmittedSuccessFn = callback
     return api
   }

@@ -37,7 +37,7 @@ export const preAuthorizationResponseResolver =
     return requestItemModule
       .updateStatus({
         id: interactionId,
-        status: RequestStatus.lookup,
+        status: RequestStatus.pendingCommit,
         transactionIntentHash: subintentHash,
         metadata: {
           signedPartialTransaction,

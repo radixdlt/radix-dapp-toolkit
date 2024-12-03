@@ -33,12 +33,12 @@ export const GatewayApiService = ({
     })
 
   const getSubintentStatus = (subintentHash: string) =>
-    fetchWithHeaders<{ subintent_status: SubintentStatus }>(
-      '/transaction/subintent-status',
-      {
-        subintent_hash: subintentHash,
-      },
-    )
+    fetchWithHeaders<{
+      subintent_status: SubintentStatus
+      finalized_at_transaction_intent_hash: string
+    }>('/transaction/subintent-status', {
+      subintent_hash: subintentHash,
+    })
 
   const getEntityMetadataPage = (address: string) =>
     fetchWithHeaders<{

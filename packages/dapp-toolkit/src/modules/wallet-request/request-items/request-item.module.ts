@@ -88,7 +88,9 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
   }
 
   const isWalletInteractionRequired = (status: RequestStatusTypes) =>
-    ([RequestStatus.pending, RequestStatus.lookup] as string[]).includes(status)
+    ([RequestStatus.pending, RequestStatus.pendingCommit] as string[]).includes(
+      status,
+    )
 
   const updateStatus = ({
     id,
@@ -114,7 +116,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
             signals.delete(id)
           }
           if (status === RequestStatus.success) {
-            getAndRemoveSignal(id)?.('')
+            getAndRemoveSignal(id)?.(item.metadata?.parentTransactionIntentHash as string)
           }
           const updated = {
             ...item,
@@ -141,10 +143,12 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
       })
   }
 
-  const getLookedUp = () =>
+  const getPendingCommit = () =>
     storageModule
       .getItemList()
-      .map((items) => items.filter((item) => item.status === 'lookup'))
+      .map((items) =>
+        items.filter((item) => item.status === RequestStatus.pendingCommit),
+      )
 
   const getPending = () =>
     storageModule
@@ -166,7 +170,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     patch,
     getAndRemoveSignal,
     getById: (id: string) => storageModule.getItemById(id),
-    getLookedUp,
+    getPendingCommit,
     getPending,
     requests$,
     clear: storageModule.clear,

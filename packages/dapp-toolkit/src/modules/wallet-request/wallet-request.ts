@@ -303,7 +303,7 @@ export const WalletRequestModule = (input: {
     type: RequestItemTypes,
     walletInteraction: WalletInteraction,
     isOneTimeRequest: boolean,
-    signal?: (signalValue?: string) => void,
+    signal?: (transactionIntentHash: string) => void,
   ) =>
     requestItemModule
       .add(

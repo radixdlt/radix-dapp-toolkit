@@ -57,7 +57,7 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Transaction Cancelled',
         ignored: 'Transaction Ignored',
         success: 'Send transaction',
-        lookup: '',
+        pendingCommit: '',
         timedOut: '',
         content: html`
           ${this.renderHash()}
@@ -81,7 +81,7 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Preauthorization Cancelled',
         success: 'Preauthorization Request',
         ignored: 'Preauthorization Ignored',
-        lookup: 'Preauthorization Lookup',
+        pendingCommit: 'Preauthorization Lookup',
         timedOut: 'Preauthorization Timed Out',
         content: html`
           ${this.renderHash()}
@@ -96,7 +96,7 @@ export class RadixRequestCard extends LitElement {
                       Ignore
                     </div>`}
               </div>`
-            : this.status === 'lookup'
+            : this.status === RequestStatus.pendingCommit
               ? html`<div class="request-content">
                   <div class="cancel" @click=${this.onIgnore}>Ignore</div>
                 </div>`
@@ -108,7 +108,7 @@ export class RadixRequestCard extends LitElement {
         fail: 'Data Request Rejected',
         cancelled: 'Data Request Rejected',
         ignored: '',
-        lookup: '',
+        pendingCommit: '',
         timedOut: '',
         success: 'Data Request',
         content: this.getRequestContentTemplate(
@@ -121,7 +121,7 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Login Request Rejected',
         success: 'Login Request',
         ignored: '',
-        lookup: '',
+        pendingCommit: '',
         timedOut: '',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
@@ -133,7 +133,7 @@ export class RadixRequestCard extends LitElement {
         cancelled: 'Proof Request Rejected',
         success: 'Proof Request',
         ignored: '',
-        lookup: '',
+        pendingCommit: '',
         timedOut: '',
         content: this.getRequestContentTemplate(
           'Open Your Radix Wallet App to complete the request',
@@ -173,7 +173,7 @@ export class RadixRequestCard extends LitElement {
   }
 
   private hasPendingIcon(status: RequestStatusTypes) {
-    return ([RequestStatus.pending, RequestStatus.lookup] as string[]).includes(
+    return ([RequestStatus.pending, RequestStatus.pendingCommit] as string[]).includes(
       status,
     )
   }
