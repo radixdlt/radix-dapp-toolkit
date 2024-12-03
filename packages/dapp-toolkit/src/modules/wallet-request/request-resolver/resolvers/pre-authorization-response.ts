@@ -6,7 +6,6 @@ import {
 import { RequestItemModule } from '../../request-items'
 import { SdkError } from '../../../../error'
 import { UpdateConnectButtonStatus, WalletResponseResolver } from '../type'
-import { RequestStatus } from 'radix-connect-common'
 
 const matchResponse = (
   input: WalletInteractionResponse,
