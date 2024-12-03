@@ -50,7 +50,7 @@ export const sendTransactionResponseResolver =
       .getById(interactionId)
       .mapErr(() => SdkError('FailedToGetItemWithInteractionId', interactionId))
       .andTee(() =>
-        requestItemModule.maybeGetSignal(interactionId)?.(
+        requestItemModule.getAndRemoveSignal(interactionId)?.(
           transactionIntentHash,
         ),
       )

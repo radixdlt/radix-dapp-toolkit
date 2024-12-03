@@ -100,7 +100,6 @@ export const WalletRequestModule = (input: {
       providers: {
         storageModule,
         requestItemModule,
-        stateModule,
         resolvers: [
           sendTransactionResponseResolver({
             gatewayModule,
@@ -122,10 +121,6 @@ export const WalletRequestModule = (input: {
             updateConnectButtonStatus,
           }),
         ],
-        updateConnectButtonStatus: (status) => {
-          interactionStatusChangeSubject.next(status)
-        },
-        gatewayModule,
       },
     })
 

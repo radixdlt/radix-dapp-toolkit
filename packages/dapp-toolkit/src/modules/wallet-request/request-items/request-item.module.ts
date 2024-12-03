@@ -61,7 +61,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
       .map(() => item)
   }
 
-  const maybeGetSignal = (interactionId: string) => {
+  const getAndRemoveSignal = (interactionId: string) => {
     if (signals.has(interactionId)) {
       const signal = signals.get(interactionId)
       signals.delete(interactionId)
@@ -154,7 +154,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     cancel,
     updateStatus,
     patch,
-    maybeGetSignal,
+    getAndRemoveSignal,
     getById: (id: string) => storageModule.getItemById(id),
     getPending,
     requests$,
