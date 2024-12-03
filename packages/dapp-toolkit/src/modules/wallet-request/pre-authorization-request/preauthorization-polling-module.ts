@@ -58,7 +58,7 @@ export const PreauthorizationPollingModule = (
         }
       })
 
-      lookupItems.map((item) => {
+      lookupItems.forEach((item) => {
         if (!activePolling.has(item.interactionId)) {
           const polling = input.providers.gatewayModule.pollSubintentStatus(
             item.transactionIntentHash!,
