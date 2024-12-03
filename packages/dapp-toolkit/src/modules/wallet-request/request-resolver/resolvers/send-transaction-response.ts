@@ -46,8 +46,15 @@ export const sendTransactionResponseResolver =
       send: { transactionIntentHash },
     } = transactionResponse
 
-    return gatewayModule
-      .pollTransactionStatus(transactionIntentHash)
+    return requestItemModule
+      .getById(interactionId)
+      .mapErr(() => SdkError('FailedToGetItemWithInteractionId', interactionId))
+      .andTee(() =>
+        requestItemModule.getAndRemoveSignal(interactionId)?.(
+          transactionIntentHash,
+        ),
+      )
+      .andThen(() => gatewayModule.pollTransactionStatus(transactionIntentHash))
       .andThen(({ status }) => {
         const isFailedTransaction = determineFailedTransaction(status)
         const requestItemStatus = isFailedTransaction ? 'fail' : 'success'

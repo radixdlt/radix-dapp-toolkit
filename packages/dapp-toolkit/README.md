@@ -449,7 +449,9 @@ Radix transactions are built using "transaction manifests", that use a simple sy
 
 It is important to note that what your dApp sends to the Radix Wallet is actually a "transaction manifest stub". It is completed before submission by the Radix Wallet. For example, the Radix Wallet will automatically add a command to lock the necessary amount of network fees from one of the user's accounts. It may also add "assert" commands to the manifest according to user desires for expected returns.
 
-**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs.radixdlt.com/docs/conforming-transaction-manifest-types) that ensures clear presentation and handling in the Radix Wallet.
+> [!NOTE]
+> Some of the manifests will have a nice presentation in the Radix Wallet, others will be displayed as raw text. Read more on ["comforming" transaction manifest stub format](https://docs.radixdlt.com/docs/conforming-transaction-manifest-types).
+
 
 ### Build transaction manifest
 
@@ -457,7 +459,7 @@ We recommend using template strings for constructing simpler transaction manifes
 
 ### sendTransaction
 
-This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed.
+This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed. `sendTransaction` promise will only be resolved after transaction has been committed to the network (either successfuly or rejected/failure). If you want to do your own logic as soon as transaction id is available, please use `onTransactionId` callback. It will be called immediately after RDT receives response from the Radix Wallet.
 
 ```typescript
 type SendTransactionInput = {

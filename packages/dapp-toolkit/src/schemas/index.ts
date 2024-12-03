@@ -274,6 +274,8 @@ export const SubintentRequestItem = object({
 
 export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>
 export const SubintentResponseItem = object({
+  expirationTimestamp: number(),
+  subintentHash: string(),
   signedPartialTransaction: string(),
 })
 
