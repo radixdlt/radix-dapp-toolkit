@@ -16,7 +16,7 @@ export type BuildableSubintentRequest = {
  *   .setExpiration('atTime', 1234567890)
  *   .addBlobs('blob1', 'blob2')
  *   .message('This is a message')
- *   .onSubmittedSuccess(() => console.log('Submitted successfully'))
+ *   .onSubmittedSuccess((transactionIntentHash) => console.log('Submitted successfully', transactionIntentHash))
  */
 export const SubintentRequestBuilder = () => {
   let state: Partial<SubintentRequestItem> = {
