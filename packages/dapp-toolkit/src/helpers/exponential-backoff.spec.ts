@@ -52,6 +52,27 @@ describe('exponential backoff', () => {
     })
   })
 
+  it('should emit error after stop', async () => {
+    const backoff = ExponentialBackoff({})
+    const spy = vi.fn()
+
+    subscription.add(
+      backoff.withBackoff$.subscribe((res) => {
+        spy(res.isOk() ? res.value : res.error)
+        if (res.isOk()) {
+          backoff.trigger.next()
+        }
+      }),
+    )
+
+    await delayAsync(2000)
+    backoff.stop()
+    expect(spy).toHaveBeenCalledWith(0)
+    expect(spy).toHaveBeenCalledWith({
+      error: 'stopped',
+    })
+  })
+
   afterAll(() => {
     subscription.unsubscribe()
   })
