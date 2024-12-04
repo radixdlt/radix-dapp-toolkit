@@ -6,6 +6,13 @@
   background: #7a7676;
 }
 
+.column.custom {
+  --radix-connect-button-background: red;
+  --radix-connect-button-text-color: black;
+  --radix-connect-button-border-color: yellow;
+  --radix-connect-button-background-hover: green;
+}
+
 .row {
   margin: 1rem;
   white-space: nowrap;

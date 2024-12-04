@@ -133,6 +133,9 @@ export const Themes: Story = {
             connected: false,
           })}
         </div>
+        <div class="column custom">
+          ${createRow({ ...args, theme: 'custom', connected: false })}
+        </div>
         <div class="column dark">
           ${createRow({ ...args, theme: 'white', connected: false })}
         </div>
