@@ -540,12 +540,21 @@ Play around with the different configurations using the [√ Connect Button stor
 <img src="docs/themes.jpeg" alt="Connect Button Themes"> 
 </div>
 
-There are four themes you can choose from by default: `radix-blue` (default), `black`, `white-with-outline`, `white`. In order to do that, call following function after RDT instantiation
+There are four themes you can choose from by default: `radix-blue` (default), `black`, `white-with-outline`, `white` and a special one called `custom`. In order to do that, call following function after RDT instantiation
 
 ```typescript
 rdt.buttonApi.setTheme('black')
 ```
 
+Using `custom` theme will let you override additional CSS variables. With that you can completely change the UI for not connected connect button.
+
+```css
+body {
+  --radix-connect-button-background: red;
+  --radix-connect-button-text-color: black;
+  --radix-connect-button-border-color: yellow;
+  --radix-connect-button-background-hover: green;
+}
 ### Modes
 
 <div align="center">

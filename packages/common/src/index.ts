@@ -14,6 +14,7 @@ export const RadixButtonTheme = {
   black: 'black',
   'white-with-outline': 'white-with-outline',
   white: 'white',
+  custom: 'custom',
 } as const
 
 export type RadixButtonTheme = keyof typeof RadixButtonTheme
