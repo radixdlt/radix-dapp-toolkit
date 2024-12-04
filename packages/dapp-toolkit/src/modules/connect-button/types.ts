@@ -23,7 +23,7 @@ export type ConnectButtonModuleOutput = {
   onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
   onLinkClick$: Observable<{
-    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet'
+    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet' | 'subintent'
     data: string
   }>
   setMode: (value: 'light' | 'dark') => void

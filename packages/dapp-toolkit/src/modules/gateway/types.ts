@@ -8,6 +8,8 @@ export const TransactionStatus = {
   Rejected: 'Rejected',
 } as const
 
+export type SubintentStatus = Extract<TransactionStatus, 'CommittedSuccess' | 'Unknown'>
+
 export type MetadataStringValue = {
   type: 'String'
   value: string

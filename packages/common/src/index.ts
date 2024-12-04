@@ -28,18 +28,23 @@ export type RadixButtonMode = keyof typeof RadixButtonMode
 export type PersonaData = { field: string; value: string }
 
 export const RequestStatus = {
+  fail: 'fail',
+  ignored: 'ignored',
   pending: 'pending',
   success: 'success',
-  fail: 'fail',
+  timedOut: 'timedOut',
   cancelled: 'cancelled',
-  ignored: 'ignored',
+  /**
+   * Pending commit status is for preauthorization which was signed but not yet successfully committed to the network
+   */
+  pendingCommit: 'pendingCommit',
 } as const
 
 export const RequestItemType = {
-  loginRequest: 'loginRequest',
   dataRequest: 'dataRequest',
-  sendTransaction: 'sendTransaction',
   proofRequest: 'proofRequest',
+  loginRequest: 'loginRequest',
+  sendTransaction: 'sendTransaction',
   preAuthorizationRequest: 'preAuthorizationRequest',
 } as const
 
@@ -49,6 +54,10 @@ export type RequestItemTypes = keyof typeof RequestItemType
 
 export type RequestStatusTypes = keyof typeof RequestStatus
 
+/**
+ * Not used in the codebase. Will be removed in the next major release future.
+ * @deprecated
+ */
 export type WalletRequest<
   RequestType extends RequestItemTypes,
   Status extends RequestStatusTypes,
@@ -81,3 +90,4 @@ export type RequestItem = {
   metadata?: Record<string, string | number | boolean>
   walletData?: any
 }
+

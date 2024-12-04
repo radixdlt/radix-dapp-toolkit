@@ -2,6 +2,7 @@ import { SubintentRequestItem } from '../../../schemas'
 
 export type BuildableSubintentRequest = {
   toRequestItem: () => SubintentRequestItem
+  getOnSubmittedSuccessFn?: () => (transactionIntentHash: string) => void
 }
 /**
  * A builder function for creating a SubintentRequest.
@@ -15,13 +16,28 @@ export type BuildableSubintentRequest = {
  *   .setExpiration('atTime', 1234567890)
  *   .addBlobs('blob1', 'blob2')
  *   .message('This is a message')
-
+ *   .onSubmittedSuccess((transactionIntentHash) => console.log('Submitted successfully', transactionIntentHash))
  */
 export const SubintentRequestBuilder = () => {
   let state: Partial<SubintentRequestItem> = {
     discriminator: 'subintent',
     version: 1,
     manifestVersion: 2,
+  }
+  let onSubmittedSuccessFn: (transactionIntentHash: string) => void
+
+  /**
+   * Adds a callback to be called when the preauthorization is included in successfully committed on ledger transaction.
+   * This will be called with the committed transaction intent hash.
+   *
+   * @param callback - function to be called when the preauthorization is included in successfully committed on ledger transaction
+   * @returns The API object for chaining.
+   */
+  const onSubmittedSuccess = (
+    callback: (transactionIntentHash: string) => void,
+  ) => {
+    onSubmittedSuccessFn = callback
+    return api
   }
 
   /**
@@ -102,6 +118,8 @@ export const SubintentRequestBuilder = () => {
     addBlobs,
     message,
     toRequestItem,
+    onSubmittedSuccess,
+    getOnSubmittedSuccessFn: () => onSubmittedSuccessFn,
   } as const
 
   return { manifest, rawConfig }

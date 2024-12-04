@@ -37,6 +37,7 @@ export type Providers = {
 export type ExplorerConfig = {
   baseUrl: string
   transactionPath: string
+  subintentPath: string
   accountsPath: string
 }
 

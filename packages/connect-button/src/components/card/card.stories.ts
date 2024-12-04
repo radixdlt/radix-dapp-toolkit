@@ -97,7 +97,7 @@ export const Requests: Story = {
           console.log('onIgnoreTransactionItem', event)
         }}
         ?showCancel="${args.showCancel}"
-        transactionIntentHash="${args.transactionIntentHash}"
+        hash="${args.transactionIntentHash}"
       ></radix-request-card>
     </radix-popover>
   `,

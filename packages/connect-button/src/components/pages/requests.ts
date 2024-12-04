@@ -36,7 +36,7 @@ export class RadixRequestsPage extends LitElement {
               type="${requestItem.type}"
               status="${requestItem.status}"
               id="${requestItem.interactionId}"
-              transactionIntentHash="${requestItem.transactionIntentHash || ''}"
+              hash="${requestItem.transactionIntentHash || ''}"
               ?showCancel="${requestItem.showCancel}"
               timestamp=${requestItem.createdAt}
             ></radix-request-card>`,
