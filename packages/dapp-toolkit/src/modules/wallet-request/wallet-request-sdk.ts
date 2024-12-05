@@ -1,12 +1,14 @@
-import { Result, ResultAsync, err, ok } from 'neverthrow'
+import { Result, ResultAsync, err, errAsync, ok, okAsync } from 'neverthrow'
 import { TransportProvider } from '../../_types'
-import { Logger, validateWalletResponse } from '../../helpers'
+import { Logger } from '../../helpers'
 import {
   Metadata,
   CallbackFns,
   WalletInteractionItems,
   WalletInteraction,
+  WalletInteractionFailureResponse,
   WalletInteractionResponse,
+  WalletInteractionSuccessResponse,
 } from '../../schemas'
 import { parse } from 'valibot'
 import { SdkError } from '../../error'
@@ -86,15 +88,24 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       items,
     }: { interactionId?: string; items: WalletInteraction['items'] },
     callbackFns: Partial<CallbackFns> = {},
-  ): ResultAsync<unknown, SdkError> =>
+  ): ResultAsync<
+    WalletInteractionSuccessResponse,
+    SdkError | WalletInteractionFailureResponse
+  > =>
     withInterceptor({
       items,
       interactionId,
       metadata,
     }).andThen((walletInteraction) =>
-      getTransport(walletInteraction.interactionId).asyncAndThen((transport) =>
-        transport.send(walletInteraction, callbackFns),
-      ),
+      getTransport(walletInteraction.interactionId)
+        .asyncAndThen((transport) =>
+          transport.send(walletInteraction, callbackFns),
+        )
+        .andThen((response) =>
+          response.discriminator === 'failure'
+            ? errAsync(response)
+            : okAsync(response),
+        ),
     )
 
   return {

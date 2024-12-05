@@ -1,4 +1,4 @@
-import { err, ok, okAsync, ResultAsync } from 'neverthrow'
+import { err, ok, okAsync, Result, ResultAsync } from 'neverthrow'
 import { validateWalletResponse, type Logger } from '../../../helpers'
 import type { WalletInteractionResponse } from '../../../schemas'
 import type { StorageModule } from '../../storage'
@@ -62,17 +62,19 @@ export const RequestResolverModule = (input: {
     requestItemModule.patch(interactionId, { sentToWallet: true })
 
   const addWalletResponses = (responses: WalletInteractionResponse[]) =>
-    ResultAsync.combine(responses.map(validateWalletResponse)).andThen(() =>
-      walletResponses.setItems(
-        responses.reduce<Record<string, WalletInteractionResponse>>(
-          (acc, response) => {
-            acc[response.interactionId] = response
-            return acc
-          },
-          {},
+    Result.combine(responses.map(validateWalletResponse))
+      .asyncAndThen(() =>
+        walletResponses.setItems(
+          responses.reduce<Record<string, WalletInteractionResponse>>(
+            (acc, response) => {
+              acc[response.interactionId] = response
+              return acc
+            },
+            {},
+          ),
         ),
-      ),
-    )
+      )
+      .mapErr((error) => logger?.error({ method: 'addWalletResponses', error }))
 
   const toRequestItemMap = (items: RequestItem[]) =>
     items.reduce<Record<string, RequestItem>>(
