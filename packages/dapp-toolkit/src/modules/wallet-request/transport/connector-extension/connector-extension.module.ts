@@ -20,7 +20,7 @@ import {
   tap,
   timer,
 } from 'rxjs'
-import { Logger, isMobile, unwrapObservable } from '../../../../helpers'
+import { Logger, unwrapObservable } from '../../../../helpers'
 import {
   CallbackFns,
   IncomingMessage,
@@ -34,6 +34,7 @@ import { SdkError } from '../../../../error'
 import { TransportProvider } from '../../../../_types'
 import { v4 as uuidV4 } from 'uuid'
 import type { RequestResolverModule } from '../../request-resolver/request-resolver.module'
+import { EnvironmentModule } from '../../../environment'
 
 export type ConnectorExtensionModule = ReturnType<
   typeof ConnectorExtensionModule
@@ -44,6 +45,7 @@ export const ConnectorExtensionModule = (input: {
   logger?: Logger
   extensionDetectionTime?: number
   providers: {
+    environmentModule: EnvironmentModule
     requestResolverModule: RequestResolverModule
     storageModule: StorageModule<{ sessionId?: string }>
   }
@@ -94,7 +96,7 @@ export const ConnectorExtensionModule = (input: {
             method: 'outgoingMessageSubject',
             payload,
           })
-          window.dispatchEvent(
+          input.providers.environmentModule.globalThis.dispatchEvent(
             new CustomEvent(eventType.outgoingMessage, {
               detail: payload,
             }),
@@ -310,7 +312,7 @@ export const ConnectorExtensionModule = (input: {
 
   return {
     id: 'connector-extension' as const,
-    isSupported: () => !isMobile(),
+    isSupported: () => !input.providers.environmentModule.isMobile(),
     send: sendWalletInteraction,
     isAvailable$: extensionStatus$.pipe(
       map(({ isExtensionAvailable }) => isExtensionAvailable),
@@ -319,7 +321,7 @@ export const ConnectorExtensionModule = (input: {
       map(({ isWalletLinked }) => isWalletLinked),
     ),
     showQrCode: () => {
-      window.dispatchEvent(
+      input.providers.environmentModule.globalThis.dispatchEvent(
         new CustomEvent(eventType.outgoingMessage, {
           detail: { discriminator: 'openPopup' },
         }),

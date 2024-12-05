@@ -1,6 +1,5 @@
 export * from './exponential-backoff'
 export * from './fetch-wrapper'
-export * from './is-mobile'
 export * from './logger'
 export * from './parse-json'
 export * from './remove-undefined'

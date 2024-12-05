@@ -5,12 +5,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { LocalStorageModule, StorageModule } from './local-storage.module'
 import { ResultAsync } from 'neverthrow'
+import { EnvironmentModule } from '../environment'
 
 describe('LocalStorageModule', () => {
   let storageModule: StorageModule
 
   beforeEach(() => {
-    storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`)
+    storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`, {
+      providers: {
+        environmentModule: EnvironmentModule(),
+      },
+    })
   })
 
   it('should store and read data', async () => {

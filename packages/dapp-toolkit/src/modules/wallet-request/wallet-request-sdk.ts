@@ -1,16 +1,16 @@
 import { Result, ResultAsync, err, ok } from 'neverthrow'
 import { TransportProvider } from '../../_types'
-import { Logger, validateWalletResponse } from '../../helpers'
+import { Logger } from '../../helpers'
 import {
   Metadata,
   CallbackFns,
   WalletInteractionItems,
   WalletInteraction,
-  WalletInteractionResponse,
 } from '../../schemas'
 import { parse } from 'valibot'
 import { SdkError } from '../../error'
 import { v4 as uuidV4 } from 'uuid'
+import { EnvironmentModule } from '../environment'
 
 export type WalletRequestSdkInput = {
   networkId: number
@@ -22,6 +22,7 @@ export type WalletRequestSdkInput = {
   ) => Promise<WalletInteraction>
   providers: {
     transports: TransportProvider[]
+    environmentModule: EnvironmentModule
   }
 }
 export type WalletRequestSdk = ReturnType<typeof WalletRequestSdk>
@@ -31,7 +32,9 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
     version: 2,
     dAppDefinitionAddress: input.dAppDefinitionAddress,
     networkId: input.networkId,
-    origin: input.origin || window.location.origin,
+    origin:
+      input.origin ||
+      input.providers.environmentModule.globalThis?.location?.origin || '',
   } as Metadata
 
   parse(Metadata, metadata)

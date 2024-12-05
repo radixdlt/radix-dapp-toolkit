@@ -7,6 +7,7 @@ import {
   DataRequestBuilder,
   OneTimeDataRequestBuilder,
   LocalStorageModule,
+  EnvironmentModule,
   generateRolaChallenge,
   SubintentRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
@@ -15,6 +16,11 @@ const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
 const networkId = RadixNetwork.Stokenet
 const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
+  {
+    providers: {
+      environmentModule: EnvironmentModule(),
+    },
+  },
 )
 const requestsStore = storageModule.getPartition('requests')
 const sessionStore = storageModule.getPartition('sessions')
