@@ -3,13 +3,20 @@ import { WalletRequestModule } from './wallet-request'
 import { RadixNetwork, TransactionStatus } from '../gateway'
 import { LocalStorageModule } from '../storage'
 import { ok, okAsync, ResultAsync } from 'neverthrow'
-import { WalletInteractionItems } from '../../schemas'
 import {
+  WalletInteractionFailureResponse,
+  WalletInteractionItems,
+} from '../../schemas'
+import {
+  failedResponseResolver,
   RequestResolverModule,
   sendTransactionResponseResolver,
 } from './request-resolver'
 import { RequestItemModule } from './request-items'
 import { delayAsync } from '../../test-helpers/delay-async'
+import { WalletRequestSdk } from './wallet-request-sdk'
+import { TransportProvider } from '../../_types'
+import { TestingTransportModule } from './transport/testing-transport/transport.testing-module'
 
 const createMockEnvironment = () => {
   const storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`)
@@ -122,6 +129,74 @@ describe('WalletRequestModule', () => {
         .toHaveBeenCalledWith(
           expect.objectContaining({ transactionIntentHash: 'intent_hash' }),
         )
+    })
+  })
+
+  describe('GIVEN wallet responds with discriminator "failure"', () => {
+    it('should return error result', async () => {
+      // Arange
+      const {
+        storageModule,
+        requestItemModule,
+        gatewayModule,
+        updateConnectButtonStatus,
+      } = createMockEnvironment()
+
+      const requestResolverModule = RequestResolverModule({
+        providers: {
+          storageModule,
+          requestItemModule,
+          resolvers: [
+            failedResponseResolver({
+              requestItemModule,
+              updateConnectButtonStatus,
+            }),
+          ],
+        },
+      })
+
+      const interactionId = '8cefec84-542d-40af-8782-b89df05db8ac'
+
+      const testingTransport = TestingTransportModule({ requestResolverModule })
+      testingTransport.setNextWalletResponse({
+        discriminator: 'failure',
+        interactionId: '8cefec84-542d-40af-8782-b89df05db8ac',
+        error: 'rejectedByUser',
+      })
+
+      const walletRequestModule = WalletRequestModule({
+        useCache: false,
+        networkId: RadixNetwork.Stokenet,
+        dAppDefinitionAddress: '',
+        providers: {
+          stateModule: {} as any,
+          storageModule,
+          requestItemModule,
+          requestResolverModule,
+          gatewayModule,
+          walletRequestSdk: WalletRequestSdk({
+            networkId: 2,
+            dAppDefinitionAddress: '',
+            providers: {
+              interactionIdFactory: () => interactionId,
+              transports: [testingTransport],
+            },
+          }),
+        },
+      })
+
+      // Act
+      const result = await walletRequestModule.sendTransaction({
+        transactionManifest: ``,
+      })
+
+      // Assert
+      expect(result.isErr() && result.error).toEqual(
+        expect.objectContaining({
+          discriminator: 'failure',
+          error: 'rejectedByUser',
+        }),
+      )
     })
   })
 })

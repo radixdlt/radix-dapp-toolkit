@@ -7,6 +7,7 @@ import {
   Persona,
   PersonaDataName,
   WalletInteraction,
+  WalletInteractionResponse,
 } from './schemas'
 import type { Logger } from './helpers'
 import type { SdkError } from './error'
@@ -175,7 +176,7 @@ export type TransportProvider = {
   send: (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ) => ResultAsync<unknown, SdkError>
+  ) => ResultAsync<WalletInteractionResponse, SdkError>
   disconnect: () => void
   destroy: () => void
 }

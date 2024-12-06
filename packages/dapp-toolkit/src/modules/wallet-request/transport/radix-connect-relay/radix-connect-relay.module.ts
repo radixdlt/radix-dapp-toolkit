@@ -156,7 +156,7 @@ export const RadixConnectRelayModule = (input: {
   const sendToWallet = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ): ResultAsync<unknown, SdkError> =>
+  ): ResultAsync<WalletInteractionResponse, SdkError> =>
     ResultAsync.combine([
       sessionModule
         .getCurrentSession()
@@ -194,6 +194,7 @@ export const RadixConnectRelayModule = (input: {
             walletInteraction.interactionId,
           ),
         )
+        .map((requestItem) => requestItem.walletResponse),
     )
 
   const decryptWalletResponseData = (

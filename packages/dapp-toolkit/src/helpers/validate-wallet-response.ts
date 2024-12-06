@@ -1,30 +1,22 @@
-import { Result, ResultAsync, errAsync, okAsync } from 'neverthrow'
-import {
-  WalletInteractionResponse,
-  WalletInteractionSuccessResponse,
-} from '../schemas'
+import { Result } from 'neverthrow'
+import { WalletInteractionResponse } from '../schemas'
 import { SdkError } from '../error'
 import { parse } from 'valibot'
 
 export const validateWalletResponse = (
   walletResponse: unknown,
-): ResultAsync<
-  WalletInteractionSuccessResponse,
-  SdkError | { discriminator: 'failure'; interactionId: string; error: string }
-> => {
+): Result<WalletInteractionResponse, SdkError> => {
   const fn = Result.fromThrowable(
     (_) => parse(WalletInteractionResponse, _),
     (error) => error,
   )
 
-  const result = fn(walletResponse)
-  if (result.isErr()) {
-    return errAsync(SdkError('walletResponseValidation', '', 'Invalid input'))
-  } else if (result.isOk()) {
-    return result.value.discriminator === 'success'
-      ? okAsync(result.value)
-      : errAsync(result.value)
-  }
-
-  return errAsync(SdkError('walletResponseValidation', ''))
+  return fn(walletResponse).mapErr((response) =>
+    SdkError(
+      'walletResponseValidation',
+      (walletResponse as any)?.interactionId,
+      'Invalid input',
+      response,
+    ),
+  )
 }

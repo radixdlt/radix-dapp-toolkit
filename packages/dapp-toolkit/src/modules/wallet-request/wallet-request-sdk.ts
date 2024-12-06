@@ -1,12 +1,14 @@
-import { Result, ResultAsync, err, ok } from 'neverthrow'
+import { Result, ResultAsync, err, errAsync, ok, okAsync } from 'neverthrow'
 import { TransportProvider } from '../../_types'
-import { Logger, validateWalletResponse } from '../../helpers'
+import { Logger } from '../../helpers'
 import {
   Metadata,
   CallbackFns,
   WalletInteractionItems,
   WalletInteraction,
+  WalletInteractionFailureResponse,
   WalletInteractionResponse,
+  WalletInteractionSuccessResponse,
 } from '../../schemas'
 import { parse } from 'valibot'
 import { SdkError } from '../../error'
@@ -22,6 +24,7 @@ export type WalletRequestSdkInput = {
   ) => Promise<WalletInteraction>
   providers: {
     transports: TransportProvider[]
+    interactionIdFactory?: () => string
   }
 }
 export type WalletRequestSdk = ReturnType<typeof WalletRequestSdk>
@@ -33,6 +36,8 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
     networkId: input.networkId,
     origin: input.origin || window.location.origin,
   } as Metadata
+
+  const interactionIdFactory = input.providers.interactionIdFactory ?? uuidV4
 
   parse(Metadata, metadata)
 
@@ -50,7 +55,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const createWalletInteraction = (
     items: WalletInteractionItems,
-    interactionId = uuidV4(),
+    interactionId = interactionIdFactory(),
   ): WalletInteraction => ({
     items,
     interactionId,
@@ -86,15 +91,24 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
       items,
     }: { interactionId?: string; items: WalletInteraction['items'] },
     callbackFns: Partial<CallbackFns> = {},
-  ): ResultAsync<unknown, SdkError> =>
+  ): ResultAsync<
+    WalletInteractionSuccessResponse,
+    SdkError | WalletInteractionFailureResponse
+  > =>
     withInterceptor({
       items,
       interactionId,
       metadata,
     }).andThen((walletInteraction) =>
-      getTransport(walletInteraction.interactionId).asyncAndThen((transport) =>
-        transport.send(walletInteraction, callbackFns),
-      ),
+      getTransport(walletInteraction.interactionId)
+        .asyncAndThen((transport) =>
+          transport.send(walletInteraction, callbackFns),
+        )
+        .andThen((response) =>
+          response.discriminator === 'failure'
+            ? errAsync(response)
+            : okAsync(response),
+        ),
     )
 
   return {

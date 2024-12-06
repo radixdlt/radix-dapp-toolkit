@@ -27,6 +27,7 @@ import {
   MessageLifeCycleExtensionStatusEvent,
   WalletInteraction,
   WalletInteractionExtensionInteraction,
+  WalletInteractionResponse,
   eventType,
 } from '../../../../schemas'
 import { StorageModule } from '../../../storage'
@@ -143,7 +144,7 @@ export const ConnectorExtensionModule = (input: {
   const sendWalletInteraction = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ): ResultAsync<unknown, SdkError> => {
+  ): ResultAsync<WalletInteractionResponse, SdkError> => {
     const cancelRequestSubject = new Subject<Err<never, SdkError>>()
 
     const maybeResolved$ = from(

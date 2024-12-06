@@ -217,8 +217,8 @@ resetButton.onclick = () => {
   window.location.replace(window.location.origin)
 }
 
-sendTxButton.onclick = () => {
-  dAppToolkit.walletApi.sendTransaction({
+sendTxButton.onclick = async () => {
+  const res = await dAppToolkit.walletApi.sendTransaction({
     transactionManifest: `
     CALL_METHOD
       Address("component_tdx_2_1cptxxxxxxxxxfaucetxxxxxxxxx000527798379xxxxxxxxxyulkzl")
@@ -232,6 +232,7 @@ sendTxButton.onclick = () => {
       Enum<0u8>()
     ;`,
   })
+  console.log('send tx result', res)
 }
 
 oneTimeRequest.onclick = () => {
