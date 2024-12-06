@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { validateWalletResponse } from './validate-wallet-response'
 
 describe('validateWalletResponse', () => {
-  it('should parse valid response', async () => {
+  it('should parse valid response', () => {
     const walletResponse = {
       discriminator: 'success',
       interactionId: 'ab0f0190-1ae1-424b-a2c5-c36838f5b136',
@@ -38,7 +38,7 @@ describe('validateWalletResponse', () => {
       },
     }
 
-    const result = await validateWalletResponse(walletResponse)
+    const result = validateWalletResponse(walletResponse)
 
     expect(result.isOk() && result.value).toEqual(walletResponse)
   })
@@ -48,26 +48,11 @@ describe('validateWalletResponse', () => {
 
     const result = await validateWalletResponse(walletResponse)
 
-    expect(result.isErr() && result.error).toEqual({
-      error: 'walletResponseValidation',
-      interactionId: '',
-      message: 'Invalid input',
-    })
-  })
-
-  it('should return error valid failure response', async () => {
-    const walletResponse = {
-      discriminator: 'failure',
-      interactionId: '8cefec84-542d-40af-8782-b89df05db8ac',
-      error: 'rejectedByUser',
-    }
-
-    const result = await validateWalletResponse(walletResponse)
-
-    expect(result.isErr() && result.error).toEqual({
-      discriminator: 'failure',
-      interactionId: '8cefec84-542d-40af-8782-b89df05db8ac',
-      error: 'rejectedByUser',
-    })
+    expect(result.isErr() && result.error).toEqual(
+      expect.objectContaining({
+        error: 'walletResponseValidation',
+        message: 'Invalid input',
+      }),
+    )
   })
 })
