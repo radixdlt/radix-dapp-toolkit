@@ -195,7 +195,6 @@ export class ConnectButton extends LitElement {
 
   private toggleParentBackdropFilter() {
     const OPACITY_TRANSITION_DURATION = 180
-    if (!this.isMobile) return
 
     if (!this.showPopoverMenu && this.parentElementWithBackdropFilter) {
       setTimeout(() => {

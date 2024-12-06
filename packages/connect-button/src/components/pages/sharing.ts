@@ -81,7 +81,7 @@ export class RadixSharingPage extends LitElement {
         <radix-themed-button
           class=${classMap({
             full: true,
-            disabled: this.accounts.length === 0,
+            disabled: this.accounts?.length === 0,
           })}
           @click=${this.onUpdateData}
         >
@@ -89,7 +89,7 @@ export class RadixSharingPage extends LitElement {
             class=${classMap({
               icon: true,
               'update-data': true,
-              disabled: this.accounts.length === 0,
+              disabled: this.accounts?.length === 0,
             })}
           ></div>
           Update Account Sharing

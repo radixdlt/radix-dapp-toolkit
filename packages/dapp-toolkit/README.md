@@ -6,7 +6,7 @@ RDT supports both desktop and mobile browser web apps. For desktop browsers, it 
 
 **RDT is composed of:**
 
-- **√ Connect Button** – A framework agnostic web component that keeps a minimal internal state and have properties are pushed to it.
+- **√ Connect Button** – A framework agnostic [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements) that serves as user interface for RDT ([readme](../connect-button/README.md))
 
 - **Tools** – Abstractions over lower level APIs for developers to build their radix dApps at lightning speed.
 
@@ -34,7 +34,7 @@ Add following code to head section of your page. See example usage inside `examp
 
 ## Using `create-radix-dapp`
 
-Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps!
+Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps.
 
 ```bash
 npx create-radix-dapp@latest

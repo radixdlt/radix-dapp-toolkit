@@ -6,8 +6,8 @@ import {
   RadixButtonStatus,
   RequestItem,
 } from 'radix-connect-common'
-import './connect-button'
-import { ConnectButton } from './connect-button'
+import '../components/connect-button'
+import { ConnectButton } from '../components/connect-button'
 import './connect-button.stories.css'
 import { BUTTON_MIN_WIDTH } from '../constants'
 
