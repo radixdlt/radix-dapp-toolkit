@@ -24,6 +24,7 @@ export type WalletRequestSdkInput = {
   ) => Promise<WalletInteraction>
   providers: {
     transports: TransportProvider[]
+    interactionIdFactory?: () => string
   }
 }
 export type WalletRequestSdk = ReturnType<typeof WalletRequestSdk>
@@ -35,6 +36,8 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
     networkId: input.networkId,
     origin: input.origin || window.location.origin,
   } as Metadata
+
+  const interactionIdFactory = input.providers.interactionIdFactory ?? uuidV4
 
   parse(Metadata, metadata)
 
@@ -52,7 +55,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
 
   const createWalletInteraction = (
     items: WalletInteractionItems,
-    interactionId = uuidV4(),
+    interactionId = interactionIdFactory(),
   ): WalletInteraction => ({
     items,
     interactionId,
