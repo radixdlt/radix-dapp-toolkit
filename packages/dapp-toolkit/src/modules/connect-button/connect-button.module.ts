@@ -29,8 +29,7 @@ import {
 } from '../wallet-request'
 import { GatewayModule, RadixNetworkConfigById } from '../gateway'
 import { StateModule } from '../state'
-import { StorageModule } from '../storage'
-import { ConnectButtonModuleOutput, ConnectButtonStatus } from './types'
+import { ConnectButtonModuleOutput } from './types'
 import { isBrowser } from '../../helpers/is-browser'
 import { ConnectButtonNoopModule } from './connect-button-noop.module'
 
@@ -49,9 +48,6 @@ export type ConnectButtonModuleInput = {
     stateModule: StateModule
     gatewayModule: GatewayModule
     walletRequestModule: WalletRequestModule
-    storageModule: StorageModule<{
-      status: ConnectButtonStatus
-    }>
   }
 }
 
@@ -73,7 +69,6 @@ export const ConnectButtonModule = (
       subintentPath: '/subintent/',
       accountsPath: '/account/',
     }
-  const statusStorage = input.providers.storageModule
 
   const stateModule = input.providers.stateModule
   const gatewayModule = input.providers.gatewayModule
@@ -448,47 +443,35 @@ export const ConnectButtonModule = (
       .subscribe(),
   )
 
-  subscriptions.add(
-    statusStorage.storage$
-      .pipe(
-        switchMap(() =>
-          statusStorage.getState().map((state) => {
-            if (state?.status) {
-              subjects.status.next(state.status)
-            }
-          }),
-        ),
+  const setPendingOrDefault = () =>
+    walletRequestModule
+      .getPendingRequests()
+      .andTee((items) =>
+        subjects.status.next(items.length ? 'pending' : 'default'),
       )
-      .subscribe(),
-  )
 
   subscriptions.add(
     walletRequestModule.interactionStatusChange$
       .pipe(
         mergeMap((newStatus) =>
-          from(
-            statusStorage.setState({
-              status:
-                newStatus === 'success'
-                  ? 'success'
-                  : newStatus === 'fail'
-                    ? 'error'
-                    : 'pending',
-            }),
+          of(
+            subjects.status.next(
+              newStatus === 'success'
+                ? 'success'
+                : newStatus === 'fail'
+                  ? 'error'
+                  : 'pending',
+            ),
           ).pipe(
             delay(2000),
-            concatMap(() =>
-              walletRequestModule.getPendingRequests().andThen((items) =>
-                statusStorage.setState({
-                  status: items.length ? 'pending' : 'default',
-                }),
-              ),
-            ),
+            concatMap(() => setPendingOrDefault()),
           ),
         ),
       )
       .subscribe(),
   )
+
+  setPendingOrDefault()
 
   if (dAppDefinitionAddress) {
     gatewayModule.gatewayApi

@@ -8,7 +8,6 @@ type PartitionKey =
   | 'identities'
   | 'requests'
   | 'state'
-  | 'connectButton'
   | 'walletResponses'
   | 'connectorExtension'
 type dAppDefinitionAddress = string
