@@ -17,9 +17,14 @@ import { delayAsync } from '../../test-helpers/delay-async'
 import { WalletRequestSdk } from './wallet-request-sdk'
 import { TransportProvider } from '../../_types'
 import { TestingTransportModule } from './transport/testing-transport/transport.testing-module'
+import { EnvironmentModule } from '../environment'
 
 const createMockEnvironment = () => {
-  const storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`)
+  const storageModule = LocalStorageModule(`rdt:${crypto.randomUUID()}:1`, {
+    providers: {
+      environmentModule: EnvironmentModule(),
+    },
+  })
   const gatewayModule = {
     pollTransactionStatus: (hash: string) =>
       ResultAsync.fromSafePromise(delayAsync(2000)).map(() =>
@@ -76,6 +81,7 @@ describe('WalletRequestModule', () => {
         networkId: RadixNetwork.Stokenet,
         dAppDefinitionAddress: '',
         providers: {
+          environmentModule: EnvironmentModule(),
           stateModule: {} as any,
           storageModule,
           requestItemModule,
@@ -173,11 +179,13 @@ describe('WalletRequestModule', () => {
           storageModule,
           requestItemModule,
           requestResolverModule,
+          environmentModule: EnvironmentModule(),
           gatewayModule,
           walletRequestSdk: WalletRequestSdk({
             networkId: 2,
             dAppDefinitionAddress: '',
             providers: {
+              environmentModule: EnvironmentModule(),
               interactionIdFactory: () => interactionId,
               transports: [testingTransport],
             },

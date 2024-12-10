@@ -46,6 +46,7 @@ import {
 } from './request-resolver'
 import { RequestItemTypes } from 'radix-connect-common'
 import { PreauthorizationPollingModule } from './pre-authorization-request/preauthorization-polling-module'
+import { EnvironmentModule } from '../environment'
 
 export type WalletRequestModule = ReturnType<typeof WalletRequestModule>
 export const WalletRequestModule = (input: {
@@ -59,6 +60,7 @@ export const WalletRequestModule = (input: {
     stateModule: StateModule
     storageModule: StorageModule
     gatewayModule: GatewayModule
+    environmentModule: EnvironmentModule
     transports?: TransportProvider[]
     dataRequestStateModule?: DataRequestStateModule
     requestItemModule?: RequestItemModule
@@ -145,7 +147,11 @@ export const WalletRequestModule = (input: {
   const transports: TransportProvider[] = input.providers.transports ?? [
     ConnectorExtensionModule({
       logger,
-      providers: { storageModule, requestResolverModule },
+      providers: {
+        storageModule,
+        requestResolverModule,
+        environmentModule: input.providers.environmentModule,
+      },
     }),
     RadixConnectRelayModule({
       logger,
@@ -155,6 +161,7 @@ export const WalletRequestModule = (input: {
       providers: {
         storageModule,
         requestResolverModule,
+        environmentModule: input.providers.environmentModule,
       },
     }),
   ]
@@ -167,7 +174,10 @@ export const WalletRequestModule = (input: {
       origin: input.origin,
       dAppDefinitionAddress,
       requestInterceptor: input.requestInterceptor,
-      providers: { transports },
+      providers: {
+        transports,
+        environmentModule: input.providers.environmentModule,
+      },
     })
 
   const cancelRequestControl = (id: string) => {

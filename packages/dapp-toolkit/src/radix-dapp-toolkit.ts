@@ -18,6 +18,7 @@ import {
   ConnectButtonModule,
   generateGatewayApiConfig,
 } from './modules'
+import { EnvironmentModule } from './modules/environment'
 
 export type RadixDappToolkit = {
   walletApi: WalletApi
@@ -45,9 +46,15 @@ export const RadixDappToolkit = (
     useCache = true,
   } = options || {}
 
+  const environmentModule = providers?.environmentModule ?? EnvironmentModule()
+
   const storageModule =
     providers?.storageModule ??
-    LocalStorageModule(`rdt:${dAppDefinitionAddress}:${networkId}`)
+    LocalStorageModule(`rdt:${dAppDefinitionAddress}:${networkId}`, {
+      providers: {
+        environmentModule,
+      },
+    })
 
   const stateModule =
     providers?.stateModule ??
@@ -83,6 +90,7 @@ export const RadixDappToolkit = (
         stateModule,
         storageModule,
         gatewayModule,
+        environmentModule,
       },
     })
 
@@ -96,6 +104,7 @@ export const RadixDappToolkit = (
       dAppDefinitionAddress,
       providers: {
         stateModule,
+        environmentModule,
         walletRequestModule,
         gatewayModule,
       },

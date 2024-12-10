@@ -24,6 +24,7 @@ import type {
   GatewayModule,
   WalletRequestModule,
   ConnectButtonModule,
+  EnvironmentModule,
 } from './modules'
 import { BuildableSubintentRequest } from './modules/wallet-request/pre-authorization-request/subintent-builder'
 
@@ -32,6 +33,7 @@ export type Providers = {
   gatewayModule: GatewayModule
   stateModule: StateModule
   storageModule: StorageModule
+  environmentModule: EnvironmentModule
   walletRequestModule: WalletRequestModule
 }
 
