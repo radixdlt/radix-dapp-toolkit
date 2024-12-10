@@ -179,11 +179,13 @@ describe('WalletRequestModule', () => {
           storageModule,
           requestItemModule,
           requestResolverModule,
+          environmentModule: EnvironmentModule(),
           gatewayModule,
           walletRequestSdk: WalletRequestSdk({
             networkId: 2,
             dAppDefinitionAddress: '',
             providers: {
+              environmentModule: EnvironmentModule(),
               interactionIdFactory: () => interactionId,
               transports: [testingTransport],
             },

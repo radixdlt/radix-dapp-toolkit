@@ -12,6 +12,16 @@ export const EnvironmentModule = () => {
     return typeof navigator !== 'undefined' ? navigator : undefined
   }
 
+  /**
+   * Checks if the provided object is a Telegram Mobile App (TMA) global object.
+   *
+   * @param maybeTgGlobalObject - The object to check.
+   * @returns `true` if the object has WebView initialization parameters, otherwise `false`.
+   */
+  const isTMA = () =>
+    Object.keys((globalThis as any)?.Telegram?.WebView?.initParams || {})
+      .length > 0
+
   return {
     get globalThis() {
       return globalThis
@@ -19,6 +29,7 @@ export const EnvironmentModule = () => {
     isMobile: (userAgent?: string) => {
       return isMobile(userAgent ?? getNavigator()?.userAgent ?? '')
     },
+    isTMA,
     isBrowser: () => ![typeof window, typeof document].includes('undefined'),
   }
 }
