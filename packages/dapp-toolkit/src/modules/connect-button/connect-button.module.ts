@@ -21,7 +21,7 @@ import type {
   RequestItem,
 } from 'radix-connect-common'
 import { ConnectButtonSubjects } from './subjects'
-import { isMobile, type Logger } from '../../helpers'
+import { type Logger } from '../../helpers'
 import { ExplorerConfig } from '../../_types'
 import {
   transformWalletDataToConnectButton,
@@ -30,8 +30,8 @@ import {
 import { GatewayModule, RadixNetworkConfigById } from '../gateway'
 import { StateModule } from '../state'
 import { ConnectButtonModuleOutput } from './types'
-import { isBrowser } from '../../helpers/is-browser'
 import { ConnectButtonNoopModule } from './connect-button-noop.module'
+import { EnvironmentModule } from '../environment'
 
 export type ConnectButtonModule = ReturnType<typeof ConnectButtonModule>
 
@@ -47,6 +47,7 @@ export type ConnectButtonModuleInput = {
   providers: {
     stateModule: StateModule
     gatewayModule: GatewayModule
+    environmentModule: EnvironmentModule
     walletRequestModule: WalletRequestModule
   }
 }
@@ -54,13 +55,17 @@ export type ConnectButtonModuleInput = {
 export const ConnectButtonModule = (
   input: ConnectButtonModuleInput,
 ): ConnectButtonModuleOutput => {
-  if (!isBrowser()) {
+  if (!input.providers.environmentModule.isBrowser()) {
     return ConnectButtonNoopModule()
   }
 
   import('@radixdlt/connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
-  const subjects = input.subjects || ConnectButtonSubjects()
+  const subjects =
+    input.subjects ||
+    ConnectButtonSubjects({
+      providers: { environmentModule: input.providers.environmentModule },
+    })
   const dAppDefinitionAddress = input.dAppDefinitionAddress
   const { baseUrl, accountsPath, transactionPath, subintentPath } =
     input.explorer ?? {
@@ -86,7 +91,7 @@ export const ConnectButtonModule = (
 
   const subscriptions = new Subscription()
 
-  const onConnectButtonRender$ = fromEvent(window, 'onConnectButtonRender')
+  const onConnectButtonRender$ = fromEvent(input.providers.environmentModule.globalThis, 'onConnectButtonRender')
 
   subscriptions.add(
     onConnectButtonRender$
@@ -418,7 +423,11 @@ export const ConnectButtonModule = (
                 oneTime: false,
               }),
             )
-            .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
+            .map(
+              () =>
+                input.providers.environmentModule.isMobile() &&
+                subjects.showPopoverMenu.next(false),
+            ),
         ),
       )
       .subscribe(),

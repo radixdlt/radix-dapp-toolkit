@@ -1,26 +1,21 @@
 import { ResultAsync } from 'neverthrow'
 import { errAsync, okAsync } from 'neverthrow'
-import { Logger, isMobile } from '../../../../helpers'
-import Bowser from 'bowser'
+import { Logger } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { isTMA } from './helpers'
+import { EnvironmentModule } from '../../../environment'
 
 export type DeepLinkModule = ReturnType<typeof DeepLinkModule>
 export const DeepLinkModule = (input: {
   logger?: Logger
-  walletUrl: string
+  walletUrl: string,
+  providers: {
+    environmentModule: EnvironmentModule
+  }
 }) => {
   const { walletUrl } = input
-  const userAgent = Bowser.parse(window.navigator.userAgent)
-  const { platform } = userAgent
   const logger = input?.logger?.getSubLogger({ name: 'DeepLinkModule' })
   const isTelegramMiniApp = isTMA(globalThis)
-
-  logger?.debug({
-    platform,
-    userAgent: window.navigator.userAgent,
-    userAgentParsed: userAgent,
-  })
 
   const deepLinkToWallet = (
     values: Record<string, string>,
@@ -36,7 +31,7 @@ export const DeepLinkModule = (input: {
       data: { ...values },
     })
 
-    if (isMobile()) {
+    if (input.providers.environmentModule.isMobile()) {
       const deepLink = outboundUrl.toString()
 
       // Telegram Mini App does not support deep linking by changing location.href value

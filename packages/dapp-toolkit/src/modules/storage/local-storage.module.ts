@@ -1,6 +1,7 @@
 import { err, Ok, ok, Result, ResultAsync } from 'neverthrow'
 import { typedError, parseJSON, stringify } from '../../helpers'
 import { filter, fromEvent, map, merge, mergeMap, of } from 'rxjs'
+import { EnvironmentModule } from '../environment'
 
 type NetworkId = number
 type PartitionKey =
@@ -24,11 +25,18 @@ export type StorageModule<T extends object = any> = ReturnType<
 >
 
 export const LocalStorageModule = <T extends object = any>(
-  key: `rdt:${dAppDefinitionAddress}:${NetworkId}`,
-  partitionKey?: PartitionKey,
+  storageKey:
+    | `rdt:${dAppDefinitionAddress}:${NetworkId}`
+    | `rdt:${dAppDefinitionAddress}:${NetworkId}${string}`,
+  {
+    providers,
+  }: {
+    providers: {
+      environmentModule: EnvironmentModule
+    }
+  },
 ) => {
-  const storageKey = partitionKey ? `${key}:${partitionKey}` : key
-
+  const _window = providers.environmentModule.globalThis
   const getDataAsync = (): Promise<string | null> =>
     new Promise((resolve, reject) => {
       try {
@@ -71,7 +79,7 @@ export const LocalStorageModule = <T extends object = any>(
           setDataAsync(serialized),
           typedError,
         ).map(() => {
-          window.dispatchEvent(
+          _window.dispatchEvent(
             new StorageEvent('storage', {
               key: storageKey,
               oldValue: JSON.stringify(items),
@@ -97,7 +105,7 @@ export const LocalStorageModule = <T extends object = any>(
           setDataAsync(serialized),
           typedError,
         ).map(() => {
-          window.dispatchEvent(
+          _window.dispatchEvent(
             new StorageEvent('storage', {
               key: storageKey,
               oldValue: JSON.stringify(data),
@@ -120,7 +128,7 @@ export const LocalStorageModule = <T extends object = any>(
             setDataAsync(serialized),
             typedError,
           ).map(() => {
-            window.dispatchEvent(
+            _window.dispatchEvent(
               new StorageEvent('storage', {
                 key: storageKey,
                 oldValue: JSON.stringify(oldValue),
@@ -147,10 +155,10 @@ export const LocalStorageModule = <T extends object = any>(
       )
 
   const getPartition = (partitionKey: PartitionKey) =>
-    LocalStorageModule<T>(key, partitionKey)
+    LocalStorageModule<T>(`${storageKey}:${partitionKey}`, { providers })
 
   const storage$ = merge(
-    fromEvent<StorageEvent>(window, 'storage'),
+    fromEvent<StorageEvent>(providers.environmentModule.globalThis, 'storage'),
     of({ key: storageKey, newValue: null, oldValue: null }),
   ).pipe(
     filter((item) => item.key === storageKey),

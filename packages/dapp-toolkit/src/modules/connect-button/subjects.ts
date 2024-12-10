@@ -1,10 +1,10 @@
 import type { Account, RadixButtonTheme, RequestItem } from 'radix-connect-common'
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs'
-import { isMobile } from '../../helpers'
 import { ConnectButtonStatus } from './types'
+import { EnvironmentModule } from '../environment'
 
 export type ConnectButtonSubjects = ReturnType<typeof ConnectButtonSubjects>
-export const ConnectButtonSubjects = () => ({
+export const ConnectButtonSubjects = (input: { providers: { environmentModule: EnvironmentModule }}) => ({
   onConnect: new Subject<{ challenge: string } | undefined>(),
   onDisconnect: new Subject<void>(),
   onUpdateSharedAccounts: new Subject<void>(),
@@ -16,7 +16,7 @@ export const ConnectButtonSubjects = () => ({
   onShowPopover: new Subject<void>(),
   status: new BehaviorSubject<ConnectButtonStatus>('default'),
   loggedInTimestamp: new BehaviorSubject<string>(''),
-  isMobile: new BehaviorSubject<boolean>(isMobile()),
+  isMobile: new BehaviorSubject<boolean>(input.providers.environmentModule.isMobile()),
   isWalletLinked: new BehaviorSubject<boolean>(false),
   showPopoverMenu: new BehaviorSubject<boolean>(false),
   isExtensionAvailable: new BehaviorSubject<boolean>(false),

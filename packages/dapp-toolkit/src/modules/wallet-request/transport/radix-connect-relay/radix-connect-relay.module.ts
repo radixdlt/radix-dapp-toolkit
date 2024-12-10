@@ -7,7 +7,7 @@ import type {
   WalletInteraction,
   WalletInteractionResponse,
 } from '../../../../schemas'
-import { Logger, isMobile, parseJSON } from '../../../../helpers'
+import { Logger, parseJSON } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
@@ -20,6 +20,7 @@ import {
 import type { TransportProvider } from '../../../../_types'
 import { base64urlEncode } from './helpers/base64url'
 import type { RequestResolverModule } from '../../request-resolver/request-resolver.module'
+import { EnvironmentModule } from '../../../environment'
 
 export type RadixConnectRelayModule = ReturnType<typeof RadixConnectRelayModule>
 export const RadixConnectRelayModule = (input: {
@@ -30,6 +31,7 @@ export const RadixConnectRelayModule = (input: {
   providers: {
     storageModule: StorageModule
     requestResolverModule: RequestResolverModule
+    environmentModule: EnvironmentModule
     encryptionModule?: EncryptionModule
     identityModule?: IdentityModule
     sessionModule?: SessionModule
@@ -47,6 +49,9 @@ export const RadixConnectRelayModule = (input: {
     DeepLinkModule({
       logger,
       walletUrl,
+      providers: {
+        environmentModule: input.providers.environmentModule,
+      },
     })
 
   const identityModule =
@@ -113,7 +118,7 @@ export const RadixConnectRelayModule = (input: {
     checkRelayLoop()
   }
 
-  if (isMobile()) {
+  if (input.providers.environmentModule.isMobile()) {
     checkRelayLoop()
   }
 
@@ -222,7 +227,7 @@ export const RadixConnectRelayModule = (input: {
 
   return {
     id: 'radix-connect-relay' as const,
-    isSupported: () => isMobile(),
+    isSupported: () => input.providers.environmentModule.isMobile(),
     send: sendToWallet,
     disconnect: () => {},
     destroy: () => {

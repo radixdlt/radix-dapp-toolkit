@@ -1,5 +1,6 @@
 export * from './connect-button'
 export * from './gateway'
 export * from './state'
+export * from './environment'
 export * from './storage'
 export * from './wallet-request'
