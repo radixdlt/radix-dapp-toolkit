@@ -1,15 +1,13 @@
 import {
-  concatMap,
   delay,
   filter,
   finalize,
   first,
-  from,
   fromEvent,
   map,
   merge,
-  mergeMap,
   of,
+  pairwise,
   Subscription,
   switchMap,
   tap,
@@ -29,7 +27,6 @@ import {
 } from '../wallet-request'
 import { GatewayModule, RadixNetworkConfigById } from '../gateway'
 import { StateModule } from '../state'
-import { StorageModule } from '../storage'
 import { ConnectButtonModuleOutput, ConnectButtonStatus } from './types'
 import { isBrowser } from '../../helpers/is-browser'
 import { ConnectButtonNoopModule } from './connect-button-noop.module'
@@ -49,9 +46,6 @@ export type ConnectButtonModuleInput = {
     stateModule: StateModule
     gatewayModule: GatewayModule
     walletRequestModule: WalletRequestModule
-    storageModule: StorageModule<{
-      status: ConnectButtonStatus
-    }>
   }
 }
 
@@ -73,7 +67,6 @@ export const ConnectButtonModule = (
       subintentPath: '/subintent/',
       accountsPath: '/account/',
     }
-  const statusStorage = input.providers.storageModule
 
   const stateModule = input.providers.stateModule
   const gatewayModule = input.providers.gatewayModule
@@ -448,45 +441,39 @@ export const ConnectButtonModule = (
       .subscribe(),
   )
 
-  subscriptions.add(
-    statusStorage.storage$
-      .pipe(
-        switchMap(() =>
-          statusStorage.getState().map((state) => {
-            if (state?.status) {
-              subjects.status.next(state.status)
-            }
-          }),
-        ),
-      )
-      .subscribe(),
-  )
+  const mapStatus = (status: Status): ConnectButtonStatus =>
+    status === 'success' ? 'success' : status === 'fail' ? 'error' : 'pending'
+
+  type Status = 'success' | 'fail' | 'error' | 'pending' | 'default'
+
+  const getCurrentStatus = () =>
+    walletRequestModule.requestItems$.pipe(
+      map((items) => items.filter((item) => item.status === 'pending')),
+      map((items) => (items.length > 0 ? 'pending' : 'default')),
+      tap((status) => subjects.status.next(status)),
+      first(),
+    )
 
   subscriptions.add(
-    walletRequestModule.interactionStatusChange$
+    merge(walletRequestModule.interactionStatusChange$, getCurrentStatus())
       .pipe(
-        mergeMap((newStatus) =>
-          from(
-            statusStorage.setState({
-              status:
-                newStatus === 'success'
-                  ? 'success'
-                  : newStatus === 'fail'
-                    ? 'error'
-                    : 'pending',
-            }),
-          ).pipe(
-            delay(2000),
-            concatMap(() =>
-              walletRequestModule.getPendingRequests().andThen((items) =>
-                statusStorage.setState({
-                  status: items.length ? 'pending' : 'default',
-                }),
-              ),
-            ),
-          ),
-        ),
+        pairwise(),
+        filter(([prev, curr]) => prev !== curr),
+        map(([prev, curr]) => ({
+          prev: mapStatus(prev),
+          curr: mapStatus(curr),
+        })),
+        switchMap(({ prev, curr }) => {
+          if (prev === 'pending' && ['error', 'success'].includes(curr)) {
+            return of(curr)
+              .pipe(tap((status) => subjects.status.next(status)))
+              .pipe(delay(2000))
+          }
+          return of(curr)
+        }),
+        switchMap(getCurrentStatus),
       )
+      .pipe()
       .subscribe(),
   )
 
