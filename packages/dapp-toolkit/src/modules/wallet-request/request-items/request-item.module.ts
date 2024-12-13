@@ -118,7 +118,8 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
             signals.delete(id)
           }
           if (status === RequestStatus.success) {
-            getAndRemoveSignal(id)?.(item.metadata?.parentTransactionIntentHash as string)
+            const signal = getAndRemoveSignal(id)
+            signal?.(metadata?.parentTransactionIntentHash as string)
           }
           const updated = {
             ...item,
