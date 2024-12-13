@@ -99,12 +99,14 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
     transactionIntentHash,
     metadata = {},
     walletData,
+    walletResponse,
   }: {
     id: string
     status: RequestStatusTypes
     error?: string
     transactionIntentHash?: string
     walletData?: WalletData
+    walletResponse?: any,
     metadata?: Record<string, string | number | boolean>
   }): ResultAsync<void, { reason: string }> => {
     return storageModule
@@ -123,6 +125,7 @@ export const RequestItemModule = (input: RequestItemModuleInput) => {
             walletData,
             transactionIntentHash,
             error,
+            walletResponse,
             status:
               item.status === RequestStatus.ignored ? item.status : status,
             metadata: item.metadata

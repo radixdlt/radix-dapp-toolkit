@@ -39,6 +39,7 @@ export const preAuthorizationResponseResolver =
         id: interactionId,
         status: RequestStatus.pendingCommit,
         transactionIntentHash: subintentHash,
+        walletResponse: walletInteractionResponse,
         metadata: {
           signedPartialTransaction,
           expirationTimestamp,

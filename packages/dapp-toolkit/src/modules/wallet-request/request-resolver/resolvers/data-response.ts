@@ -113,6 +113,7 @@ export const dataResponseResolver =
             id: walletInteraction.interactionId,
             status: 'success',
             walletData,
+            walletResponse: walletInteractionResponse,
           })
           .mapErr((error) =>
             SdkError(error.reason, walletInteraction.interactionId),

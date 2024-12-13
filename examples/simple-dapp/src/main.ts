@@ -193,7 +193,7 @@ addCb.onclick = () => {
 const dAppToolkit = RadixDappToolkit({
   dAppDefinitionAddress,
   networkId,
-  logger,
+  // logger,
 })
 
 const gatewayApi = GatewayApiClient.initialize(
@@ -241,10 +241,12 @@ sendTxButton.onclick = async () => {
   console.log('send tx result', res)
 }
 
-oneTimeRequest.onclick = () => {
-  dAppToolkit.walletApi.sendOneTimeRequest(
+oneTimeRequest.onclick = async () => {
+  const res = await dAppToolkit.walletApi.sendOneTimeRequest(
     OneTimeDataRequestBuilder.accounts().exactly(1),
   )
+
+  console.log('one time request result', res)
 }
 
 proofOfOwnershipRequest.onclick = async () => {
