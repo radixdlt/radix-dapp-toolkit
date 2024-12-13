@@ -65,6 +65,7 @@ export const sendTransactionResponseResolver =
             status: requestItemStatus,
             transactionIntentHash,
             metadata: { transactionStatus: status },
+            walletResponse: walletInteractionResponse,
           })
           .orElse((error) => err(SdkError(error.reason, interactionId)))
           .andThen(() => {

@@ -32,6 +32,7 @@ export const failedResponseResolver =
       .updateStatus({
         id: interactionId,
         status: 'fail',
+        walletResponse: walletInteractionResponse,
       })
       .orElse((error) => {
         dependencies.updateConnectButtonStatus('fail')
