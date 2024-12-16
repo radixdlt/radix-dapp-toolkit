@@ -514,6 +514,7 @@ Creation of preauthorization request object is abstracted away into `SubintentRe
       )
       // .addBlobs('blob1', 'blob2')
       .message('This is a message')
+      .onSubmittedSuccess((transactionIntentHash) => console.log('Submitted successfully', transactionIntentHash))
   )
 ```
 
