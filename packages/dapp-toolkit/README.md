@@ -6,7 +6,7 @@ RDT supports both desktop and mobile browser web apps. For desktop browsers, it 
 
 **RDT is composed of:**
 
-- **√ Connect Button** – A framework agnostic web component that keeps a minimal internal state and have properties are pushed to it.
+- **√ Connect Button** – A framework agnostic [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements) that serves as user interface for RDT ([readme](../connect-button/README.md))
 
 - **Tools** – Abstractions over lower level APIs for developers to build their radix dApps at lightning speed.
 
@@ -34,7 +34,7 @@ Add following code to head section of your page. See example usage inside `examp
 
 ## Using `create-radix-dapp`
 
-Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps!
+Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps.
 
 ```bash
 npx create-radix-dapp@latest
@@ -69,6 +69,9 @@ const rdt = RadixDappToolkit({
 - **requires** networkId - Target radix network ID (for development use `RadixNetwork.Stokenet`).
 - _optional_ applicationName - Your dApp name. It's only used for statistics purposes on gateway side
 - _optional_ applicationVersion - Your dApp version. It's only used for statistics purposes on gateway side
+- _optional_ logger - Configure and provide `Logger` instance if you want to deep dive into what's happening in RDT
+
+There are more configuration options which are not described here. Please look up [`OptionalRadixDappToolkitOptions`](https://github.com/radixdlt/radix-dapp-toolkit/blob/c65fa2ad016b22e3b5a5410a0a1adc24bbee86fe/packages/dapp-toolkit/src/_types.ts#L48) to learn more.
 
 ## Login requests
 
@@ -120,7 +123,7 @@ In order to request a persona or account with proof of ownership a challenge is 
 
 A challenge is a random 32 bytes hex encoded string that looks something like: `4ccb0555d6b4faad0d7f5ed40bf4e4f0665c8ba35929c638e232e09775d0fa0e`
 
-If you're using JS for your backend you can use `generateRolaChallenge` function from Radix dApp Toolkit which will generate valid ROLA challenge for you.
+If you're using JS for your backend you can use `generateRolaChallenge` function from Radix dApp Toolkit which will generate valid ROLA challenge for you. 
 
 **Why do we need a challenge?**
 
@@ -131,20 +134,11 @@ The challenge plays an important role in the authentication flow, namely prevent
 In order to request a proof, it is required to provide a function to RDT that produces a challenge.
 
 ```typescript
-// const requestChallengeFromDappBackendFn = (): Promise<string> =>
+// const requestChallengeFromDappBackendFn = (): Promise<string> => 
 //    http.get('/api/auth/challenge')
 
 rdt.walletApi.provideChallengeGenerator(requestChallengeFromDappBackendFn)
-
 rdt.walletApi.setRequestData(DataRequestBuilder.persona.withProof())
-
-// handle the wallet response
-rdt.walletApi.dataRequestControl(async (walletData) => {
-  const personaProof = walletData.proofs.find(
-    (proof) => proof.type === 'persona',
-  )
-  if (personaProof) await handleLogin(personaProof)
-})
 ```
 
 ### Handle user authentication
@@ -171,6 +165,30 @@ rdt.walletApi.dataRequestControl(async (walletData) => {
 ```
 
 See [ROLA example](https://github.com/radixdlt/rola-examples) for an end-to-end implementation.
+
+### Authenticate specific account or persona
+
+Sometimes you want to restrict access to some parts of the system. For example you have admin part of your dApp which only people with specific identities can access. On the other hand, you don't want every user to go through ROLA process every time they login. Here's where ["one-time proof of ownership"](#one-time-data-request) request comes handy. Radix dApp Toolkit gives you you a way to ask Radix Wallet about **specific account addresses and identity**.
+
+**Example:**
+
+```typescript
+  // const verifyProofInBackend = (proof: SignedChallenge): ResultAsync<T,E> => { ... }
+
+  rdt.walletApi.sendOneTimeRequest(
+    OneTimeDataRequestBuilder.proofOfOwnership().identity(
+      'identity_tdx_2_12g3f29r62450l03ejucc2cf0pz52uawkwwm4um3chqxjjl2ffhq6f8',
+    ),
+  ).andThen((response) => {
+    const proof = response.proofs.find((proof) => proof.address ==='identity_tdx_2_12g3f29r62450l03ejucc2cf0pz52uawkwwm4um3chqxjjl2ffhq6f8')
+    return verifyProofInBackend(proof)
+  })
+```
+
+> [!IMPORTANT]  
+> If you want to use that, you need to configure challenge generator with `provideChallengeGenerator`
+
+
 
 ### User authentication management
 
@@ -317,6 +335,24 @@ rdt.walletApi.sendOneTimeRequest(
 )
 ```
 
+#### `OneTimeDataRequestBuilderItem.proofOfOwnership()`
+
+```typescript
+accounts: (value: string[]) => ProofOfOwnershipRequestBuilder
+identity: (value: string) => ProofOfOwnershipRequestBuilder
+```
+
+Example: Prove that user who is trying access admin page right is owner of given identity
+
+```typescript
+// const currentUserState = { .... }
+rdt.walletApi.sendOneTimeRequest(
+  OneTimeDataRequestBuilder.proofOfOwnership().identity(
+    currentUserState.identity
+  ),
+)
+```
+
 #### `DataRequestBuilder.config(input: DataRequestState)`
 
 Use this method if you prefer to provide a raw data request object.
@@ -346,7 +382,7 @@ rdt.walletApi.provideConnectResponseCallback((result) => {
 
 ### One Time Data Request
 
-One-time data requests do not have a Persona context, and so will always result in the Radix Wallet asking the user to select where to draw personal data from. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data.
+Sometimes you want to get some data from the Radix Wallet based on various user actions like custom button click, page event, route change etc. One-time data requests are perfect way of doing that. One time data requests neither need any "auth" context nor they keep any state. The wallet response from a one time data request is meant to be discarded after usage. A typical use case would be to populate a web-form with user data, choose account, prove identity etc.
 
 ```typescript
 const result = rdt.walletApi.sendOneTimeRequest(
@@ -413,7 +449,9 @@ Radix transactions are built using "transaction manifests", that use a simple sy
 
 It is important to note that what your dApp sends to the Radix Wallet is actually a "transaction manifest stub". It is completed before submission by the Radix Wallet. For example, the Radix Wallet will automatically add a command to lock the necessary amount of network fees from one of the user's accounts. It may also add "assert" commands to the manifest according to user desires for expected returns.
 
-**NOTE:** Information will be provided soon on a ["comforming" transaction manifest stub format](https://docs.radixdlt.com/docs/conforming-transaction-manifest-types) that ensures clear presentation and handling in the Radix Wallet.
+> [!NOTE]
+> Some of the manifests will have a nice presentation in the Radix Wallet, others will be displayed as raw text. Read more on ["comforming" transaction manifest stub format](https://docs.radixdlt.com/docs/conforming-transaction-manifest-types).
+
 
 ### Build transaction manifest
 
@@ -421,7 +459,7 @@ We recommend using template strings for constructing simpler transaction manifes
 
 ### sendTransaction
 
-This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed.
+This sends the transaction manifest stub to a user's Radix Wallet, where it will be completed, presented to the user for review, signed as required, and submitted to the Radix network to be processed. `sendTransaction` promise will only be resolved after transaction has been committed to the network (either successfuly or rejected/failure). If you want to do your own logic as soon as transaction id is available, please use `onTransactionId` callback. It will be called immediately after RDT receives response from the Radix Wallet.
 
 ```typescript
 type SendTransactionInput = {
@@ -457,6 +495,28 @@ const transactionIntentHash = result.value.transactionIntentHash
 
 </details>
 
+## Preauthorization Requests
+
+It is very similar to a transaction request, but it describes only a part of a final transaction – specifically the part that the user cares about, such as a swap they wish to perform within certain acceptable bounds. The pre-authorization is signed and returned to the dApp, which can then include it in a full transaction. A time bound is put on the pre-authorization, so the user knows for how long their pre-authorization is usable.
+
+Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set exipration date in two modes:
+- delay in **seconds after preauthorization is signed** by using `.setExpiration('afterDelay', 3600)`
+- provided **exact unix timestamp** to function call `.setExpiration('atTime', 1234567890)`
+
+**Example:**
+```typescript
+ const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+    SubintentRequestBuilder()
+      .manifest(subintentManifest)
+      .setExpiration(
+        'afterDelay',
+        3600,
+      )
+      // .addBlobs('blob1', 'blob2')
+      .message('This is a message')
+  )
+```
+
 # √ Connect Button
 
 Radix dApp Toolkit provides a consistent and delightful user experience between radix dApps thanks to `<radix-connect-button />` [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements). Although complex by itself, RDT is off-loading the developer burden of having to handle the logic of all its internal states.
@@ -480,12 +540,21 @@ Play around with the different configurations using the [√ Connect Button stor
 <img src="docs/themes.jpeg" alt="Connect Button Themes"> 
 </div>
 
-There are four themes you can choose from by default: `radix-blue` (default), `black`, `white-with-outline`, `white`. In order to do that, call following function after RDT instantiation
+There are four themes you can choose from by default: `radix-blue` (default), `black`, `white-with-outline`, `white` and a special one called `custom`. In order to do that, call following function after RDT instantiation
 
 ```typescript
 rdt.buttonApi.setTheme('black')
 ```
 
+Using `custom` theme will let you override additional CSS variables. With that you can completely change the UI for not connected connect button.
+
+```css
+body {
+  --radix-connect-button-background: red;
+  --radix-connect-button-text-color: black;
+  --radix-connect-button-border-color: yellow;
+  --radix-connect-button-background-hover: green;
+}
 ### Modes
 
 <div align="center">

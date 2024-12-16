@@ -23,10 +23,9 @@ export type ConnectButtonModuleOutput = {
   onShowPopover$: Observable<void>
   onCancelRequestItem$: Observable<string>
   onLinkClick$: Observable<{
-    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet'
+    type: 'account' | 'transaction' | 'showQrCode' | 'setupGuide' | 'getWallet' | 'subintent'
     data: string
   }>
-  setStatus: (value: RadixButtonStatus) => void
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
   setActiveTab: (value: 'sharing' | 'requests') => void

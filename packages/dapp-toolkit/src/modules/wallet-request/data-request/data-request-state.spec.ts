@@ -1,3 +1,4 @@
+import { DataRequestBuilder, OneTimeDataRequestBuilder } from './builders'
 import { accounts } from './builders/accounts'
 import { persona } from './builders/persona'
 import { personaData } from './builders/persona-data'
@@ -14,6 +15,71 @@ describe('DataRequestStateModule', () => {
         reset: false,
         withProof: false,
       },
+    })
+  })
+
+  describe('patchState then removeState', () => {
+    it('should add state then remove state', () => {
+      dataRequest.patchState(
+        DataRequestBuilder.persona().withProof(),
+        DataRequestBuilder.personaData().fullName(),
+      )
+
+      expect(dataRequest.getState()).toEqual({
+        accounts: {
+          numberOfAccounts: {
+            quantifier: 'atLeast',
+            quantity: 1,
+          },
+          reset: false,
+          withProof: false,
+        },
+        persona: {
+          withProof: true,
+        },
+        personaData: {
+          fullName: true,
+        },
+      })
+      dataRequest.removeState('persona', 'accounts')
+      expect(dataRequest.getState()).toEqual({
+        personaData: {
+          fullName: true,
+        },
+      })
+    })
+  })
+
+  describe('reset', () => {
+    it('should set initial state', () => {
+      dataRequest.patchState(DataRequestBuilder.persona().withProof())
+      dataRequest.reset()
+      expect(dataRequest.getState()).toEqual({
+        accounts: {
+          numberOfAccounts: {
+            quantifier: 'atLeast',
+            quantity: 1,
+          },
+          reset: false,
+          withProof: false,
+        },
+      })
+    })
+  })
+
+  describe('toDataRequestState', () => {
+    it('should consume one time data request builder proofOfOwnership', () => {
+      const state = dataRequest.toDataRequestState(
+        OneTimeDataRequestBuilder.proofOfOwnership()
+          .identity('identity_abc')
+          .accounts(['account_abc']),
+      )
+      expect(state).toEqual({
+        proofOfOwnership: {
+          identityAddress: 'identity_abc',
+          accountAddresses: ['account_abc'],
+        },
+      })
     })
   })
 

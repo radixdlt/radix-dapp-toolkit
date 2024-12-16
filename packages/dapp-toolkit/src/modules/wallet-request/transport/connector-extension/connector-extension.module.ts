@@ -7,6 +7,7 @@ import {
   filter,
   first,
   firstValueFrom,
+  from,
   map,
   merge,
   mergeMap,
@@ -19,7 +20,7 @@ import {
   tap,
   timer,
 } from 'rxjs'
-import { Logger, isMobile, unwrapObservable } from '../../../../helpers'
+import { Logger, unwrapObservable } from '../../../../helpers'
 import {
   CallbackFns,
   IncomingMessage,
@@ -29,11 +30,12 @@ import {
   WalletInteractionResponse,
   eventType,
 } from '../../../../schemas'
-import { RequestItemModule } from '../../request-items'
 import { StorageModule } from '../../../storage'
 import { SdkError } from '../../../../error'
 import { TransportProvider } from '../../../../_types'
 import { v4 as uuidV4 } from 'uuid'
+import type { RequestResolverModule } from '../../request-resolver/request-resolver.module'
+import { EnvironmentModule } from '../../../environment'
 
 export type ConnectorExtensionModule = ReturnType<
   typeof ConnectorExtensionModule
@@ -44,7 +46,8 @@ export const ConnectorExtensionModule = (input: {
   logger?: Logger
   extensionDetectionTime?: number
   providers: {
-    requestItemModule: RequestItemModule
+    environmentModule: EnvironmentModule
+    requestResolverModule: RequestResolverModule
     storageModule: StorageModule<{ sessionId?: string }>
   }
 }) => {
@@ -56,7 +59,7 @@ export const ConnectorExtensionModule = (input: {
   const subjects = input?.subjects ?? ConnectorExtensionSubjects()
   const subscription = new Subscription()
   const extensionDetectionTime = input?.extensionDetectionTime ?? 200
-  const requestItemModule = input.providers.requestItemModule
+  const requestResolverModule = input.providers.requestResolverModule
   const storage =
     input.providers.storageModule.getPartition('connectorExtension')
 
@@ -78,6 +81,15 @@ export const ConnectorExtensionModule = (input: {
       .subscribe(),
   )
   subscription.add(
+    subjects.responseSubject
+      .pipe(
+        mergeMap((walletResponse) =>
+          from(requestResolverModule.addWalletResponses([walletResponse])),
+        ),
+      )
+      .subscribe(),
+  )
+  subscription.add(
     subjects.outgoingMessageSubject
       .pipe(
         tap((payload) => {
@@ -85,7 +97,7 @@ export const ConnectorExtensionModule = (input: {
             method: 'outgoingMessageSubject',
             payload,
           })
-          window.dispatchEvent(
+          input.providers.environmentModule.globalThis.dispatchEvent(
             new CustomEvent(eventType.outgoingMessage, {
               detail: payload,
             }),
@@ -134,25 +146,21 @@ export const ConnectorExtensionModule = (input: {
   const sendWalletInteraction = (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ): ResultAsync<unknown, SdkError> => {
+  ): ResultAsync<WalletInteractionResponse, SdkError> => {
     const cancelRequestSubject = new Subject<Err<never, SdkError>>()
+
+    const maybeResolved$ = from(
+      requestResolverModule.getWalletResponseById(
+        walletInteraction.interactionId,
+      ),
+    ).pipe(filter((result) => result.isOk() && !!result.value))
 
     const walletResponse$ = subjects.responseSubject.pipe(
       filter(
         (response) =>
           response.interactionId === walletInteraction.interactionId,
       ),
-      mergeMap(
-        (walletResponse): ResultAsync<WalletInteractionResponse, SdkError> =>
-          requestItemModule
-            .patch(walletResponse.interactionId, {
-              walletResponse,
-            })
-            .mapErr(() =>
-              SdkError('requestItemPatchError', walletResponse.interactionId),
-            )
-            .map(() => walletResponse),
-      ),
+      map((walletResponse) => ok(walletResponse)),
     )
 
     const cancelResponse$ = subjects.messageLifeCycleEventSubject.pipe(
@@ -206,6 +214,7 @@ export const ConnectorExtensionModule = (input: {
       })
 
     const walletResponseOrCancelRequest$ = merge(
+      maybeResolved$,
       walletResponse$,
       cancelRequestSubject,
     ).pipe(first())
@@ -304,7 +313,7 @@ export const ConnectorExtensionModule = (input: {
 
   return {
     id: 'connector-extension' as const,
-    isSupported: () => !isMobile(),
+    isSupported: () => !input.providers.environmentModule.isMobile(),
     send: sendWalletInteraction,
     isAvailable$: extensionStatus$.pipe(
       map(({ isExtensionAvailable }) => isExtensionAvailable),
@@ -313,7 +322,7 @@ export const ConnectorExtensionModule = (input: {
       map(({ isWalletLinked }) => isWalletLinked),
     ),
     showQrCode: () => {
-      window.dispatchEvent(
+      input.providers.environmentModule.globalThis.dispatchEvent(
         new CustomEvent(eventType.outgoingMessage, {
           detail: { discriminator: 'openPopup' },
         }),

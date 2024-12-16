@@ -1,18 +1,6 @@
-# <img src="../../docs/radix-logo.png" alt="Radix Logo" width="35" height="35"> √ Connect Button
+# What is √ Connect Button?
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-
-The √ Connect Button is a framework agnostic web component to help developers connect users and their Radix Wallet to their dApps.
-
-It appears as a consistent, Radix-branded UI element that helps users identify your dApp website as a Radix dApp. When used with [Radix dApp Toolkit](https://github.com/radixdlt/radix-dapp-toolkit) it is compatible with the Radix Wallet – and it automatically provides a consistent user experience for users to connect with their wallet and see the current status of the connection between dApp and Radix Wallet.
-
-- [ √ Connect Button](#--connect-button)
-- [Usage](#usage)
-  - [Getting started](#getting-started)
-  - [Setting properties programmatically](#setting-properties-programmatically)
-  - [Events](#events)
-- [Playground](#playground)
-- [License](#license)
+The **√ Connect Button** is a framework agnostic [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements) which appears as a consistent, Radix-branded UI that helps users identify your dApp website as a Radix dApp. It communicates with outer world through attributes and DOM events.
 
 # Usage
 
@@ -111,6 +99,9 @@ type ConnectButtonEvents = {
 # Playground
 
 You can play around with different settings using our storybook instance. Visit [connect-button-storybook.radixdlt.com](https://connect-button-storybook.radixdlt.com/) to easily experiment with Connect Button.
+
+> [!IMPORTANT]
+> Placing Connect Button inside container which uses `backdrop-filter` can cause troubles. Please check ["header with blur"](https://connect-button-storybook.radixdlt.com/?path=/docs/radix-header-with-blur--docs) section inside storybook to check for workaround solution
 
 # License
 

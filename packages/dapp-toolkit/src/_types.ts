@@ -7,6 +7,7 @@ import {
   Persona,
   PersonaDataName,
   WalletInteraction,
+  WalletInteractionResponse,
 } from './schemas'
 import type { Logger } from './helpers'
 import type { SdkError } from './error'
@@ -23,23 +24,29 @@ import type {
   GatewayModule,
   WalletRequestModule,
   ConnectButtonModule,
+  EnvironmentModule,
 } from './modules'
+import { BuildableSubintentRequest } from './modules/wallet-request/pre-authorization-request/subintent-builder'
 
 export type Providers = {
   connectButtonModule: ConnectButtonModule
   gatewayModule: GatewayModule
   stateModule: StateModule
   storageModule: StorageModule
+  environmentModule: EnvironmentModule
   walletRequestModule: WalletRequestModule
 }
 
 export type ExplorerConfig = {
   baseUrl: string
   transactionPath: string
+  subintentPath: string
   accountsPath: string
 }
 
-export type WalletDataRequest = Parameters<WalletRequestSdk['request']>[0]
+export type WalletDataRequest = Parameters<
+  WalletRequestSdk['sendInteraction']
+>[0]
 
 export type WalletRequest =
   | { type: 'sendTransaction'; payload: WalletInteraction }
@@ -96,6 +103,8 @@ export type SendTransactionInput = {
   onTransactionId?: (transactionId: string) => void
 }
 
+export type SendPreAuthorizationRequestInput = BuildableSubintentRequest
+
 export type ButtonApi = {
   setMode: (value: 'light' | 'dark') => void
   setTheme: (value: RadixButtonTheme) => void
@@ -128,6 +137,9 @@ export type WalletApi = {
   dataRequestControl: (fn: (walletResponse: WalletData) => Promise<any>) => void
   updateSharedAccounts: () => WalletDataRequestResult
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
+  sendPreAuthorizationRequest: (
+    input: SendPreAuthorizationRequestInput,
+  ) => ResultAsync<{ signedPartialTransaction: string }, SdkError>
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult
   sendOneTimeRequest: (
@@ -166,7 +178,7 @@ export type TransportProvider = {
   send: (
     walletInteraction: WalletInteraction,
     callbackFns: Partial<CallbackFns>,
-  ) => ResultAsync<unknown, SdkError>
+  ) => ResultAsync<WalletInteractionResponse, SdkError>
   disconnect: () => void
   destroy: () => void
 }

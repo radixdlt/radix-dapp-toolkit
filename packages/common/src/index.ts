@@ -14,6 +14,7 @@ export const RadixButtonTheme = {
   black: 'black',
   'white-with-outline': 'white-with-outline',
   white: 'white',
+  custom: 'custom',
 } as const
 
 export type RadixButtonTheme = keyof typeof RadixButtonTheme
@@ -28,17 +29,24 @@ export type RadixButtonMode = keyof typeof RadixButtonMode
 export type PersonaData = { field: string; value: string }
 
 export const RequestStatus = {
+  fail: 'fail',
+  ignored: 'ignored',
   pending: 'pending',
   success: 'success',
-  fail: 'fail',
+  timedOut: 'timedOut',
   cancelled: 'cancelled',
-  ignored: 'ignored',
+  /**
+   * Pending commit status is for preauthorization which was signed but not yet successfully committed to the network
+   */
+  pendingCommit: 'pendingCommit',
 } as const
 
 export const RequestItemType = {
-  loginRequest: 'loginRequest',
   dataRequest: 'dataRequest',
+  proofRequest: 'proofRequest',
+  loginRequest: 'loginRequest',
   sendTransaction: 'sendTransaction',
+  preAuthorizationRequest: 'preAuthorizationRequest',
 } as const
 
 export type RequestItemType = typeof RequestItemType
@@ -47,6 +55,10 @@ export type RequestItemTypes = keyof typeof RequestItemType
 
 export type RequestStatusTypes = keyof typeof RequestStatus
 
+/**
+ * Not used in the codebase. Will be removed in the next major release future.
+ * @deprecated
+ */
 export type WalletRequest<
   RequestType extends RequestItemTypes,
   Status extends RequestStatusTypes,
@@ -58,6 +70,7 @@ export type WalletRequest<
   timestamp: number
   showCancel?: boolean
   transactionIntentHash?: string
+  transactionStatus?: string
   walletInteraction: any
   walletResponse?: any
   metadata: Record<string, string | number | boolean>
@@ -75,4 +88,7 @@ export type RequestItem = {
   walletResponse?: any
   sentToWallet?: boolean
   isOneTimeRequest?: boolean
+  metadata?: Record<string, string | number | boolean>
+  walletData?: any
 }
+

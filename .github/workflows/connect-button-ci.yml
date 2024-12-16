@@ -1,4 +1,4 @@
-name: 'Connect button CI/CD'
+name: 'Connect Button Storybook'
 
 on:
   pull_request:
@@ -19,6 +19,7 @@ env:
 jobs:
 
   build_push_container:
+    if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-pr')) || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) }}
     permissions:
       packages: write
       id-token: write

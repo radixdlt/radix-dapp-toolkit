@@ -1,7 +1,10 @@
 import {
+  concatMap,
+  delay,
   filter,
   finalize,
   first,
+  from,
   fromEvent,
   map,
   merge,
@@ -10,17 +13,15 @@ import {
   Subscription,
   switchMap,
   tap,
-  timer,
 } from 'rxjs'
 import { ConnectButton } from '@radixdlt/connect-button'
 import type {
   Account,
-  RadixButtonStatus,
   RadixButtonTheme,
   RequestItem,
 } from 'radix-connect-common'
 import { ConnectButtonSubjects } from './subjects'
-import { isMobile, type Logger } from '../../helpers'
+import { type Logger } from '../../helpers'
 import { ExplorerConfig } from '../../_types'
 import {
   transformWalletDataToConnectButton,
@@ -28,10 +29,9 @@ import {
 } from '../wallet-request'
 import { GatewayModule, RadixNetworkConfigById } from '../gateway'
 import { StateModule } from '../state'
-import { StorageModule } from '../storage'
-import { ConnectButtonModuleOutput, ConnectButtonStatus } from './types'
-import { isBrowser } from '../../helpers/is-browser'
+import { ConnectButtonModuleOutput } from './types'
 import { ConnectButtonNoopModule } from './connect-button-noop.module'
+import { EnvironmentModule } from '../environment'
 
 export type ConnectButtonModule = ReturnType<typeof ConnectButtonModule>
 
@@ -47,30 +47,33 @@ export type ConnectButtonModuleInput = {
   providers: {
     stateModule: StateModule
     gatewayModule: GatewayModule
+    environmentModule: EnvironmentModule
     walletRequestModule: WalletRequestModule
-    storageModule: StorageModule<{
-      status: ConnectButtonStatus
-    }>
   }
 }
 
 export const ConnectButtonModule = (
   input: ConnectButtonModuleInput,
 ): ConnectButtonModuleOutput => {
-  if (!isBrowser()) {
+  if (!input.providers.environmentModule.isBrowser()) {
     return ConnectButtonNoopModule()
   }
 
   import('@radixdlt/connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
-  const subjects = input.subjects || ConnectButtonSubjects()
+  const subjects =
+    input.subjects ||
+    ConnectButtonSubjects({
+      providers: { environmentModule: input.providers.environmentModule },
+    })
   const dAppDefinitionAddress = input.dAppDefinitionAddress
-  const { baseUrl, accountsPath, transactionPath } = input.explorer ?? {
-    baseUrl: RadixNetworkConfigById[input.networkId].dashboardUrl,
-    transactionPath: '/transaction/',
-    accountsPath: '/account/',
-  }
-  const statusStorage = input.providers.storageModule
+  const { baseUrl, accountsPath, transactionPath, subintentPath } =
+    input.explorer ?? {
+      baseUrl: RadixNetworkConfigById[input.networkId].dashboardUrl,
+      transactionPath: '/transaction/',
+      subintentPath: '/subintent/',
+      accountsPath: '/account/',
+    }
 
   const stateModule = input.providers.stateModule
   const gatewayModule = input.providers.gatewayModule
@@ -88,7 +91,7 @@ export const ConnectButtonModule = (
 
   const subscriptions = new Subscription()
 
-  const onConnectButtonRender$ = fromEvent(window, 'onConnectButtonRender')
+  const onConnectButtonRender$ = fromEvent(input.providers.environmentModule.globalThis, 'onConnectButtonRender')
 
   subscriptions.add(
     onConnectButtonRender$
@@ -286,11 +289,15 @@ export const ConnectButtonModule = (
     subjects.onLinkClick
       .pipe(
         tap(({ type, data }) => {
-          if (['account', 'transaction'].includes(type)) {
+          if (['account', 'transaction', 'subintent'].includes(type)) {
             if (!baseUrl || !window) return
 
             const url = `${baseUrl}${
-              type === 'transaction' ? transactionPath : accountsPath
+              type === 'transaction'
+                ? transactionPath
+                : type === 'subintent'
+                  ? subintentPath
+                  : accountsPath
             }${data}`
 
             window.open(url)
@@ -314,7 +321,6 @@ export const ConnectButtonModule = (
     onCancelRequestItem$: subjects.onCancelRequestItem.asObservable(),
     onIgnoreTransactionItem$: subjects.onIgnoreTransactionItem.asObservable(),
     onLinkClick$: subjects.onLinkClick.asObservable(),
-    setStatus: (value: RadixButtonStatus) => subjects.status.next(value),
     setTheme: (value: RadixButtonTheme) => subjects.theme.next(value),
     setMode: (value: 'light' | 'dark') => subjects.mode.next(value),
     setActiveTab: (value: 'sharing' | 'requests') =>
@@ -385,12 +391,6 @@ export const ConnectButtonModule = (
     walletRequestModule.requestItems$
       .pipe(
         tap((items) => {
-          const hasPendingItem = items.find((item) => item.status === 'pending')
-
-          if (hasPendingItem) {
-            connectButtonApi.setStatus('pending')
-          }
-
           connectButtonApi.setRequestItems([...items].reverse())
         }),
       )
@@ -423,7 +423,11 @@ export const ConnectButtonModule = (
                 oneTime: false,
               }),
             )
-            .map(() => isMobile() && subjects.showPopoverMenu.next(false)),
+            .map(
+              () =>
+                input.providers.environmentModule.isMobile() &&
+                subjects.showPopoverMenu.next(false),
+            ),
         ),
       )
       .subscribe(),
@@ -448,42 +452,35 @@ export const ConnectButtonModule = (
       .subscribe(),
   )
 
+  const setPendingOrDefault = () =>
+    walletRequestModule
+      .getPendingRequests()
+      .andTee((items) =>
+        subjects.status.next(items.length ? 'pending' : 'default'),
+      )
+
   subscriptions.add(
-    statusStorage.storage$
+    walletRequestModule.interactionStatusChange$
       .pipe(
-        switchMap(() =>
-          statusStorage.getState().map((state) => {
-            if (state?.status) {
-              subjects.status.next(state.status)
-            }
-          }),
+        mergeMap((newStatus) =>
+          of(
+            subjects.status.next(
+              newStatus === 'success'
+                ? 'success'
+                : newStatus === 'fail'
+                  ? 'error'
+                  : 'pending',
+            ),
+          ).pipe(
+            delay(2000),
+            concatMap(() => setPendingOrDefault()),
+          ),
         ),
       )
       .subscribe(),
   )
 
-  subscriptions.add(
-    walletRequestModule.interactionStatusChange$
-      .pipe(
-        mergeMap((newStatus) => {
-          statusStorage.setState({
-            status: newStatus === 'success' ? 'success' : 'error',
-          })
-
-          return timer(2000).pipe(
-            tap(() => {
-              const result = walletRequestModule.getPendingRequests()
-              result.map((pendingItems) => {
-                statusStorage.setState({
-                  status: pendingItems.length ? 'pending' : 'default',
-                })
-              })
-            }),
-          )
-        }),
-      )
-      .subscribe(),
-  )
+  setPendingOrDefault()
 
   if (dAppDefinitionAddress) {
     gatewayModule.gatewayApi

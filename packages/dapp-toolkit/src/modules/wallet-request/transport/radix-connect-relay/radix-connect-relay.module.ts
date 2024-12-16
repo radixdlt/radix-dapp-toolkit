@@ -1,4 +1,4 @@
-import { ResultAsync, err, errAsync, ok, okAsync } from 'neverthrow'
+import { ResultAsync, errAsync } from 'neverthrow'
 import { Subscription } from 'rxjs'
 import { EncryptionModule, transformBufferToSealbox } from '../../encryption'
 import { Session, SessionModule } from '../../session/session.module'
@@ -7,11 +7,10 @@ import type {
   WalletInteraction,
   WalletInteractionResponse,
 } from '../../../../schemas'
-import { Logger, isMobile, parseJSON } from '../../../../helpers'
+import { Logger, parseJSON } from '../../../../helpers'
 import { SdkError } from '../../../../error'
 import { DeepLinkModule } from './deep-link.module'
 import { IdentityModule } from '../../identity/identity.module'
-import { RequestItemModule } from '../../request-items/request-item.module'
 import { StorageModule } from '../../../storage'
 import { Curve25519 } from '../../crypto'
 import {
@@ -20,6 +19,8 @@ import {
 } from './radix-connect-relay-api.service'
 import type { TransportProvider } from '../../../../_types'
 import { base64urlEncode } from './helpers/base64url'
+import type { RequestResolverModule } from '../../request-resolver/request-resolver.module'
+import { EnvironmentModule } from '../../../environment'
 
 export type RadixConnectRelayModule = ReturnType<typeof RadixConnectRelayModule>
 export const RadixConnectRelayModule = (input: {
@@ -28,8 +29,9 @@ export const RadixConnectRelayModule = (input: {
   walletUrl: string
   dAppDefinitionAddress: string
   providers: {
-    requestItemModule: RequestItemModule
     storageModule: StorageModule
+    requestResolverModule: RequestResolverModule
+    environmentModule: EnvironmentModule
     encryptionModule?: EncryptionModule
     identityModule?: IdentityModule
     sessionModule?: SessionModule
@@ -38,10 +40,7 @@ export const RadixConnectRelayModule = (input: {
 }): TransportProvider => {
   const logger = input.logger?.getSubLogger({ name: 'RadixConnectRelayModule' })
   const { baseUrl, providers, walletUrl } = input
-  const { requestItemModule, storageModule } = providers
-
-  const walletResponses: StorageModule<WalletInteractionResponse> =
-    storageModule.getPartition('walletResponses')
+  const { storageModule, requestResolverModule } = providers
 
   const encryptionModule = providers?.encryptionModule ?? EncryptionModule()
 
@@ -50,6 +49,9 @@ export const RadixConnectRelayModule = (input: {
     DeepLinkModule({
       logger,
       walletUrl,
+      providers: {
+        environmentModule: input.providers.environmentModule,
+      },
     })
 
   const identityModule =
@@ -102,37 +104,21 @@ export const RadixConnectRelayModule = (input: {
   }
 
   const checkRelayLoop = async () => {
-    await requestItemModule.getPending().andThen((pendingItems) => {
-      if (pendingItems.length === 0) {
-        return okAsync(undefined)
-      }
-
-      return sessionModule
+    await requestResolverModule.getPendingRequestIds().andThen(() =>
+      sessionModule
         .getCurrentSession()
-        .andThen((session) =>
-          radixConnectRelayApiService.getResponses(session.sessionId),
-        )
+        .map((session) => session.sessionId)
+        .andThen(radixConnectRelayApiService.getResponses)
         .andThen((responses) =>
-          ResultAsync.combine(
-            responses.map((response) => decryptWalletResponse(response)),
-          ).andThen((decryptedResponses) => {
-            return walletResponses.setItems(
-              decryptedResponses.reduce(
-                (acc, response) => {
-                  acc[response.interactionId] = response
-                  return acc
-                },
-                {} as Record<string, WalletInteractionResponse>,
-              ),
-            )
-          }),
+          ResultAsync.combine(responses.map(decryptWalletResponse)),
         )
-    })
+        .andThen(requestResolverModule.addWalletResponses),
+    )
     await wait()
     checkRelayLoop()
   }
 
-  if (isMobile()) {
+  if (input.providers.environmentModule.isMobile()) {
     checkRelayLoop()
   }
 
@@ -149,33 +135,24 @@ export const RadixConnectRelayModule = (input: {
     publicKey: string
     identity: string
   }) =>
-    requestItemModule
-      .getById(walletInteraction.interactionId)
-      .mapErr(() =>
-        SdkError('FailedToGetPendingItems', walletInteraction.interactionId),
-      )
-      .andThen((pendingItem) =>
-        pendingItem
-          ? ok(pendingItem)
-          : err(
-              SdkError('PendingItemNotFound', walletInteraction.interactionId),
-            ),
+    requestResolverModule
+      .getPendingRequestById(walletInteraction.interactionId)
+      .andThen(() =>
+        requestResolverModule.markRequestAsSent(
+          walletInteraction.interactionId,
+        ),
       )
       .andThen(() =>
-        requestItemModule
-          .patch(walletInteraction.interactionId, { sentToWallet: true })
-          .andThen(() =>
-            deepLinkModule.deepLinkToWallet({
-              sessionId: session.sessionId,
-              request: base64urlEncode(walletInteraction),
-              signature,
-              publicKey,
-              identity: identity,
-              origin: walletInteraction.metadata.origin,
-              dAppDefinitionAddress:
-                walletInteraction.metadata.dAppDefinitionAddress,
-            }),
-          ),
+        deepLinkModule.deepLinkToWallet({
+          sessionId: session.sessionId,
+          request: base64urlEncode(walletInteraction),
+          signature,
+          publicKey,
+          identity,
+          origin: walletInteraction.metadata.origin,
+          dAppDefinitionAddress:
+            walletInteraction.metadata.dAppDefinitionAddress,
+        }),
       )
       .mapErr(() =>
         SdkError('FailedToSendDappRequest', walletInteraction.interactionId),
@@ -217,7 +194,12 @@ export const RadixConnectRelayModule = (input: {
             publicKey: dAppIdentity.x25519.getPublicKey(),
           }),
         )
-        .andThen(() => waitForWalletResponse(walletInteraction.interactionId)),
+        .andThen(() =>
+          requestResolverModule.waitForWalletResponse(
+            walletInteraction.interactionId,
+          ),
+        )
+        .map((requestItem) => requestItem.walletResponse),
     )
 
   const decryptWalletResponseData = (
@@ -243,64 +225,9 @@ export const RadixConnectRelayModule = (input: {
         jsError: error,
       }))
 
-  const waitForWalletResponse = (
-    interactionId: string,
-  ): ResultAsync<WalletInteractionResponse, SdkError> =>
-    ResultAsync.fromPromise(
-      new Promise(async (resolve, reject) => {
-        let response: WalletInteractionResponse | undefined
-        let error: SdkError | undefined
-
-        logger?.debug({
-          method: 'waitForWalletResponse',
-          interactionId,
-        })
-
-        while (!response) {
-          const requestItemResult =
-            await requestItemModule.getById(interactionId)
-
-          if (requestItemResult.isOk()) {
-            logger?.trace({
-              method: 'waitForWalletResponse.requestItemResult',
-              requestItemResult: requestItemResult.value,
-            })
-            if (requestItemResult.value?.status !== 'pending') {
-              error = SdkError(
-                'RequestItemNotPending',
-                interactionId,
-                'request not in pending state',
-              )
-              break
-            }
-          }
-
-          const walletResponse =
-            await walletResponses.getItemById(interactionId)
-
-          if (walletResponse.isOk()) {
-            if (walletResponse.value) {
-              response = walletResponse.value
-              await walletResponses.removeItemById(interactionId)
-              await requestItemModule.patch(interactionId, {
-                walletResponse: walletResponse.value,
-              })
-            }
-          }
-
-          if (!response) {
-            await wait()
-          }
-        }
-
-        return response ? resolve(response) : reject(error)
-      }),
-      (err) => err as SdkError,
-    )
-
   return {
     id: 'radix-connect-relay' as const,
-    isSupported: () => isMobile(),
+    isSupported: () => input.providers.environmentModule.isMobile(),
     send: sendToWallet,
     disconnect: () => {},
     destroy: () => {
