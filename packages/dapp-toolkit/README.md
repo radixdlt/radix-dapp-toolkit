@@ -556,6 +556,7 @@ body {
   --radix-connect-button-border-color: yellow;
   --radix-connect-button-background-hover: green;
 }
+```
 ### Modes
 
 <div align="center">
