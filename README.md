@@ -42,10 +42,10 @@
 
 ## How to start?
 
-Install [Node.js] which includes [Node Package Manager][npm]. Use `create-radix-dapp` package - paste following command into your terminal and it will walk you through all required steps.
+Install [Node.js] which includes [Node Package Manager][npm]. Use `create-radix-app` package - paste following command into your terminal and it will walk you through all required steps.
 
 ```bash
-npx create-radix-dapp@latest
+npx create-radix-app@latest
 ```
 
 > [!IMPORTANT]

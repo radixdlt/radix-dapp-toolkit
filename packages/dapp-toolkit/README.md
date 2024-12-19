@@ -32,12 +32,12 @@ Add following code to head section of your page. See example usage inside `examp
 ></script>
 ```
 
-## Using `create-radix-dapp`
+## Using `create-radix-app`
 
-Use our [CLI tool](https://github.com/radixdlt/create-radix-dapp) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps.
+Use our [CLI tool](https://github.com/radixdlt/create-radix-app) to scaffold a new project. Just paste following command into your terminal and it will walk you through all required steps.
 
 ```bash
-npx create-radix-dapp@latest
+npx create-radix-app@latest
 ```
 
 # Usage
