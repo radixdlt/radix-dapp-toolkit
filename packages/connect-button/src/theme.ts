@@ -47,7 +47,7 @@ export const themeCSS = css`
   }
 
   :host([mode='light']) {
-    --radix-popover-background: color-mix(in srgb, #efefef 50%, transparent);
+    --radix-popover-background: #e4e4e4;
     --radix-popover-border-color: var(--color-grey-3);
     --radix-popover-text-color: var(--color-grey-1);
 
@@ -75,7 +75,7 @@ export const themeCSS = css`
 
     --radix-button-background: color-mix(
       in srgb,
-      var(--color-light) 80%,
+      var(--color-light) 70%,
       transparent
     );
     --radix-button-background-hover: var(--color-light);
@@ -93,7 +93,7 @@ export const themeCSS = css`
   }
 
   :host([mode='dark']) {
-    --radix-popover-background: color-mix(in srgb, #000000 50%, transparent);
+    --radix-popover-background: #5c5c5c; // Effective colour of background in designs without transparency
     --radix-popover-border-color: var(--color-dark);
     --radix-popover-text-color: var(--color-light);
 
@@ -103,11 +103,11 @@ export const themeCSS = css`
       transparent
     );
     --radix-popover-tabs-button-active-text-color: var(--color-light);
-    --radix-popover-tabs-button-active-background: #515151;
+    --radix-popover-tabs-button-active-background: #494949;
 
     --radix-link-color: var(--color-white);
 
-    --radix-card-background: #515151;
+    --radix-card-background: #494949;
     --radix-card-text-color: var(--color-light);
     --radix-card-text-dimmed-color: var(--color-grey-3);
     --radix-card-inverted-background: var(--color-grey-5);
