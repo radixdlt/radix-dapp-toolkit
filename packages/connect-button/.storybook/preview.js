@@ -59,6 +59,14 @@ export const parameters = {
           name: 'dark-grey',
           value: '#424245',
         },
+        {
+          name: 'black',
+          value: '#000000',
+        },
+        {
+          name: 'white',
+          value: '#ffffff',
+        },
       ],
     },
   },
