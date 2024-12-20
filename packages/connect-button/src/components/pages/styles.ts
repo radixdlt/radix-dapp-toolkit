@@ -17,11 +17,19 @@ export const pageStyles = css`
   }
 
   .content {
-    overflow: auto;
     width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin-bottom: 0;
     position: relative;
-    -webkit-mask-image: linear-gradient(180deg, black 90%, transparent 100%);
-    mask-image: linear-gradient(180deg, black 90%, transparent 95%);
+    min-height: 100px;
+    /* Ensure we can't see the mask when fully scrolled to the bottom */
+    padding-bottom: 10px;
+    mask-image: linear-gradient(0deg, transparent 0px, black 10px);
+
+    /* Given .content has overflow: scroll, I feel we shouldn't need
+     * a max-height to constrain the content, but it just doesn't work
+     * So we set it manually to be correct. */
+    max-height: min(calc(100vh - 270px), 360px);
   }
 `
