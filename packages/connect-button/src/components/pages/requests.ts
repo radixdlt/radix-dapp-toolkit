@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import '../card/request-card'
+import '../card/request-cards'
 import { RequestItem } from 'radix-connect-common'
 import { pageStyles } from './styles'
 import { formatTimestamp } from '../../helpers/format-timestamp'
@@ -30,17 +30,7 @@ export class RadixRequestsPage extends LitElement {
           </div>`
         : ''}
       <div class="content">
-        ${(this.requestItems || []).map(
-          (requestItem) =>
-            html`<radix-request-card
-              type="${requestItem.type}"
-              status="${requestItem.status}"
-              id="${requestItem.interactionId}"
-              hash="${requestItem.transactionIntentHash || ''}"
-              ?showCancel="${requestItem.showCancel}"
-              timestamp=${requestItem.createdAt}
-            ></radix-request-card>`,
-        )}
+        <radix-request-cards .requestItems=${this.requestItems}></radix-request-cards>
       </div>
     `
   }

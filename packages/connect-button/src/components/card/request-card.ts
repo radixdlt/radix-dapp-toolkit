@@ -259,7 +259,6 @@ export class RadixRequestCard extends LitElement {
       :host {
         display: flex;
         width: 100%;
-        margin-bottom: 10px;
       }
 
       .text-dimmed {
