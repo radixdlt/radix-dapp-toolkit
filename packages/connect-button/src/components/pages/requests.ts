@@ -45,17 +45,6 @@ export class RadixRequestsPage extends LitElement {
         text-align: center;
         font-size: 12px;
       }
-
-      .content {
-        padding-bottom: 25px;
-        max-height: calc(100vh - 270px);
-      }
-
-      @media (min-height: 580px) {
-        .content {
-          max-height: 360px;
-        }
-      }
     `,
   ]
 }
