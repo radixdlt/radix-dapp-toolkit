@@ -59,7 +59,7 @@ export class RadixSharingPage extends LitElement {
   }
 
   render() {
-    return html` <div class="header">Sharing with ${this.dAppName}</div>
+    return html` <div class="header">Sharing with ${this.dAppName || "dApp"}</div>
       <div class="content">
         <radix-persona-card
           avatarUrl=${this.avatarUrl}
