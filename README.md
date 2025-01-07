@@ -30,7 +30,7 @@
   <a href="https://www.npmjs.com/@radixdlt/radix-dapp-toolkit">
     <img src="https://img.shields.io/npm/v/@radixdlt/radix-dapp-toolkit.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen" alt="NPM version" />
   </a>
-  <a href="http://discord.gg/radixdlt">
+  <a href="https://go.radixdlt.com/Discord">
     <img src="https://img.shields.io/discord/417762285172555786.svg?logo=discord&logoColor=fff&label=Discord&color=7389d8" alt="Discord conversation" />
   </a>
   <a href="https://www.npmjs.com/@radixdlt/radix-dapp-toolkit">
