@@ -25,9 +25,8 @@ npm install @radixdlt/radix-dapp-toolkit
 Add following code to head section of your page. See example usage inside `examples/cdn/index.html`
 
 ```html
-<script
-  src="https://cdn.jsdelivr.net/npm/@radixdlt/radix-dapp-toolkit@2.2.0-dev.10/dist/radix-dapp-toolkit.bundle.umd.js"
-  integrity="sha256-JovDn3asdbgkH7NsCN9iebOTU6yxYCYUCO4Q2JffSF0="
+<script 
+  src="https://cdn.jsdelivr.net/npm/@radixdlt/radix-dapp-toolkit@2.2.0/dist/radix-dapp-toolkit.bundle.umd.js" integrity="sha256-tSXTAPiW9BIch47ApYf4liLCrlZLw6actQH6OTDP6hI="
   crossorigin="anonymous"
 ></script>
 ```
