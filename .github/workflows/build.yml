@@ -44,6 +44,8 @@ jobs:
           secret_prefix: 'SNYK'
           secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
           parse_json: true
+      - name: Create .snyk file
+        run: echo "${{ vars.DOT_SNYK_FILE }}" > .snyk
       - name: Run Snyk to check for deps vulnerabilities
         uses: RDXWorks-actions/snyk-actions/node@master
         with:
@@ -66,6 +68,8 @@ jobs:
           secret_prefix: 'SNYK'
           secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/snyk-credentials-rXRpuX'
           parse_json: true
+      - name: Create .snyk file
+        run: echo "${{ vars.DOT_SNYK_FILE }}" > .snyk
       - name: Run Snyk to check for code vulnerabilities
         uses: RDXWorks-actions/snyk-actions/node@master
         continue-on-error: true
