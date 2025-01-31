@@ -1,1 +1,1 @@
-import '@radixdlt/connect-button'
+import 'connect-button'
