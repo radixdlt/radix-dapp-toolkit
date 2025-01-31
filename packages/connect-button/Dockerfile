@@ -5,13 +5,18 @@ ARG BUILDKIT_SBOM_SCAN_STAGE=true
 
 WORKDIR /app
 
+# Enable pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 COPY . .
 
-RUN npm ci
+RUN npm install
 
 WORKDIR /app/packages/connect-button
 
-RUN NODE_OPTIONS=--max_old_space_size=4096 npm run build:storybook
+RUN NODE_OPTIONS=--max_old_space_size=4096 pnpm build:storybook
 
 FROM nginx:alpine AS storybook
 ARG BUILDKIT_SBOM_SCAN_STAGE=true

@@ -1,0 +1,15 @@
+packages:
+  - 'examples/*'
+  - 'packages/*'
+
+catalog:
+  'lit': '^3.1.2'
+  'lit-html': '^3.1.2'
+  'neverthrow': '^8.0.0'
+  'rxjs': '^7.8.1'
+  'tslog': '>=4.8.0'
+  'valibot': '0.42.1'
+  '@noble/curves': '^1.4.0'
+  '@noble/hashes': '^1.7.1'
+  'vite': '^6.0.11'
+  'vitest': '^2.1.3'
