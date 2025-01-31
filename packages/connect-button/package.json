@@ -1,5 +1,5 @@
 {
-  "name": "@radixdlt/connect-button",
+  "name": "connect-button",
   "description": "Radix Connect button repository",
   "version": "0.0.0",
   "homepage": "https://developers.radixdlt.com",
@@ -23,6 +23,11 @@
   "main": "./dist/connect-button.js",
   "module": "./dist/connect-button.js",
   "types": "./types/index.d.ts",
+  "private": true,
+  "privatePackages": {
+    "tag": false,
+    "version": false
+  },
   "exports": {
     ".": {
       "import": {

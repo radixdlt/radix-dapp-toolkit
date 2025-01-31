@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "homepage": "https://developers.radixdlt.com",
   "type": "module",
+  "private": false,
   "keywords": [
     "radix",
     "dapp",
@@ -75,7 +76,7 @@
     "valibot": "catalog:"
   },
   "devDependencies": {
-    "@radixdlt/connect-button": "workspace:*",
+    "connect-button": "workspace:*",
     "@saithodev/semantic-release-backmerge": "^3.2.1",
     "@semantic-release/exec": "^6.0.3",
     "@types/uuid": "^10.0.0",
