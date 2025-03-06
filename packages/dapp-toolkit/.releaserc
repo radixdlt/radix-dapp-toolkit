@@ -167,10 +167,16 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "rm -rf dist && npm run build"
+        "prepareCmd": "rm -rf dist && pnpm build"
       }
     ],
-    "@semantic-release/npm",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "pnpm version ${nextRelease.version} --git-tag-version=false && cd ../..",
+        "publishCmd": "pnpm -r publish --no-git-checks"
+      }
+    ],
     "@semantic-release/github",
     [
       "@saithodev/semantic-release-backmerge",

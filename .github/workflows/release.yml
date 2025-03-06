@@ -19,10 +19,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: RDXWorks-actions/setup-node@main
-        with:
-          node-version: '20.x'
+      - name: Use pnpm
+        uses: RDXWorks-actions/action-setup@master
 
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
@@ -35,12 +33,12 @@ jobs:
 
       - name: Authenticate with private NPM package
         run: echo "//registry.npmjs.org/:_authToken=${{ env.GH_NPMJS_TOKEN }}" > ~/.npmrc
-      
+
       - name: Install dependencies
-        run: npm ci
-      
+        run: pnpm install
+
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Release
         env:
@@ -48,7 +46,7 @@ jobs:
           NPM_TOKEN: ${{ env.GH_NPMJS_TOKEN }}
         run: |
           cd packages/dapp-toolkit
-          npx semantic-release | tee out
+          pnpm dlx semantic-release | tee out
           echo "RELEASE_VERSION=$(grep 'Created tag ' out | awk -F 'Created tag ' '{print $2}')" >> $GITHUB_ENV
 
       # Snyk SBOM

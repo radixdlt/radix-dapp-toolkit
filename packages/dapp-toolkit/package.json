@@ -1,7 +1,7 @@
 {
   "name": "@radixdlt/radix-dapp-toolkit",
   "description": "Radix dApp Toolkit repository",
-  "version": "0.0.0",
+  "version": "2.2.1-dev.2",
   "homepage": "https://developers.radixdlt.com",
   "type": "module",
   "keywords": [
@@ -54,37 +54,44 @@
   ],
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup && npm run build:single",
+    "build": "tsup && pnpm build:single",
     "build:single": "vite build --config vite-single-file.config.ts && cp dist/radix-dapp-toolkit.bundle.umd.js ../../examples/cdn",
     "test": "vitest run --coverage",
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@noble/curves": "^1.4.0",
+    "@noble/curves": "catalog:",
+    "@noble/hashes": "catalog:",
     "base64url": "^3.0.1",
     "blakejs": "^1.2.1",
     "buffer": "^6.0.3",
     "immer": "^10.0.4",
-    "lit": "^3.1.2",
-    "lit-html": "^3.1.2",
-    "neverthrow": "^8.0.0",
-    "rxjs": "^7.8.1",
-    "tslog": ">=4.8.0",
+    "lit": "catalog:",
+    "lit-html": "catalog:",
+    "neverthrow": "catalog:",
+    "rxjs": "catalog:",
+    "tslog": "catalog:",
     "uuid": "^10.0.0",
-    "valibot": "0.42.1"
+    "valibot": "catalog:"
   },
   "devDependencies": {
-    "@radixdlt/connect-button": "*",
+    "@radixdlt/connect-button": "workspace:*",
     "@saithodev/semantic-release-backmerge": "^3.2.1",
+    "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^6.0.3",
+    "@types/uuid": "^10.0.0",
     "@vitest/coverage-v8": "^2.1.3",
-    "radix-connect-common": "*",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "jsdom": "^26.0.0",
+    "radix-connect-common": "workspace:*",
     "semantic-release": "^23.0.0",
+    "semantic-release-pnpm": "^1.0.2",
     "semantic-release-replace-plugin": "^1.2.7",
     "tsup": "^8.3.0",
     "typescript": "^5.4.4",
+    "vite": "catalog:",
     "vite-plugin-singlefile": "^2.0.2",
-    "vitest": "^2.1.3"
+    "vitest": "catalog:"
   },
   "repository": {
     "type": "git",
