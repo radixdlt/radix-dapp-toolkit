@@ -1,5 +1,5 @@
 {
-  "name": "@radixdlt/connect-button",
+  "name": "connect-button",
   "description": "Radix Connect button repository",
   "version": "0.0.0",
   "homepage": "https://developers.radixdlt.com",
@@ -23,6 +23,11 @@
   "main": "./dist/connect-button.js",
   "module": "./dist/connect-button.js",
   "types": "./types/index.d.ts",
+  "private": true,
+  "privatePackages": {
+    "tag": false,
+    "version": false
+  },
   "exports": {
     ".": {
       "import": {
@@ -41,20 +46,21 @@
     "types"
   ],
   "scripts": {
-    "dev": "npm run build -- --watch",
+    "dev": "pnpm build -- --watch",
     "build": "tsc && vite build",
     "dev:example": "vite serve examples",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build",
     "prettier": "prettier --cache --check src",
-    "pre-push": "npm run prettier && npm run build && npm run build:storybook"
+    "pre-push": "pnpm run prettier && pnpm build && pnpm build:storybook"
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "lit": "3.1.2",
-    "radix-connect-common": "*"
+    "lit": "catalog:",
+    "lit-html": "catalog:",
+    "radix-connect-common": "workspace:*"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",
@@ -75,7 +81,7 @@
     "storybook": "^7.0.24",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
-    "vite": "^4.3.9"
+    "vite": "catalog:"
   },
   "repository": {
     "type": "git",

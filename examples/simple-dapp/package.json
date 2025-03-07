@@ -1,6 +1,5 @@
 {
   "name": "simple-dapp",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -11,12 +10,17 @@
   },
   "dependencies": {
     "@radixdlt/babylon-gateway-api-sdk": "^1.4.1",
-    "@radixdlt/radix-dapp-toolkit": "*"
+    "@radixdlt/radix-dapp-toolkit": "workspace:*"
   },
   "devDependencies": {
     "sst": "^2.41.3",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-ngrok": "^1.0.0"
+  },
+  "private": true,
+  "privatePackages": {
+    "tag": false,
+    "version": false
   }
 }

@@ -14,7 +14,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import { ConnectButton } from '@radixdlt/connect-button'
+import { ConnectButton } from 'connect-button'
 import type {
   Account,
   RadixButtonTheme,
@@ -59,7 +59,7 @@ export const ConnectButtonModule = (
     return ConnectButtonNoopModule()
   }
 
-  import('@radixdlt/connect-button')
+  import('connect-button')
   const logger = input?.logger?.getSubLogger({ name: 'ConnectButtonModule' })
   const subjects =
     input.subjects ||
@@ -91,7 +91,10 @@ export const ConnectButtonModule = (
 
   const subscriptions = new Subscription()
 
-  const onConnectButtonRender$ = fromEvent(input.providers.environmentModule.globalThis, 'onConnectButtonRender')
+  const onConnectButtonRender$ = fromEvent(
+    input.providers.environmentModule.globalThis,
+    'onConnectButtonRender',
+  )
 
   subscriptions.add(
     onConnectButtonRender$

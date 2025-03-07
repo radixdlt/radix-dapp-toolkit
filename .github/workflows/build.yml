@@ -114,10 +114,8 @@ jobs:
     steps:
       - uses: RDXWorks-actions/checkout@main
 
-      - name: Use Node.js
-        uses: RDXWorks-actions/setup-node@main
-        with:
-          node-version: '20.x'
+      - name: Use pnpm
+        uses: RDXWorks-actions/action-setup@master
 
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
@@ -132,13 +130,13 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ env.GH_NPMJS_TOKEN }}" > ~/.npmrc
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Run tests
-        run: npm run test
+        run: pnpm test
 
       - uses: radixdlt/public-iac-resuable-artifacts/fetch-secrets@main
         with:
@@ -148,7 +146,7 @@ jobs:
           secret_prefix: 'GH'
           secret_name: 'arn:aws:secretsmanager:eu-west-2:${{ secrets.SECRETS_ACCOUNT_ID }}:secret:github-actions/common/sonar-token-CgrUGD'
           parse_json: true
-      
+
       - name: SonarCloud Scan
         uses: RDXWorks-actions/sonarcloud-github-action@master
         with:
