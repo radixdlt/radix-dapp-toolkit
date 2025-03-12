@@ -75,8 +75,6 @@ export class RadixPopover extends LitElement {
         justify-content: center;
         align-items: flex-start;
         background: var(--radix-popover-background);
-        backdrop-filter: blur(30px);
-        -webkit-backdrop-filter: blur(30px);
         box-sizing: border-box;
         max-height: 100vh;
         border-radius: 12px;

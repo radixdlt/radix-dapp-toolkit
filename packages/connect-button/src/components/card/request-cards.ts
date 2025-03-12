@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit'
+import { css, html, LitElement } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import { themeCSS } from '../../theme'
 import '../card/request-card'
@@ -16,13 +16,23 @@ export class RadixRequestCards extends LitElement {
           type="${requestItem.type}"
           status="${requestItem.status}"
           id="${requestItem.interactionId}"
+          hash="${requestItem.transactionIntentHash || ''}"
           ?showCancel="${requestItem.showCancel}"
           timestamp=${requestItem.createdAt}
         ></radix-request-card>`,
     )
   }
 
-  static styles = [themeCSS]
+  static styles = [
+    themeCSS,
+    css`
+      :host {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+    `,
+  ]
 }
 
 declare global {

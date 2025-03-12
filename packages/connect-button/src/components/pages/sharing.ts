@@ -59,7 +59,7 @@ export class RadixSharingPage extends LitElement {
   }
 
   render() {
-    return html` <div class="header">Sharing with ${this.dAppName}</div>
+    return html` <div class="header">Sharing with ${this.dAppName || "dApp"}</div>
       <div class="content">
         <radix-persona-card
           avatarUrl=${this.avatarUrl}
@@ -121,11 +121,6 @@ export class RadixSharingPage extends LitElement {
       .icon.disabled::before {
         background: var(--radix-button-disabled-text-color);
       }
-      .content {
-        max-height: 193px;
-        overflow-x: hidden;
-        padding-bottom: 19px;
-      }
       .buttons {
         display: grid;
         bottom: 0;
@@ -133,7 +128,7 @@ export class RadixSharingPage extends LitElement {
         grid-template-columns: 1fr 115px;
         grid-gap: 10px;
         width: 100%;
-        padding-top: 5px;
+        padding-top: 10px;
         align-items: end;
       }
 

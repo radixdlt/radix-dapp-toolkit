@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import '../card/request-card'
+import '../card/request-cards'
 import { RequestItem } from 'radix-connect-common'
 import { pageStyles } from './styles'
 import { formatTimestamp } from '../../helpers/format-timestamp'
@@ -22,7 +22,7 @@ export class RadixRequestsPage extends LitElement {
 
   render() {
     return html`
-      <div class="header">Connected to ${this.dAppName}</div>
+      <div class="header">Connected to ${this.dAppName || "dApp"}</div>
       <slot name="subheader"></slot>
       ${this.loggedInTimestamp
         ? html`<div class="subheader">
@@ -30,17 +30,7 @@ export class RadixRequestsPage extends LitElement {
           </div>`
         : ''}
       <div class="content">
-        ${(this.requestItems || []).map(
-          (requestItem) =>
-            html`<radix-request-card
-              type="${requestItem.type}"
-              status="${requestItem.status}"
-              id="${requestItem.interactionId}"
-              hash="${requestItem.transactionIntentHash || ''}"
-              ?showCancel="${requestItem.showCancel}"
-              timestamp=${requestItem.createdAt}
-            ></radix-request-card>`,
-        )}
+        <radix-request-cards .requestItems=${this.requestItems}></radix-request-cards>
       </div>
     `
   }
@@ -54,17 +44,6 @@ export class RadixRequestsPage extends LitElement {
         margin-bottom: 15px;
         text-align: center;
         font-size: 12px;
-      }
-
-      .content {
-        padding-bottom: 25px;
-        max-height: calc(100vh - 270px);
-      }
-
-      @media (min-height: 580px) {
-        .content {
-          max-height: 360px;
-        }
       }
     `,
   ]
