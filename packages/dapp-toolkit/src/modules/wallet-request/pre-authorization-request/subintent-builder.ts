@@ -1,4 +1,7 @@
-import { SubintentRequestItem } from '../../../schemas'
+import {
+  SubintentHeaderInput,
+  SubintentRequestItem,
+} from '../../../schemas'
 
 export type BuildableSubintentRequest = {
   toRequestItem: () => SubintentRequestItem
@@ -84,6 +87,17 @@ export const SubintentRequestBuilder = () => {
   }
 
   /**
+   * Sets the subintent transaction header fields (epoch bounds, timestamps, discriminator).
+   *
+   * @param value - The subintent header to be set.
+   * @returns The API object for chaining.
+   */
+  const header = (value: SubintentHeaderInput) => {
+    state.header = value as SubintentRequestItem['header']
+    return api
+  }
+
+  /**
    * Sets the transaction manifest in the state and returns the API object.
    *
    * @param value - The transaction manifest to be set.
@@ -91,7 +105,13 @@ export const SubintentRequestBuilder = () => {
    */
   const manifest = (value: string) => {
     state.subintentManifest = value
-    return { setExpiration }
+    return {
+      setExpiration,
+      header: (value: SubintentHeaderInput) => {
+        state.header = value as SubintentRequestItem['header']
+        return { setExpiration }
+      },
+    }
   }
 
   /**
@@ -117,6 +137,7 @@ export const SubintentRequestBuilder = () => {
   const api = {
     addBlobs,
     message,
+    header,
     toRequestItem,
     onSubmittedSuccess,
     getOnSubmittedSuccessFn: () => onSubmittedSuccessFn,
