@@ -1,5 +1,5 @@
 import {
-  SubintentHeaderInput,
+  SubintentHeader,
   SubintentRequestItem,
 } from '../../../schemas'
 
@@ -92,8 +92,8 @@ export const SubintentRequestBuilder = () => {
    * @param value - The subintent header to be set.
    * @returns The API object for chaining.
    */
-  const header = (value: SubintentHeaderInput) => {
-    state.header = value as SubintentRequestItem['header']
+  const header = (value: SubintentHeader) => {
+    state.header = value
     return api
   }
 
@@ -107,8 +107,8 @@ export const SubintentRequestBuilder = () => {
     state.subintentManifest = value
     return {
       setExpiration,
-      header: (value: SubintentHeaderInput) => {
-        state.header = value as SubintentRequestItem['header']
+      header: (value: SubintentHeader) => {
+        state.header = value
         return { setExpiration }
       },
     }

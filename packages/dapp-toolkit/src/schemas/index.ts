@@ -257,15 +257,13 @@ export const ExpireAfterDelay = object({
 
 export type SubintentHeader = InferOutput<typeof SubintentHeader>
 export const SubintentHeader = object({
-  networkId: number(),
+  networkId: optional(number()),
   startEpochInclusive: number(),
   endEpochExclusive: number(),
   minProposerTimestampInclusive: optional(number()),
   maxProposerTimestampExclusive: optional(number()),
   intentDiscriminator: number(),
 })
-
-export type SubintentHeaderInput = Omit<SubintentHeader, 'networkId'>
 
 export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
 export const SubintentRequestItem = object({
