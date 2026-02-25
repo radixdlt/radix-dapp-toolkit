@@ -517,6 +517,36 @@ Creation of preauthorization request object is abstracted away into `SubintentRe
   )
 ```
 
+### Subintent Header
+
+You can optionally set a `SubintentHeader` on a preauthorization request to control epoch bounds, proposer timestamp bounds, and an intent discriminator.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `startEpochInclusive` | `number` | Start epoch (inclusive) |
+| `endEpochExclusive` | `number` | End epoch (exclusive) |
+| `minProposerTimestampInclusive` | `number?` | Min proposer timestamp (inclusive, optional) |
+| `maxProposerTimestampExclusive` | `number?` | Max proposer timestamp (exclusive, optional) |
+| `intentDiscriminator` | `number` | Intent discriminator |
+
+The `.header()` method is chainable and can be called before or after `.manifest()`.
+
+**Example:**
+```typescript
+const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+  SubintentRequestBuilder()
+    .manifest(subintentManifest)
+    .header({
+      startEpochInclusive: 100,
+      endEpochExclusive: 200,
+      minProposerTimestampInclusive: 1000,
+      maxProposerTimestampExclusive: 2000,
+      intentDiscriminator: 42,
+    })
+    .setExpiration('afterDelay', 3600)
+)
+```
+
 # √ Connect Button
 
 Radix dApp Toolkit provides a consistent and delightful user experience between radix dApps thanks to `<radix-connect-button />` [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements). Although complex by itself, RDT is off-loading the developer burden of having to handle the logic of all its internal states.
