@@ -42,5 +42,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd packages/dapp-toolkit
-          env -u NODE_AUTH_TOKEN -u NPM_CONFIG_USERCONFIG npx semantic-release | tee out
+          npx semantic-release | tee out
           echo "RELEASE_VERSION=$(grep 'Created tag ' out | awk -F 'Created tag ' '{print $2}')" >> $GITHUB_ENV
