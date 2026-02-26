@@ -498,9 +498,11 @@ const transactionIntentHash = result.value.transactionIntentHash
 
 It is very similar to a transaction request, but it describes only a part of a final transaction – specifically the part that the user cares about, such as a swap they wish to perform within certain acceptable bounds. The pre-authorization is signed and returned to the dApp, which can then include it in a full transaction. A time bound is put on the pre-authorization, so the user knows for how long their pre-authorization is usable.
 
-Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set exipration date in two modes:
+Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set expiration in two modes:
 - delay in **seconds after preauthorization is signed** by using `.setExpiration('afterDelay', 3600)`
 - provided **exact unix timestamp** to function call `.setExpiration('atTime', 1234567890)`
+
+Expiration is optional when a `SubintentHeader` is provided, since the header already contains epoch and timestamp constraints.
 
 **Example:**
 ```typescript
@@ -529,9 +531,9 @@ You can optionally set a `SubintentHeader` on a preauthorization request to cont
 | `maxProposerTimestampExclusive` | `number?` | Max proposer timestamp (exclusive, optional) |
 | `intentDiscriminator` | `number` | Intent discriminator |
 
-The `.header()` method is chainable and can be called before or after `.manifest()`.
+When a header is provided, `.setExpiration()` is optional. The `.header()` method returns the full builder API, so you can chain `.toRequestItem()`, `.addBlobs()`, `.message()`, or `.setExpiration()` after it.
 
-**Example:**
+**Example (header only, no expiration):**
 ```typescript
 const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
   SubintentRequestBuilder()
@@ -539,8 +541,19 @@ const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
     .header({
       startEpochInclusive: 100,
       endEpochExclusive: 200,
-      minProposerTimestampInclusive: 1000,
-      maxProposerTimestampExclusive: 2000,
+      intentDiscriminator: 42,
+    })
+)
+```
+
+**Example (header with expiration):**
+```typescript
+const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+  SubintentRequestBuilder()
+    .manifest(subintentManifest)
+    .header({
+      startEpochInclusive: 100,
+      endEpochExclusive: 200,
       intentDiscriminator: 42,
     })
     .setExpiration('afterDelay', 3600)

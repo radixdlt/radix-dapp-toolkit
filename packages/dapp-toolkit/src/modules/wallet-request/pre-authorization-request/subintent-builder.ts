@@ -109,7 +109,7 @@ export const SubintentRequestBuilder = () => {
       setExpiration,
       header: (value: SubintentHeader) => {
         state.header = value
-        return { setExpiration }
+        return api
       },
     }
   }
@@ -135,6 +135,7 @@ export const SubintentRequestBuilder = () => {
   }
 
   const api = {
+    setExpiration,
     addBlobs,
     message,
     header,

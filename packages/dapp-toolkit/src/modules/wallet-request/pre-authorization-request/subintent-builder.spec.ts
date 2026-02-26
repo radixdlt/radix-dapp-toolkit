@@ -103,6 +103,33 @@ describe('SubintentRequestBuilder', () => {
     })
   })
 
+  it('should build a subintent request with a header and no expiration', () => {
+    const tx = SubintentRequestBuilder()
+      .manifest('...')
+      .header({
+        startEpochInclusive: 100,
+        endEpochExclusive: 200,
+        minProposerTimestampInclusive: 1000,
+        maxProposerTimestampExclusive: 2000,
+        intentDiscriminator: 42,
+      })
+      .toRequestItem()
+
+    expect(tx).toEqual({
+      discriminator: 'subintent',
+      version: 1,
+      manifestVersion: 2,
+      subintentManifest: '...',
+      header: {
+        startEpochInclusive: 100,
+        endEpochExclusive: 200,
+        minProposerTimestampInclusive: 1000,
+        maxProposerTimestampExclusive: 2000,
+        intentDiscriminator: 42,
+      },
+    })
+  })
+
   it('should build a subintent request with a header via rawConfig', () => {
     const tx = SubintentRequestBuilder()
       .rawConfig({

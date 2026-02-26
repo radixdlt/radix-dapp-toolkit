@@ -205,37 +205,35 @@ subintentButton.onclick = async () => {
   console.log(subintentManifest.value)
   console.log(subintentExpirationValue.value)
 
-  const config: Record<string, unknown> = {
-    version: 1,
-    manifestVersion: 2,
-    subintentManifest: subintentManifest.value,
-  }
+  let builder = SubintentRequestBuilder().manifest(subintentManifest.value)
 
-  if (headerEnabled.checked) {
-    config.header = {
+  let request = expirationEnabled.checked
+    ? builder.setExpiration(
+        subintentExpiration as 'atTime' | 'afterDelay',
+        parseInt(subintentExpirationValue.value),
+      )
+    : headerEnabled.checked
+      ? builder.header({
+          startEpochInclusive: parseInt(headerStartEpoch.value),
+          endEpochExclusive: parseInt(headerEndEpoch.value),
+          minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
+          maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
+          intentDiscriminator: parseInt(headerDiscriminator.value),
+        })
+      : builder.setExpiration('afterDelay', 60)
+
+  if (expirationEnabled.checked && headerEnabled.checked) {
+    request = request.header({
       startEpochInclusive: parseInt(headerStartEpoch.value),
       endEpochExclusive: parseInt(headerEndEpoch.value),
       minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
       maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
       intentDiscriminator: parseInt(headerDiscriminator.value),
-    }
-  }
-
-  if (expirationEnabled.checked) {
-    config.expiration =
-      subintentExpiration === 'atTime'
-        ? {
-            discriminator: 'expireAtTime',
-            unixTimestampSeconds: parseInt(subintentExpirationValue.value),
-          }
-        : {
-            discriminator: 'expireAfterDelay',
-            expireAfterSeconds: parseInt(subintentExpirationValue.value),
-          }
+    })
   }
 
   const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
-    SubintentRequestBuilder().rawConfig(config as any),
+    request,
   )
 
   console.log('result', result.isOk() && result.value)
