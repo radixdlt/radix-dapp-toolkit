@@ -205,32 +205,26 @@ subintentButton.onclick = async () => {
   console.log(subintentManifest.value)
   console.log(subintentExpirationValue.value)
 
-  let builder = SubintentRequestBuilder().manifest(subintentManifest.value)
+  const afterManifest = SubintentRequestBuilder().manifest(
+    subintentManifest.value,
+  )
 
-  let request = expirationEnabled.checked
-    ? builder.setExpiration(
+  const afterHeader = headerEnabled.checked
+    ? afterManifest.header({
+        startEpochInclusive: parseInt(headerStartEpoch.value),
+        endEpochExclusive: parseInt(headerEndEpoch.value),
+        minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
+        maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
+        intentDiscriminator: parseInt(headerDiscriminator.value),
+      })
+    : afterManifest
+
+  const request = expirationEnabled.checked
+    ? afterHeader.setExpiration(
         subintentExpiration as 'atTime' | 'afterDelay',
         parseInt(subintentExpirationValue.value),
       )
-    : headerEnabled.checked
-      ? builder.header({
-          startEpochInclusive: parseInt(headerStartEpoch.value),
-          endEpochExclusive: parseInt(headerEndEpoch.value),
-          minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
-          maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
-          intentDiscriminator: parseInt(headerDiscriminator.value),
-        })
-      : builder.setExpiration('afterDelay', 60)
-
-  if (expirationEnabled.checked && headerEnabled.checked) {
-    request = request.header({
-      startEpochInclusive: parseInt(headerStartEpoch.value),
-      endEpochExclusive: parseInt(headerEndEpoch.value),
-      minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
-      maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
-      intentDiscriminator: parseInt(headerDiscriminator.value),
-    })
-  }
+    : afterHeader.setExpiration('afterDelay', 60)
 
   const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
     request,

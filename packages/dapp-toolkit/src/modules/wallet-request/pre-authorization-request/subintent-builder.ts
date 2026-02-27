@@ -94,7 +94,7 @@ export const SubintentRequestBuilder = () => {
    */
   const header = (value: SubintentHeader) => {
     state.header = value
-    return api
+    return { setExpiration }
   }
 
   /**
@@ -109,7 +109,7 @@ export const SubintentRequestBuilder = () => {
       setExpiration,
       header: (value: SubintentHeader) => {
         state.header = value
-        return api
+        return { setExpiration }
       },
     }
   }

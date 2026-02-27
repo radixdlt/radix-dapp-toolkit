@@ -103,7 +103,7 @@ describe('SubintentRequestBuilder', () => {
     })
   })
 
-  it('should build a subintent request with a header and no expiration', () => {
+  it('should build a subintent request with a header (expiration required)', () => {
     const tx = SubintentRequestBuilder()
       .manifest('...')
       .header({
@@ -113,6 +113,7 @@ describe('SubintentRequestBuilder', () => {
         maxProposerTimestampExclusive: 2000,
         intentDiscriminator: 42,
       })
+      .setExpiration('atTime', 9999)
       .toRequestItem()
 
     expect(tx).toEqual({
@@ -120,6 +121,10 @@ describe('SubintentRequestBuilder', () => {
       version: 1,
       manifestVersion: 2,
       subintentManifest: '...',
+      expiration: {
+        discriminator: 'expireAtTime',
+        unixTimestampSeconds: 9999,
+      },
       header: {
         startEpochInclusive: 100,
         endEpochExclusive: 200,

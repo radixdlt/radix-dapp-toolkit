@@ -502,8 +502,6 @@ Creation of preauthorization request object is abstracted away into `SubintentRe
 - delay in **seconds after preauthorization is signed** by using `.setExpiration('afterDelay', 3600)`
 - provided **exact unix timestamp** to function call `.setExpiration('atTime', 1234567890)`
 
-Expiration is optional when a `SubintentHeader` is provided, since the header already contains epoch and timestamp constraints.
-
 **Example:**
 ```typescript
  const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
@@ -531,20 +529,7 @@ You can optionally set a `SubintentHeader` on a preauthorization request to cont
 | `maxProposerTimestampExclusive` | `number?` | Max proposer timestamp (exclusive, optional) |
 | `intentDiscriminator` | `number` | Intent discriminator |
 
-When a header is provided, `.setExpiration()` is optional. The `.header()` method returns the full builder API, so you can chain `.toRequestItem()`, `.addBlobs()`, `.message()`, or `.setExpiration()` after it.
-
-**Example (header only, no expiration):**
-```typescript
-const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
-  SubintentRequestBuilder()
-    .manifest(subintentManifest)
-    .header({
-      startEpochInclusive: 100,
-      endEpochExclusive: 200,
-      intentDiscriminator: 42,
-    })
-)
-```
+After calling `.header()`, you must call `.setExpiration()` before accessing `.toRequestItem()`.
 
 **Example (header with expiration):**
 ```typescript

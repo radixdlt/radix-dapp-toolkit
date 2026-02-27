@@ -279,7 +279,7 @@ export const SubintentRequestItem = object({
   subintentManifest: string(),
   blobs: optional(array(string())),
   message: optional(string()),
-  expiration: optional(union([ExpireAtTime, ExpireAfterDelay])),
+  expiration: union([ExpireAtTime, ExpireAfterDelay]),
   header: optional(SubintentHeader),
 })
 
