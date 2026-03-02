@@ -11,8 +11,7 @@
   },
   "dependencies": {
     "@radixdlt/babylon-gateway-api-sdk": "^1.4.1",
-    "@radixdlt/radix-dapp-toolkit": "*",
-    "vercel": "^50.17.1"
+    "@radixdlt/radix-dapp-toolkit": "*"
   },
   "devDependencies": {
     "sst": "^2.41.3",

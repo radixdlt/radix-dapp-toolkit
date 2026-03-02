@@ -13,7 +13,7 @@ import {
 } from '@radixdlt/radix-dapp-toolkit'
 
 const dAppDefinitionAddress =
-  'account_tdx_2_12yf9gd53yfep7a669fv2t3wm7nz9zeezwd04n02a433ker8vza6rhe'
+  import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
 const networkId = RadixNetwork.Stokenet
 const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
@@ -211,19 +211,19 @@ subintentButton.onclick = async () => {
 
   const afterHeader = headerEnabled.checked
     ? afterManifest.header({
-        startEpochInclusive: parseInt(headerStartEpoch.value),
-        endEpochExclusive: parseInt(headerEndEpoch.value),
-        minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
-        maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
-        intentDiscriminator: parseInt(headerDiscriminator.value),
-      })
+      startEpochInclusive: parseInt(headerStartEpoch.value),
+      endEpochExclusive: parseInt(headerEndEpoch.value),
+      minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
+      maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
+      intentDiscriminator: parseInt(headerDiscriminator.value),
+    })
     : afterManifest
 
   const request = expirationEnabled.checked
     ? afterHeader.setExpiration(
-        subintentExpiration as 'atTime' | 'afterDelay',
-        parseInt(subintentExpirationValue.value),
-      )
+      subintentExpiration as 'atTime' | 'afterDelay',
+      parseInt(subintentExpirationValue.value),
+    )
     : afterHeader.setExpiration('afterDelay', 60)
 
   const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(

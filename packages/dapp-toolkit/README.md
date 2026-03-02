@@ -529,7 +529,7 @@ You can optionally set a `SubintentHeader` on a preauthorization request to cont
 | `maxProposerTimestampExclusive` | `number?` | Max proposer timestamp (exclusive, optional) |
 | `intentDiscriminator` | `number` | Intent discriminator |
 
-After calling `.header()`, you must call `.setExpiration()` before accessing `.toRequestItem()`.
+After calling `.header()`, you must call `.setExpiration()``.
 
 **Example (header with expiration):**
 ```typescript
