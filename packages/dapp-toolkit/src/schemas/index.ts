@@ -255,6 +255,16 @@ export const ExpireAfterDelay = object({
   expireAfterSeconds: number(),
 })
 
+export type SubintentHeader = InferOutput<typeof SubintentHeader>
+export const SubintentHeader = object({
+  networkId: optional(number()),
+  startEpochInclusive: number(),
+  endEpochExclusive: number(),
+  minProposerTimestampInclusive: optional(number()),
+  maxProposerTimestampExclusive: optional(number()),
+  intentDiscriminator: number(),
+})
+
 export type SubintentRequestItem = InferOutput<typeof SubintentRequestItem>
 export const SubintentRequestItem = object({
   discriminator: literal('subintent'),
@@ -270,6 +280,7 @@ export const SubintentRequestItem = object({
   blobs: optional(array(string())),
   message: optional(string()),
   expiration: union([ExpireAtTime, ExpireAfterDelay]),
+  header: optional(SubintentHeader),
 })
 
 export type SubintentResponseItem = InferOutput<typeof SubintentResponseItem>

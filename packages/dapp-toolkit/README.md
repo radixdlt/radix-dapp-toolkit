@@ -498,7 +498,7 @@ const transactionIntentHash = result.value.transactionIntentHash
 
 It is very similar to a transaction request, but it describes only a part of a final transaction – specifically the part that the user cares about, such as a swap they wish to perform within certain acceptable bounds. The pre-authorization is signed and returned to the dApp, which can then include it in a full transaction. A time bound is put on the pre-authorization, so the user knows for how long their pre-authorization is usable.
 
-Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set exipration date in two modes:
+Creation of preauthorization request object is abstracted away into `SubintentRequestBuilder`. You can set expiration in two modes:
 - delay in **seconds after preauthorization is signed** by using `.setExpiration('afterDelay', 3600)`
 - provided **exact unix timestamp** to function call `.setExpiration('atTime', 1234567890)`
 
@@ -515,6 +515,34 @@ Creation of preauthorization request object is abstracted away into `SubintentRe
       .message('This is a message')
       .onSubmittedSuccess((transactionIntentHash) => console.log('Submitted successfully', transactionIntentHash))
   )
+```
+
+### Subintent Header
+
+You can optionally set a `SubintentHeader` on a preauthorization request to control epoch bounds, proposer timestamp bounds, and an intent discriminator.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `startEpochInclusive` | `number` | Start epoch (inclusive) |
+| `endEpochExclusive` | `number` | End epoch (exclusive) |
+| `minProposerTimestampInclusive` | `number?` | Min proposer timestamp (inclusive, optional) |
+| `maxProposerTimestampExclusive` | `number?` | Max proposer timestamp (exclusive, optional) |
+| `intentDiscriminator` | `number` | Intent discriminator |
+
+After calling `.header()`, you must call `.setExpiration()``.
+
+**Example (header with expiration):**
+```typescript
+const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
+  SubintentRequestBuilder()
+    .manifest(subintentManifest)
+    .header({
+      startEpochInclusive: 100,
+      endEpochExclusive: 200,
+      intentDiscriminator: 42,
+    })
+    .setExpiration('afterDelay', 3600)
+)
 ```
 
 # √ Connect Button

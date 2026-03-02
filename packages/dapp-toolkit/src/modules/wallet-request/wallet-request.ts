@@ -335,9 +335,13 @@ export const WalletRequestModule = (input: {
   const sendPreAuthorizationRequest = (
     value: SendPreAuthorizationRequestInput,
   ): ResultAsync<SubintentResponseItem, SdkError> => {
+    const requestItem = value.toRequestItem()
+    if (requestItem.header) {
+      requestItem.header.networkId = networkId
+    }
     const walletInteraction = walletRequestSdk.createWalletInteraction({
       discriminator: 'preAuthorizationRequest',
-      request: value.toRequestItem(),
+      request: requestItem,
     })
 
     return addNewRequest(

@@ -6,6 +6,7 @@ import {
   CallbackFns,
   Persona,
   PersonaDataName,
+  SubintentResponseItem,
   WalletInteraction,
   WalletInteractionResponse,
 } from './schemas'
@@ -139,7 +140,7 @@ export type WalletApi = {
   sendTransaction: (input: SendTransactionInput) => SendTransactionResult
   sendPreAuthorizationRequest: (
     input: SendPreAuthorizationRequestInput,
-  ) => ResultAsync<{ signedPartialTransaction: string }, SdkError>
+  ) => ResultAsync<SubintentResponseItem, SdkError>
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult
   sendOneTimeRequest: (

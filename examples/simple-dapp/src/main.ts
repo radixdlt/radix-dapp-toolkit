@@ -12,7 +12,8 @@ import {
   SubintentRequestBuilder,
 } from '@radixdlt/radix-dapp-toolkit'
 
-const dAppDefinitionAddress = import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
+const dAppDefinitionAddress =
+  import.meta.env.VITE_DAPP_DEFINITION_ADDRESS
 const networkId = RadixNetwork.Stokenet
 const storageModule = LocalStorageModule(
   `rdt:${dAppDefinitionAddress}:${networkId}`,
@@ -96,15 +97,29 @@ CALL_METHOD
 YIELD_TO_PARENT;</textarea>
 
   <div class="mt-25">
+    <label><input id="headerEnabled" type="checkbox" checked/> Include header</label>
+  </div>
+  <div id="headerFields" class="mt-25" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 500px;">
+    <label>startEpochInclusive<br/><input id="headerStartEpoch" type="number"/></label>
+    <label>endEpochExclusive<br/><input id="headerEndEpoch" type="number"/></label>
+    <label>minProposerTimestampInclusive<br/><input id="headerMinTimestamp" type="number"/></label>
+    <label>maxProposerTimestampExclusive<br/><input id="headerMaxTimestamp" type="number"/></label>
+    <label>intentDiscriminator<br/><input id="headerDiscriminator" type="number"/></label>
+  </div>
+
+  <div class="mt-25">
+    <label><input id="expirationEnabled" type="checkbox" checked/> Include expiration</label>
+  </div>
+  <div id="expirationFields" class="mt-25">
     <label>
       <input checked type="radio" name="option" value="secondsAfterSignature"> afterDelay
     </label>
     <label>
       <input type="radio" name="option" value="atTime"> atTime
     </label>
+    <br/>
+    <input id="subintentExpirationValue" type="text" value="3600"/>
   </div>
-
-   <input id="subintentExpirationValue" type="text" value="3600"/>
     
     <button id="subintent">Send Pre Authorization</button>
   <hr/>
@@ -129,6 +144,15 @@ const subintentManifest = document.getElementById(
 const subintentExpirationValue = document.getElementById(
   'subintentExpirationValue',
 )! as HTMLInputElement
+const headerEnabled = document.getElementById('headerEnabled')! as HTMLInputElement
+const headerFields = document.getElementById('headerFields')!
+const headerStartEpoch = document.getElementById('headerStartEpoch')! as HTMLInputElement
+const headerEndEpoch = document.getElementById('headerEndEpoch')! as HTMLInputElement
+const headerMinTimestamp = document.getElementById('headerMinTimestamp')! as HTMLInputElement
+const headerMaxTimestamp = document.getElementById('headerMaxTimestamp')! as HTMLInputElement
+const headerDiscriminator = document.getElementById('headerDiscriminator')! as HTMLInputElement
+const expirationEnabled = document.getElementById('expirationEnabled')! as HTMLInputElement
+const expirationFields = document.getElementById('expirationFields')!
 const requests = document.getElementById('requests')!
 const logs = document.getElementById('logs')!
 const state = document.getElementById('state')!
@@ -140,6 +164,13 @@ const proofOfOwnershipRequest = document.getElementById(
 )!
 
 let subintentExpiration: 'afterDelay' | 'atTime' = 'afterDelay'
+
+headerEnabled.onchange = () => {
+  headerFields.style.display = headerEnabled.checked ? 'grid' : 'none'
+}
+expirationEnabled.onchange = () => {
+  expirationFields.style.display = expirationEnabled.checked ? '' : 'none'
+}
 
 document.querySelectorAll('input[name="option"]').forEach((radio) => {
   radio.addEventListener('change', () => {
@@ -173,13 +204,30 @@ removeCb.onclick = () => {
 subintentButton.onclick = async () => {
   console.log(subintentManifest.value)
   console.log(subintentExpirationValue.value)
+
+  const afterManifest = SubintentRequestBuilder().manifest(
+    subintentManifest.value,
+  )
+
+  const afterHeader = headerEnabled.checked
+    ? afterManifest.header({
+      startEpochInclusive: parseInt(headerStartEpoch.value),
+      endEpochExclusive: parseInt(headerEndEpoch.value),
+      minProposerTimestampInclusive: parseInt(headerMinTimestamp.value),
+      maxProposerTimestampExclusive: parseInt(headerMaxTimestamp.value),
+      intentDiscriminator: parseInt(headerDiscriminator.value),
+    })
+    : afterManifest
+
+  const request = expirationEnabled.checked
+    ? afterHeader.setExpiration(
+      subintentExpiration as 'atTime' | 'afterDelay',
+      parseInt(subintentExpirationValue.value),
+    )
+    : afterHeader.setExpiration('afterDelay', 60)
+
   const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
-    SubintentRequestBuilder()
-      .manifest(subintentManifest.value)
-      .setExpiration(
-        subintentExpiration,
-        parseInt(subintentExpirationValue.value as string),
-      ),
+    request,
   )
 
   console.log('result', result.isOk() && result.value)
@@ -199,6 +247,17 @@ const dAppToolkit = RadixDappToolkit({
 const gatewayApi = GatewayApiClient.initialize(
   dAppToolkit.gatewayApi.clientConfig,
 )
+
+const getCurrentEpoch = gatewayApi.status.getCurrent().then(result => result.ledger_state.epoch)
+
+getCurrentEpoch.then((epoch) => {
+  headerStartEpoch.value = String(epoch)
+  headerEndEpoch.value = String(epoch + 10)
+  const nowUnixSeconds = Math.floor(Date.now() / 1000)
+  headerMinTimestamp.value = String(nowUnixSeconds)
+  headerMaxTimestamp.value = String(nowUnixSeconds + 600)
+  headerDiscriminator.value = String(Math.floor(Math.random() * 2 ** 32))
+})
 
 dAppToolkit.walletApi.provideChallengeGenerator(async () =>
   generateRolaChallenge(),
