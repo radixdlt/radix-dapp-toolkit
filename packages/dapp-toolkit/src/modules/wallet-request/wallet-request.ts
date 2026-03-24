@@ -29,6 +29,7 @@ import { StorageModule } from '../storage'
 import type { StateModule, WalletData } from '../state'
 import {
   AwaitedWalletDataRequestResult,
+  RadixConnectRelayConfig,
   SendPreAuthorizationRequestInput,
   SendTransactionInput,
   TransportProvider,
@@ -54,6 +55,7 @@ export const WalletRequestModule = (input: {
   origin?: string
   networkId: number
   useCache: boolean
+  radixConnectRelay: RadixConnectRelayConfig
   requestInterceptor?: (input: WalletInteraction) => Promise<WalletInteraction>
   dAppDefinitionAddress: string
   providers: {
@@ -155,8 +157,8 @@ export const WalletRequestModule = (input: {
     }),
     RadixConnectRelayModule({
       logger,
-      walletUrl: 'radixWallet://connect',
-      baseUrl: 'https://radix-connect-relay.radixdlt.com',
+      walletUrl: input.radixConnectRelay.walletUrl,
+      baseUrl: input.radixConnectRelay.baseUrl,
       dAppDefinitionAddress: input.dAppDefinitionAddress,
       providers: {
         storageModule,
@@ -173,6 +175,7 @@ export const WalletRequestModule = (input: {
       networkId,
       origin: input.origin,
       dAppDefinitionAddress,
+      relayUrl: input.radixConnectRelay.baseUrl,
       requestInterceptor: input.requestInterceptor,
       providers: {
         transports,
