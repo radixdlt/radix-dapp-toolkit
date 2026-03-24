@@ -312,6 +312,7 @@ export const Metadata = object({
   networkId: number(),
   dAppDefinitionAddress: string(),
   origin: string(),
+  relayUrl: string(),
 })
 
 export type WalletInteraction = InferOutput<typeof WalletInteraction>

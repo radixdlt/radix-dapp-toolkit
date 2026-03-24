@@ -17,6 +17,7 @@ import { EnvironmentModule } from '../environment'
 export type WalletRequestSdkInput = {
   networkId: number
   dAppDefinitionAddress: string
+  relayUrl: string
   logger?: Logger
   origin?: string
   requestInterceptor?: (
@@ -38,6 +39,7 @@ export const WalletRequestSdk = (input: WalletRequestSdkInput) => {
     origin:
       input.origin ||
       input.providers.environmentModule.globalThis?.location?.origin || '',
+    relayUrl: input.relayUrl,
   } as Metadata
 
   const interactionIdFactory = input.providers.interactionIdFactory ?? uuidV4

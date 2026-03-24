@@ -46,6 +46,11 @@ export const RadixDappToolkit = (
     useCache = true,
   } = options || {}
 
+  const radixConnectRelay = {
+    baseUrl: options.radixConnectRelay?.baseUrl ?? 'https://radix-connect-relay.radixdlt.com',
+    walletUrl: options.radixConnectRelay?.walletUrl ?? 'radixWallet://connect',
+  }
+
   const environmentModule = providers?.environmentModule ?? EnvironmentModule()
 
   const storageModule =
@@ -85,6 +90,7 @@ export const RadixDappToolkit = (
       useCache,
       networkId,
       dAppDefinitionAddress,
+      radixConnectRelay,
       requestInterceptor: options.requestInterceptor,
       providers: {
         stateModule,

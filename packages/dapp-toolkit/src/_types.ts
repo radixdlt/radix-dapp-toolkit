@@ -53,6 +53,11 @@ export type WalletRequest =
   | { type: 'sendTransaction'; payload: WalletInteraction }
   | { type: 'dataRequest'; payload: WalletInteraction }
 
+export type RadixConnectRelayConfig = {
+  baseUrl: string
+  walletUrl: string
+}
+
 export type OptionalRadixDappToolkitOptions = {
   logger: Logger
   onDisconnect: () => void
@@ -64,6 +69,7 @@ export type OptionalRadixDappToolkitOptions = {
   providers: Partial<Providers>
   requestInterceptor: (input: WalletInteraction) => Promise<WalletInteraction>
   featureFlags: string[]
+  radixConnectRelay: RadixConnectRelayConfig
 }
 
 type RequiredRadixDappToolkitOptions = {

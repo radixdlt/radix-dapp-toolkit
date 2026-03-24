@@ -88,6 +88,10 @@ describe('WalletRequestModule', () => {
         useCache: false,
         networkId: RadixNetwork.Stokenet,
         dAppDefinitionAddress: '',
+        radixConnectRelay: {
+          baseUrl: 'https://radix-connect-relay.radixdlt.com',
+          walletUrl: 'radixWallet://connect',
+        },
         providers: {
           environmentModule: EnvironmentModule(),
           stateModule: {} as any,
@@ -182,6 +186,10 @@ describe('WalletRequestModule', () => {
         useCache: false,
         networkId: RadixNetwork.Stokenet,
         dAppDefinitionAddress: '',
+        radixConnectRelay: {
+          baseUrl: 'https://radix-connect-relay.radixdlt.com',
+          walletUrl: 'radixWallet://connect',
+        },
         providers: {
           stateModule: {} as any,
           storageModule,
@@ -192,6 +200,7 @@ describe('WalletRequestModule', () => {
           walletRequestSdk: WalletRequestSdk({
             networkId: 2,
             dAppDefinitionAddress: '',
+            relayUrl: 'https://radix-connect-relay.radixdlt.com',
             providers: {
               environmentModule: EnvironmentModule(),
               interactionIdFactory: () => interactionId,
@@ -264,6 +273,10 @@ describe('WalletRequestModule', () => {
           useCache: false,
           networkId: RadixNetwork.Stokenet,
           dAppDefinitionAddress: '',
+          radixConnectRelay: {
+            baseUrl: 'https://radix-connect-relay.radixdlt.com',
+            walletUrl: 'radixWallet://connect',
+          },
           providers: {
             stateModule: {} as any,
             storageModule,
@@ -274,6 +287,7 @@ describe('WalletRequestModule', () => {
             walletRequestSdk: WalletRequestSdk({
               networkId: 2,
               dAppDefinitionAddress: '',
+              relayUrl: 'https://radix-connect-relay.radixdlt.com',
               providers: {
                 environmentModule: EnvironmentModule(),
                 interactionIdFactory: () => interactionId,
