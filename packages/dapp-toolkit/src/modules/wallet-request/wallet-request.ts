@@ -203,12 +203,13 @@ export const WalletRequestModule = (input: {
             }),
           ),
         )
+        // The wallet is told at once. Marking the stored item cancelled is `cancelRequest`'s
+        // job, and making this wait for it left the wallet untold whenever the item was gone
+        // first — as `disconnect` clears the items right after cancelling them.
         firstValueFrom(
           cancelRequestSubject.pipe(
             filter((requestItemId) => requestItemId === id),
-            switchMap(() =>
-              requestItemModule.cancel(id).andThen(() => cancelRequest()),
-            ),
+            switchMap(() => cancelRequest()),
           ),
         )
         firstValueFrom(
@@ -521,16 +522,25 @@ export const WalletRequestModule = (input: {
     challengeGeneratorFn = fn
   }
 
-  const disconnect = () => {
+  /**
+   * Cancels every pending request that can still be cancelled, as the connect button's cancel
+   * does: each is marked cancelled, the wallet is told, and the request ends with a
+   * `canceledByUser` error. A transaction the wallet already received cannot be taken back.
+   */
+  const cancelPendingRequests = () =>
     requestItemModule.getPending().map((items) => {
-      items.forEach((item) => {
-        if (item.showCancel) cancelRequestSubject.next(item.interactionId)
-      })
+      items
+        .filter((item) => item.showCancel)
+        .forEach((item) => cancelRequest(item.interactionId))
     })
 
+  const disconnect = () => {
     stateModule.reset()
-    requestItemModule.clear()
-    transports.forEach((transport) => transport?.disconnect())
+    // The pending requests are cancelled before their items are cleared.
+    cancelPendingRequests().then(() => {
+      requestItemModule.clear()
+      transports.forEach((transport) => transport?.disconnect())
+    })
   }
 
   const destroy = () => {
@@ -561,6 +571,7 @@ export const WalletRequestModule = (input: {
     sendTransaction,
     sendPreAuthorizationRequest,
     cancelRequest,
+    cancelPendingRequests,
     ignoreTransaction,
     requestItemModule,
     provideChallengeGenerator,

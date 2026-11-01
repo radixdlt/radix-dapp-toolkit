@@ -545,6 +545,23 @@ const result = await dAppToolkit.walletApi.sendPreAuthorizationRequest(
 )
 ```
 
+## Cancelling pending requests
+
+A dApp with its own interface, instead of the Connect Button, can offer its own cancel. `cancelPendingRequests` cancels every pending request that can still be cancelled, as the Connect Button's cancel does: the wallet is told, and each request ends with a `canceledByUser` error. The dApp stays connected.
+
+```typescript
+const result = await rdt.walletApi.sendTransaction({ transactionManifest })
+
+// Elsewhere, when the person presses your cancel button:
+rdt.walletApi.cancelPendingRequests()
+
+if (result.isErr() && result.error.error === 'canceledByUser') {
+  // cancelled on purpose: nothing to report
+}
+```
+
+A transaction or a preauthorization the wallet has already received cannot be taken back: the person rejects it in the wallet. `rdt.disconnect()` also cancels the pending requests, before it forgets them.
+
 # √ Connect Button
 
 Radix dApp Toolkit provides a consistent and delightful user experience between radix dApps thanks to `<radix-connect-button />` [custom element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements). Although complex by itself, RDT is off-loading the developer burden of having to handle the logic of all its internal states.
