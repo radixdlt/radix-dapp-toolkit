@@ -143,6 +143,12 @@ export type WalletApi = {
   ) => ResultAsync<SubintentResponseItem, SdkError>
   setRequestData: (...dataRequestBuilderItem: DataRequestBuilderItem[]) => void
   sendRequest: () => WalletDataRequestResult
+  /**
+   * Cancels every pending request that can still be cancelled — as the connect button's
+   * cancel does — without disconnecting: the wallet is told, and each request ends with a
+   * `canceledByUser` error. A transaction the wallet already received cannot be taken back.
+   */
+  cancelPendingRequests: () => ResultAsync<void, Error>
   sendOneTimeRequest: (
     ...oneTimeDataRequestBuilderItem: OneTimeDataRequestBuilderItem[]
   ) => WalletDataRequestResult

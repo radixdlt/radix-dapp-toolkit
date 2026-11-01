@@ -131,6 +131,7 @@ export const RadixDappToolkit = (
         walletRequestModule.sendPreAuthorizationRequest,
       sendTransaction: (input: SendTransactionInput) =>
         walletRequestModule.sendTransaction(input),
+      cancelPendingRequests: () => walletRequestModule.cancelPendingRequests(),
       walletData$: stateModule.walletData$,
       getWalletData: stateModule.getWalletData,
     } satisfies WalletApi,
